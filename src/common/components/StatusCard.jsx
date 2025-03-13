@@ -51,15 +51,9 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.primary.contrastText,
     mixBlendMode: 'difference',
   },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: theme.spacing(1, 1, 0, 2),
-  },
   content: {
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
+    paddingTop: theme.spacing(0.5),
+    paddingBottom: theme.spacing(0.5),
     maxHeight: theme.dimensions.cardContentMaxHeight,
     overflow: 'auto',
   },
@@ -79,9 +73,17 @@ const useStyles = makeStyles((theme) => ({
   },
   cell: {
     borderBottom: 'none',
+    padding: theme.spacing(0.5, 0),
   },
   actions: {
     justifyContent: 'space-between',
+    padding: theme.spacing(0.5, 1),
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing(0.5, 1, 0, 2),
   },
   root: ({ desktopPadding }) => ({
     pointerEvents: 'none',

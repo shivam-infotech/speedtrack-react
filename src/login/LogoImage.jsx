@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme, useMediaQuery } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@mui/styles';
-import Logo from '../resources/images/logo.svg?react';
+import Logo from '../resources/images/speed-logo.svg?react';
 
 const useStyles = makeStyles((theme) => ({
   image: {

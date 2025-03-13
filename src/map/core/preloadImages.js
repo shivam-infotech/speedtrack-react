@@ -67,7 +67,11 @@ export const mapIconKey = (category) => {
 export const mapImages = {};
 
 const mapPalette = createPalette({
-  neutral: { main: grey[500] },
+  neutral: { main: '#0098af' },
+  success: { main: '#00C853' },
+  error: { main: '#FF4444' },
+  warning: { main: '#FFBB33' },
+  info: { main: '#33B5E5' },
 });
 
 export default async () => {
@@ -76,10 +80,11 @@ export default async () => {
   mapImages.direction = await prepareIcon(await loadImage(directionSvg));
   await Promise.all(Object.keys(mapIcons).map(async (category) => {
     const results = [];
-    ['info', 'success', 'error', 'neutral'].forEach((color) => {
-      results.push(loadImage(mapIcons[category]).then((icon) => {
-        mapImages[`${category}-${color}`] = prepareIcon(background, icon, mapPalette[color].main);
-      }));
+    const svg = mapIcons[category];
+    ['info', 'success', 'error', 'neutral', 'warning'].forEach((color) => {
+      results.push(loadImage(svg, color).then((icon) => {
+        mapImages[`${category}-${color}`] = prepareIcon(icon, null, mapPalette[color].main);
+      }).catch(err => console.log(err, 'while loading image')));
     });
     await Promise.all(results);
   }));

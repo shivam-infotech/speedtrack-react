@@ -18,6 +18,8 @@ import MapGeocoder from '../map/geocoder/MapGeocoder';
 import MapScale from '../map/MapScale';
 import MapNotification from '../map/notification/MapNotification';
 import useFeatures from '../common/util/useFeatures';
+import MapRoutePath from './../map/MapRoutePath';
+import MapRoutePoints from './../map/MapRoutePoints';
 
 const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
   const theme = useTheme();
@@ -46,6 +48,8 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
           selectedPosition={selectedPosition}
           showStatus
         />
+        <MapRoutePath positions={filteredPositions} />
+        <MapRoutePoints positions={filteredPositions} />
         <MapDefaultCamera />
         <MapSelectedDevice />
         <PoiMap />

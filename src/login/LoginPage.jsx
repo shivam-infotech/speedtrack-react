@@ -166,6 +166,13 @@ const LoginPage = () => {
           autoFocus={!email}
           onChange={(e) => setEmail(e.target.value)}
           helperText={failed && 'Invalid username or password'}
+          variant="outlined"
+          fullWidth
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+            }
+          }}
         />
         <TextField
           required
@@ -177,6 +184,13 @@ const LoginPage = () => {
           autoComplete="current-password"
           autoFocus={!!email}
           onChange={(e) => setPassword(e.target.value)}
+          variant="outlined"
+          fullWidth
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+            }
+          }}
         />
         {codeEnabled && (
           <TextField
@@ -195,6 +209,15 @@ const LoginPage = () => {
           variant="contained"
           color="secondary"
           disabled={!email || !password || (codeEnabled && !code)}
+          fullWidth
+          sx={{
+            borderRadius: 2,
+            padding: '12px',
+            textTransform: 'none',
+            fontWeight: 600,
+            fontSize: '1rem',
+            marginTop: 1
+          }}
         >
           {t('loginLogin')}
         </Button>

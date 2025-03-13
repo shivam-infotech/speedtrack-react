@@ -8,6 +8,7 @@ import { mapIconKey } from './core/preloadImages';
 import { useAttributePreference } from '../common/util/preferences';
 import { useCatchCallback } from '../reactHelper';
 import { findFonts } from './core/mapUtil';
+import * as turf from '@turf/turf';
 
 const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField }) => {
   const id = useId();
@@ -80,6 +81,35 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
     });
   }, [clusters]);
 
+  const animateMarker = (source, start, end, duration) => {
+    const startPoint = turf.point(start);
+    const endPoint = turf.point(end);
+    const distance = turf.distance(startPoint, endPoint);
+    const bearing = turf.bearing(startPoint, endPoint);
+    const steps = duration / 100;
+
+    let step = 0;
+    const interval = setInterval(() => {
+      if (step >= steps) {
+        clearInterval(interval);
+        return;
+      }
+      const newPosition = turf.destination(startPoint, (distance / steps) * step, bearing);
+      map.getSource(source).setData({
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: newPosition.geometry.coordinates,
+          },
+          properties: createFeature(devices, positions[0], selectedPosition && selectedPosition.id),
+        }],
+      });
+      step++;
+    }, 100);
+  };
+
   useEffect(() => {
     map.addSource(id, {
       type: 'geojson',
@@ -108,16 +138,20 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'icon-image': '{category}-{color}',
           'icon-size': iconScale,
           'icon-allow-overlap': true,
+          'icon-rotate': ['get', 'rotation'],
+          'icon-rotation-alignment': 'map',
           'text-field': `{${titleField || 'name'}}`,
           'text-allow-overlap': true,
-          'text-anchor': 'bottom',
+          'text-anchor': 'center',
           'text-offset': [0, -2 * iconScale],
+          'icon-padding': 0,
           'text-font': findFonts(map),
           'text-size': 12,
         },
         paint: {
           'text-halo-color': 'white',
-          'text-halo-width': 1,
+          'text-halo-width': .3,
+          'icon-opacity': 1,
         },
       });
       map.addLayer({
@@ -135,6 +169,8 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'icon-allow-overlap': true,
           'icon-rotate': ['get', 'rotation'],
           'icon-rotation-alignment': 'map',
+          'icon-padding': 0,
+          'icon-anchor': 'center',
         },
       });
 
@@ -205,6 +241,12 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           })),
       });
     });
+
+    if (positions.length > 1) {
+      const start = [positions[0].longitude, positions[0].latitude];
+      const end = [positions[positions.length - 1].longitude, positions[positions.length - 1].latitude];
+      animateMarker(id, start, end, 1000); // 1000ms duration
+    }
   }, [mapCluster, clusters, onMarkerClick, onClusterClick, devices, positions, selectedPosition]);
 
   return null;
