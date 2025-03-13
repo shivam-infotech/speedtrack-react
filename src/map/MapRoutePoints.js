@@ -42,6 +42,7 @@ const MapRoutePoints = ({ positions, onClick }) => {
         'text-field': '▲',
         'text-allow-overlap': true,
         'text-rotate': ['get', 'rotation'],
+        "text-z-index": "1"
       },
     });
 

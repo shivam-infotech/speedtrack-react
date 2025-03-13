@@ -48,7 +48,7 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'fixTime':
       case 'deviceTime':
       case 'serverTime':
-        return formatTime(value, 'seconds');
+        return formatTime(value, 'time');
       case 'latitude':
         return formatCoordinate('latitude', value, coordinateFormat);
       case 'longitude':

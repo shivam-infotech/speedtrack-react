@@ -21,7 +21,7 @@ import useFeatures from '../common/util/useFeatures';
 import MapRoutePath from './../map/MapRoutePath';
 import MapRoutePoints from './../map/MapRoutePoints';
 
-const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
+const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -34,7 +34,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
   const onMarkerClick = useCallback((_, deviceId) => {
     dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
-
+  
   return (
     <>
       <MapView>
@@ -42,14 +42,23 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
         <MapGeofence />
         <MapAccuracy positions={filteredPositions} />
         <MapLiveRoutes />
-        <MapPositions
-          positions={filteredPositions}
-          onClick={onMarkerClick}
-          selectedPosition={selectedPosition}
-          showStatus
-        />
-        <MapRoutePath positions={filteredPositions} />
-        <MapRoutePoints positions={filteredPositions} />
+        {
+          filteredDevices.map((device, key) => {
+            return (
+              <>
+                <MapPositions
+                  key={device.id}
+                  positions={filteredPositions?.filter(p => p.deviceId === device.id)}
+                  onClick={onMarkerClick}
+                  selectedPosition={selectedPosition?.deviceId === device.id ? selectedPosition : null}
+                  showStatus
+                />
+                <MapRoutePath key={device.id} positions={filteredPositions?.filter(p => p.deviceId === device.id)} />
+                <MapRoutePoints key={device.id} positions={filteredPositions?.filter(p => p.deviceId === device.id)} />
+              </>
+            );
+          })
+        }
         <MapDefaultCamera />
         <MapSelectedDevice />
         <PoiMap />

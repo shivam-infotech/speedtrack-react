@@ -15,6 +15,8 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
   const clusters = `${id}-clusters`;
   const selected = `${id}-selected`;
 
+  console.log('component id:', id);
+
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
   const iconScale = useAttributePreference('iconScale', desktop ? 0.75 : 1);
@@ -142,9 +144,9 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'icon-rotation-alignment': 'map',
           'text-field': `{${titleField || 'name'}}`,
           'text-allow-overlap': true,
-          'text-anchor': 'center',
+          'text-anchor': 'bottom',
           'text-offset': [0, -2 * iconScale],
-          'icon-padding': 0,
+          'icon-padding': 4,
           'text-font': findFonts(map),
           'text-size': 12,
         },

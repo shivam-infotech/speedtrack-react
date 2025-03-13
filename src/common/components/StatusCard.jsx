@@ -18,6 +18,7 @@ import {
   TableFooter,
   Link,
   Tooltip,
+  Box
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CloseIcon from '@mui/icons-material/Close';
@@ -102,22 +103,37 @@ const useStyles = makeStyles((theme) => ({
   }),
 }));
 
-const StatusRow = ({ name, content }) => {
+const StatusRow = ({ name, content, fullColumn = false }) => {
   const classes = useStyles();
 
   return (
-    <TableRow>
-      <TableCell className={classes.cell}>
-        <Typography variant="body2">{name}</Typography>
-      </TableCell>
-      <TableCell className={classes.cell}>
-        <Typography variant="body2" color="textSecondary">{content}</Typography>
-      </TableCell>
-    </TableRow>
+    <Box 
+      sx={{ 
+        display: 'block', 
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        mb: 1,
+        minWidth: '60px',
+        mr: 2, 
+        mb: 1,
+        minWidth: '60px',
+        ...(fullColumn ? {flex: 1} : {}),
+      }}
+    >
+      <Typography variant="caption" color="textSecondary">
+        {name}
+      </Typography>
+      <Typography variant="subtitle2">
+        {content}
+      </Typography>
+    </Box>
   );
 };
 
 const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPadding = 0 }) => {
+  const keepInFullSpaceColumns = ['address'];
   const classes = useStyles({ desktopPadding });
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -132,7 +148,7 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
   const deviceImage = device?.attributes?.deviceImage;
 
   const positionAttributes = usePositionAttributes(t);
-  const positionItems = useAttributePreference('positionItems', 'fixTime,address,speed,totalDistance');
+  const positionItems = useAttributePreference('positionItems', 'fixTime,speed,totalDistance,address');
 
   const navigationAppLink = useAttributePreference('navigationAppLink');
   const navigationAppTitle = useAttributePreference('navigationAppTitle');
@@ -216,33 +232,26 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
               )}
               {position && (
                 <CardContent className={classes.content}>
-                  <Table size="small" classes={{ root: classes.table }}>
-                    <TableBody>
-                      {positionItems.split(',').filter((key) => position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)).map((key) => (
-                        <StatusRow
-                          key={key}
-                          name={positionAttributes[key]?.name || key}
-                          content={(
-                            <PositionValue
-                              position={position}
-                              property={position.hasOwnProperty(key) ? key : null}
-                              attribute={position.hasOwnProperty(key) ? null : key}
-                            />
-                          )}
-                        />
-                      ))}
-
-                    </TableBody>
-                    <TableFooter>
-                      <TableRow>
-                        <TableCell colSpan={2} className={classes.cell}>
-                          <Typography variant="body2">
-                            <Link component={RouterLink} to={`/position/${position.id}`}>{t('sharedShowDetails')}</Link>
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    </TableFooter>
-                  </Table>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                    {positionItems.split(',').filter((key) => position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)).map((key) => (
+                      <StatusRow
+                        key={key}
+                        name={positionAttributes[key]?.name || key}
+                        fullColumn={keepInFullSpaceColumns.includes(key)}
+                        content={(
+                          <PositionValue
+                            position={position}
+                            property={position.hasOwnProperty(key) ? key : null}
+                            attribute={position.hasOwnProperty(key) ? null : key}
+                            
+                          />
+                        )}
+                      />
+                    ))}
+                  </Box>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    <Link component={RouterLink} to={`/position/${position.id}`}>{t('sharedShowDetails')}</Link>
+                  </Typography>
                 </CardContent>
               )}
               <CardActions classes={{ root: classes.actions }} disableSpacing>

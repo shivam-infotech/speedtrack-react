@@ -43,7 +43,6 @@ const updateReadyValue = (value) => {
 
 const initMap = async () => {
   if (ready) return;
-  console.log(map);
   if (!map.hasImage('background')) {
     Object.entries(mapImages).forEach(([key, value]) => {
       map.addImage(key, value, {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from '@mui/material';
+import { CircularProgress, Typography } from '@mui/material';
 import { useTranslation } from './LocalizationProvider';
 import { useCatch } from '../../reactHelper';
 
@@ -10,27 +10,45 @@ const AddressValue = ({ latitude, longitude, originalAddress }) => {
   const addressEnabled = useSelector((state) => state.session.server.geocoderEnabled);
 
   const [address, setAddress] = useState();
+  const [loading, setLoading] = useState(false);
+
+  const fetchAddress = useCatch(async () => {
+    if (addressEnabled && latitude && longitude) {
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({ latitude, longitude });
+        const response = await fetch(`/api/server/geocode?${query.toString()}`);
+        if (response.ok) {
+          setAddress(await response.text());
+        } else {
+          throw Error(await response.text());
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
 
   useEffect(() => {
     setAddress(originalAddress);
-  }, [latitude, longitude, originalAddress]);
-
-  const showAddress = useCatch(async () => {
-    const query = new URLSearchParams({ latitude, longitude });
-    const response = await fetch(`/api/server/geocode?${query.toString()}`);
-    if (response.ok) {
-      setAddress(await response.text());
-    } else {
-      throw Error(await response.text());
+    if (!originalAddress && addressEnabled) {
+      fetchAddress();
     }
-  });
+  }, [latitude, longitude, originalAddress, addressEnabled]);
+
+  if (loading) {
+    return (
+      <Typography component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+        <CircularProgress size={16} sx={{ mr: 1 }} />
+        {t('sharedLoading')}
+      </Typography>
+    );
+  }
 
   if (address) {
     return address;
   }
-  if (addressEnabled) {
-    return (<Link href="#" onClick={showAddress}>{t('sharedShowAddress')}</Link>);
-  }
+
   return '';
 };
 
