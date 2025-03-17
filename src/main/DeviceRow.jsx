@@ -3,6 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import makeStyles from '@mui/styles/makeStyles';
 import {
   IconButton, Tooltip, Avatar, ListItemAvatar, ListItemText, ListItemButton,
+  useTheme,
+  Typography,
+  Box,
 } from '@mui/material';
 import BatteryFullIcon from '@mui/icons-material/BatteryFull';
 import BatteryChargingFullIcon from '@mui/icons-material/BatteryChargingFull';
@@ -15,13 +18,15 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { devicesActions } from '../store';
 import {
-  formatAlarm, formatBoolean, formatPercentage, formatStatus, getStatusColor,
+  formatAlarm, formatBoolean, formatPercentage, formatStatus, getDeviceStatusColor, getStatusColor,
+  TimeDiffInHumanReadableFormat,
 } from '../common/util/formatter';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import { mapIconKey, mapIcons } from '../map/core/preloadImages';
 import { useAdministrator } from '../common/util/permissions';
 import EngineIcon from '../resources/images/data/engine.svg?react';
 import { useAttributePreference } from '../common/util/preferences';
+import AddressValue from '../common/components/AddressValue';
 
 dayjs.extend(relativeTime);
 
@@ -50,10 +55,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
+
 const DeviceRow = ({ data, index, style }) => {
+  const theme = useTheme();
   const classes = useStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
+  const selectedDeviceId = useSelector((state) => state.devices.selectedId);
 
   const admin = useAdministrator();
 
@@ -78,22 +87,36 @@ const DeviceRow = ({ data, index, style }) => {
     );
   };
 
+  const formattedLastUpdate = () => {
+    if (item.lastUpdate) {
+      return TimeDiffInHumanReadableFormat(item.lastUpdate);
+    }
+    return '';
+  };
+
   return (
-    <div style={style}>
+    <div style={{...style, ...(selectedDeviceId === item.id ? {backgroundColor: '#f0f0f0'} : {})}}>
       <ListItemButton
         key={item.id}
         onClick={() => dispatch(devicesActions.selectId(item.id))}
         disabled={!admin && item.disabled}
       >
         <ListItemAvatar>
-          <Avatar>
+          <Avatar sx={{ backgroundColor: theme.palette[getDeviceStatusColor(position)]?.main || theme.palette.error?.main }}>
             <img className={classes.icon} src={mapIcons[mapIconKey(item.category)]} alt="" />
           </Avatar>
         </ListItemAvatar>
         <ListItemText
-          primary={item[devicePrimary]}
+          primary={<Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap' }}>
+            <Typography fontSize={'1rem'} noWrap>
+              {item[devicePrimary]}
+            </Typography>
+            <Typography fontSize={'0.7rem'} color="textSecondary" noWrap>
+              {formattedLastUpdate()}
+            </Typography>
+          </Box>}
           primaryTypographyProps={{ noWrap: true }}
-          secondary={secondaryText()}
+          secondary={<Typography fontSize={"0.7rem"} noWrap><AddressValue latitude={position?.latitude} longitude={position?.longitude} originalAddress={position?.address} /></Typography>}
           secondaryTypographyProps={{ noWrap: true }}
         />
         {position && (

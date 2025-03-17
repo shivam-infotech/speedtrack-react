@@ -4,7 +4,7 @@ import { CircularProgress, Typography } from '@mui/material';
 import { useTranslation } from './LocalizationProvider';
 import { useCatch } from '../../reactHelper';
 
-const AddressValue = ({ latitude, longitude, originalAddress }) => {
+const AddressValue = ({ latitude, longitude, originalAddress, noAutofetch = true }) => {
   const t = useTranslation();
 
   const addressEnabled = useSelector((state) => state.session.server.geocoderEnabled);
@@ -31,25 +31,16 @@ const AddressValue = ({ latitude, longitude, originalAddress }) => {
 
   useEffect(() => {
     setAddress(originalAddress);
-    if (!originalAddress && addressEnabled) {
+    if (!originalAddress && addressEnabled && !noAutofetch) {
       fetchAddress();
     }
   }, [latitude, longitude, originalAddress, addressEnabled]);
-
-  if (loading) {
-    return (
-      <Typography component="span" sx={{ display: 'flex', alignItems: 'center' }}>
-        <CircularProgress size={16} sx={{ mr: 1 }} />
-        {t('sharedLoading')}
-      </Typography>
-    );
-  }
 
   if (address) {
     return address;
   }
 
-  return '';
+  return '....';
 };
 
 export default AddressValue;

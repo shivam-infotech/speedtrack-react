@@ -2,7 +2,11 @@ import React, {
   useState, useEffect, useRef, useCallback,
 } from 'react';
 import {
+  Box,
   IconButton, Paper, Slider, Toolbar, Typography,
+  useTheme, Stack,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -26,6 +30,9 @@ import MapCamera from '../map/MapCamera';
 import MapGeofence from '../map/MapGeofence';
 import StatusCard from '../common/components/StatusCard';
 import MapScale from '../map/MapScale';
+import { calculateDistance, decimateCoordinates } from '../common/util/position';
+import { FilterAlt } from '@mui/icons-material';
+import MapStoppages from '../map/MapStoppages';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -81,6 +88,7 @@ const ReplayPage = () => {
   const classes = useStyles();
   const navigate = useNavigate();
   const timerRef = useRef();
+  const theme = useTheme();
 
   const defaultDeviceId = useSelector((state) => state.devices.selectedId);
 
@@ -93,6 +101,19 @@ const ReplayPage = () => {
   const [expanded, setExpanded] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [multiplier, setMultiplier] = useState(1);
+  const [stoppages, setStoppages] = useState([]);
+
+  const [multiplierAnchor, setMultiplierAnchor] = useState(null);
+  const multiplierMenuExpanded = Boolean(multiplierAnchor);
+
+  const openMultiplierMenu = (event) => {
+    setMultiplierAnchor(event.currentTarget);
+  }
+
+  const closeMultiplierMenu = () => {
+    setMultiplierAnchor(null);
+  }
 
   const deviceName = useSelector((state) => {
     if (selectedDeviceId) {
@@ -105,16 +126,17 @@ const ReplayPage = () => {
   });
 
   useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
     if (playing && positions.length > 0) {
       timerRef.current = setInterval(() => {
         setIndex((index) => index + 1);
-      }, 500);
+      }, 1000 / multiplier);
     } else {
       clearInterval(timerRef.current);
     }
 
     return () => clearInterval(timerRef.current);
-  }, [playing, positions]);
+  }, [playing, positions, multiplier]);
 
   useEffect(() => {
     if (index >= positions.length - 1) {
@@ -131,6 +153,28 @@ const ReplayPage = () => {
     setShowCard(!!positionId);
   }, [setShowCard]);
 
+  const findStoppages = (positions) => {
+    // check if the ignition is off then push it into stopages
+    let currentStoppage = [];
+    let startPosition = positions[0];
+    let endPosition = positions[positions.length - 1];
+    
+    const stoppages = [];
+    for (let i = 0; i < positions.length; i++) {
+      const position = positions[i];
+      if(calculateDistance(startPosition.latitude, startPosition.longitude, position.latitude, position.longitude) < 15 && calculateDistance(position.latitude, position.longitude, endPosition.latitude, endPosition.longitude) < 15) continue;
+      if (position.attributes.ignition === false) { currentStoppage.push(position); }
+      else if(position.attributes.ignition === true && currentStoppage.length > 0){
+        stoppages.push(currentStoppage);
+        currentStoppage = [];
+      }
+    }
+    if(currentStoppage.length > 0) {
+      stoppages.push(currentStoppage);
+    }
+    return stoppages;
+  };
+
   const handleSubmit = useCatch(async ({ deviceId, from, to }) => {
     setLoading(true);
     setSelectedDeviceId(deviceId);
@@ -141,10 +185,13 @@ const ReplayPage = () => {
       const response = await fetch(`/api/positions?${query.toString()}`);
       if (response.ok) {
         setIndex(0);
-        const positions = await response.json();
+        const rawPositions = await response.json();
+        const positions = decimateCoordinates(rawPositions, 10);
         setPositions(positions);
         if (positions.length) {
           setExpanded(false);
+          setShowCard(true);
+          setStoppages(findStoppages(rawPositions));
         } else {
           throw Error(t('sharedNoData'));
         }
@@ -168,8 +215,9 @@ const ReplayPage = () => {
         <MapRoutePath positions={positions} />
         <MapRoutePoints positions={positions} onClick={onPointClick} />
         {index < positions.length && (
-          <MapPositions positions={[positions[index]]} onClick={onMarkerClick} titleField="fixTime" />
+          <MapPositions positions={[positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
         )}
+        <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} />
       </MapView>
       <MapScale />
       <MapCamera positions={positions} />
@@ -195,17 +243,46 @@ const ReplayPage = () => {
         <Paper className={classes.content} square>
           {!expanded ? (
             <>
-              <Typography variant="subtitle1" align="center">{deviceName}</Typography>
-              <Slider
-                className={classes.slider}
-                max={positions.length - 1}
-                step={null}
-                marks={positions.map((_, index) => ({ value: index }))}
-                value={index}
-                onChange={(_, index) => setIndex(index)}
-              />
-              <div className={classes.controls}>
-                {`${index + 1}/${positions.length}`}
+              <Box sx={{ marginBottom: theme.spacing(2), display: 'flex', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="subtitle1">{deviceName}</Typography>
+                  <Typography variant="caption">{formatTime(positions[index].fixTime, 'seconds')}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: theme.spacing(1) }}>
+                  <div>
+                    <IconButton aria-haspopup="true" aria-controls='multiplier-menu' aria-expanded={multiplierMenuExpanded} onClick={openMultiplierMenu} size='small' >{multiplier}x</IconButton>
+                    <Menu
+                      id="multiplier-menu"
+                      anchorEl={multiplierAnchor}
+                      open={multiplierMenuExpanded}
+                      onClose={closeMultiplierMenu}
+                      MenuListProps={{
+                        'aria-labelledby': 'multiplier-button',
+                      }}
+                    >
+                      <MenuItem onClick={() => {setMultiplier(1); closeMultiplierMenu()}}>1x</MenuItem>
+                      <MenuItem onClick={() => {setMultiplier(2); closeMultiplierMenu()}}>2x</MenuItem>
+                      <MenuItem onClick={() => {setMultiplier(3); closeMultiplierMenu()}}>3x</MenuItem>
+                      <MenuItem onClick={() => {setMultiplier(4); closeMultiplierMenu()}}>4x</MenuItem>
+                      <MenuItem onClick={() => {setMultiplier(5); closeMultiplierMenu()}}>5x</MenuItem>
+                      <MenuItem onClick={() => {setMultiplier(6); closeMultiplierMenu()}}>6x</MenuItem>
+                    </Menu>
+                  </div>
+                  <IconButton onClick={() => {}} size='small' >
+                    <FilterAlt />
+                  </IconButton>
+                </Box>
+              </Box>
+              
+              <Stack direction="row" spacing={0} sx={{ alignItems: 'center' }}>
+                <Slider
+                  size='small'
+                  max={positions.length - 1}
+                  step={null}
+                  marks={positions.map((_, index) => ({ value: index }))}
+                  value={index}
+                  onChange={(_, index) => setIndex(index)}
+                />
                 <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
                   <FastRewindIcon />
                 </IconButton>
@@ -215,8 +292,7 @@ const ReplayPage = () => {
                 <IconButton onClick={() => setIndex((index) => index + 1)} disabled={playing || index >= positions.length - 1}>
                   <FastForwardIcon />
                 </IconButton>
-                {formatTime(positions[index].fixTime, 'seconds')}
-              </div>
+              </Stack>
             </>
           ) : (
             <ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} />

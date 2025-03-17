@@ -18,10 +18,8 @@ import MapGeocoder from '../map/geocoder/MapGeocoder';
 import MapScale from '../map/MapScale';
 import MapNotification from '../map/notification/MapNotification';
 import useFeatures from '../common/util/useFeatures';
-import MapRoutePath from './../map/MapRoutePath';
-import MapRoutePoints from './../map/MapRoutePoints';
 
-const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices }) => {
+const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -34,7 +32,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
   const onMarkerClick = useCallback((_, deviceId) => {
     dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
-  
+
   return (
     <>
       <MapView>
@@ -42,23 +40,12 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
         <MapGeofence />
         <MapAccuracy positions={filteredPositions} />
         <MapLiveRoutes />
-        {
-          filteredDevices.map((device, key) => {
-            return (
-              <>
-                <MapPositions
-                  key={device.id}
-                  positions={filteredPositions?.filter(p => p.deviceId === device.id)}
-                  onClick={onMarkerClick}
-                  selectedPosition={selectedPosition?.deviceId === device.id ? selectedPosition : null}
-                  showStatus
-                />
-                <MapRoutePath key={device.id} positions={filteredPositions?.filter(p => p.deviceId === device.id)} />
-                <MapRoutePoints key={device.id} positions={filteredPositions?.filter(p => p.deviceId === device.id)} />
-              </>
-            );
-          })
-        }
+        <MapPositions
+          positions={filteredPositions}
+          onClick={onMarkerClick}
+          selectedPosition={selectedPosition}
+          showStatus
+        />
         <MapDefaultCamera />
         <MapSelectedDevice />
         <PoiMap />

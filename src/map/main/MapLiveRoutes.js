@@ -38,7 +38,7 @@ const MapLiveRoutes = () => {
         },
         paint: {
           'line-color': ['get', 'color'],
-          'line-width': 2,
+          'line-width': 4,
         },
       });
 
@@ -55,12 +55,12 @@ const MapLiveRoutes = () => {
   }, [type]);
 
   useEffect(() => {
+    
     if (type !== 'none') {
       const deviceIds = Object.values(devices)
         .map((device) => device.id)
         .filter((id) => (type === 'selected' ? id === selectedDeviceId : true))
         .filter((id) => history.hasOwnProperty(id));
-
       map.getSource(id)?.setData({
         type: 'FeatureCollection',
         features: deviceIds.map((deviceId) => ({
@@ -70,7 +70,7 @@ const MapLiveRoutes = () => {
             coordinates: history[deviceId],
           },
           properties: {
-            color: devices[deviceId].attributes['web.reportColor'] || theme.palette.geometry.main,
+            color: devices[deviceId]?.attributes['web.reportColor'] || theme.palette.success.main,
           },
         })),
       });

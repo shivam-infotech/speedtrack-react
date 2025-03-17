@@ -1,4 +1,4 @@
-import { grey, green, indigo } from '@mui/material/colors';
+import { grey, green, indigo, red, yellow, blue } from '@mui/material/colors';
 
 const validatedColor = (color) => (/^#([0-9A-Fa-f]{3}){1,2}$/.test(color) ? color : null);
 
@@ -18,5 +18,17 @@ export default (server, darkMode) => ({
   },
   geometry: {
     main: '#3bb2d0',
+  },
+  success: {
+    main: green[500],
+  },
+  error: {
+    main: "#e81e1e",
+  },
+  warning: {
+    main: yellow[500],
+  },
+  info: {
+    main: blue[500],
   },
 });

@@ -57,6 +57,8 @@ const PositionValue = ({ position, property, attribute }) => {
         return value != null ? formatSpeed(value, speedUnit, t) : '';
       case 'obdSpeed':
         return value != null ? formatSpeed(speedToKnots(value, 'kmh'), speedUnit, t) : '';
+      case 'ignition':
+        return <div><span className={`icon ${value ? 'icon-ignition-on' : 'icon-ignition-off'}`}></span> { value ? t('positionIgnitionOn') : t('positionIgnitionOff') }</div>;
       case 'course':
         return formatCourse(value);
       case 'altitude':

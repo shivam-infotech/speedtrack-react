@@ -1,4 +1,4 @@
-import { useId, useEffect } from 'react';
+import { useId, useEffect, useState, useRef } from 'react';
 import { useTheme } from '@mui/styles';
 import { useMediaQuery } from '@mui/material';
 import { map } from './core/MapView';
@@ -7,6 +7,8 @@ import { findFonts } from './core/mapUtil';
 
 const MapMarkers = ({ markers, showTitles }) => {
   const id = useId();
+  const [animatedMarkers, setAnimatedMarkers] = useState([]);
+  const animationFrameId = useRef(null);
 
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -66,10 +68,49 @@ const MapMarkers = ({ markers, showTitles }) => {
     };
   }, [showTitles]);
 
+  const animateMarkers = (startTime, targetMarkers) => {
+    const duration = 1000; // 1 second
+    const progress = Math.min((Date.now() - startTime) / duration, 1);
+
+    const newMarkers = animatedMarkers.map((marker, index) => {
+      const targetMarker = targetMarkers[index];
+      if (!targetMarker) return marker;
+
+      const deltaLon = targetMarker.longitude - marker.longitude;
+      const deltaLat = targetMarker.latitude - marker.latitude;
+
+      return {
+        ...marker,
+        longitude: marker.longitude + deltaLon * progress,
+        latitude: marker.latitude + deltaLat * progress,
+      };
+    });
+
+    setAnimatedMarkers(newMarkers);
+
+    if (progress < 1) {
+      animationFrameId.current = requestAnimationFrame(() => animateMarkers(startTime, targetMarkers));
+    }
+  };
+
+  useEffect(() => {
+    if (markers.length > 0) {
+      const startTime = Date.now();
+      setAnimatedMarkers(markers);
+      animationFrameId.current = requestAnimationFrame(() => animateMarkers(startTime, markers));
+    }
+
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, [markers]);
+
   useEffect(() => {
     map.getSource(id)?.setData({
       type: 'FeatureCollection',
-      features: markers.map(({ latitude, longitude, image, title }) => ({
+      features: animatedMarkers.map(({ latitude, longitude, image, title }) => ({
         type: 'Feature',
         geometry: {
           type: 'Point',
@@ -81,7 +122,7 @@ const MapMarkers = ({ markers, showTitles }) => {
         },
       })),
     });
-  }, [showTitles, markers]);
+  }, [showTitles, animatedMarkers]);
 
   return null;
 };

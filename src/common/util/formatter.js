@@ -51,6 +51,44 @@ export const formatTime = (value, format) => {
   return '';
 };
 
+export const TimeDiffInHumanReadableFormat = (value) => {
+  const secondsInMinute = 60;
+  const secondsInHour = 3600;
+  const secondsInDay = 86400;
+  const secondsInWeek = 604800;
+  const secondsInMonth = 2592000; // Approximate month as 30 days
+
+  const totalSeconds = dayjs().diff(dayjs(value), 'second');
+
+  let months = Math.floor(totalSeconds / secondsInMonth);
+  let weeks = Math.floor((totalSeconds % secondsInMonth) / secondsInWeek);
+  let days = Math.floor((totalSeconds % secondsInWeek) / secondsInDay);
+  let hours = Math.floor((totalSeconds % secondsInDay) / secondsInHour);
+  let minutes = Math.floor((totalSeconds % secondsInHour) / secondsInMinute);
+  let seconds = totalSeconds % secondsInMinute;
+
+  let result = "";
+  if (months > 0) {
+      result += `${months}mo `;
+  }
+  if (weeks > 0 || months > 0) {
+      result += `${weeks}w `;
+  }
+  if (days > 0 || weeks > 0 || months > 0) {
+      result += `${days}d `;
+  }
+  if (hours > 0 || days > 0 || weeks > 0 || months > 0) {
+      result += `${hours}h `;
+  }
+  if (minutes > 0 || hours > 0 || days > 0 || weeks > 0 || months > 0) {
+      result += `${minutes}m `;
+  }
+  if (seconds > 0 || minutes > 0 || hours > 0 || days > 0 || weeks > 0 || months > 0) {
+      result += `${seconds}s`;
+  }
+  return result.trim();
+}
+
 export const formatStatus = (value, t) => t(prefixString('deviceStatus', value));
 
 export const formatAlarm = (value, t) => {
@@ -125,6 +163,14 @@ export const getStatusColor = (status) => {
       return 'neutral';
   }
 };
+
+export const getDeviceStatusColor = (position) => {
+  if(position?.attributes?.ignition){
+    if(position.speed > 5) return 'success';
+    else return 'warning';
+  }
+  return 'error';
+}
 
 export const getBatteryStatus = (batteryLevel) => {
   if (batteryLevel >= 70) {

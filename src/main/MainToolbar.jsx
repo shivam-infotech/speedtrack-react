@@ -39,6 +39,7 @@ const MainToolbar = ({
   setFilterSort,
   filterMap,
   setFilterMap,
+  selectedDeviceId,
 }) => {
   const classes = useStyles();
   const theme = useTheme();
@@ -100,7 +101,7 @@ const MainToolbar = ({
         disableEnforceFocus
       >
         {filteredDevices.slice(0, 3).map((_, index) => (
-          <DeviceRow key={filteredDevices[index].id} data={filteredDevices} index={index} />
+          <DeviceRow key={filteredDevices[index].id} isDeviceSelected={selectedDeviceId == filteredDevices[index].id} data={filteredDevices} index={index} />
         ))}
         {filteredDevices.length > 3 && (
           <ListItemButton alignItems="center" onClick={() => setDevicesOpen(true)}>

@@ -26,8 +26,8 @@ import ReplayIcon from '@mui/icons-material/Replay';
 import PublishIcon from '@mui/icons-material/Publish';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import PendingIcon from '@mui/icons-material/Pending';
-
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useTranslation } from './LocalizationProvider';
 import RemoveDialog from './RemoveDialog';
 import PositionValue from './PositionValue';
@@ -76,6 +76,13 @@ const useStyles = makeStyles((theme) => ({
     borderBottom: 'none',
     padding: theme.spacing(0.5, 0),
   },
+  cellHeader: {
+    fontSize: '0.25rem' 
+  },
+  cellValue: {
+    fontSize: '0.25rem',
+    fontWeight: 600,
+  },
   actions: {
     justifyContent: 'space-between',
     padding: theme.spacing(0.5, 1),
@@ -85,12 +92,13 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: theme.spacing(0.5, 1, 0, 2),
+    marginBottom: theme.spacing(1),
   },
   root: ({ desktopPadding }) => ({
     pointerEvents: 'none',
     position: 'fixed',
     zIndex: 5,
-    left: '50%',
+    right: '0%',
     [theme.breakpoints.up('md')]: {
       left: `calc(50% + ${desktopPadding} / 2)`,
       bottom: theme.spacing(3),
@@ -101,6 +109,12 @@ const useStyles = makeStyles((theme) => ({
     },
     transform: 'translateX(-50%)',
   }),
+  floatingInfo: {
+    position: 'absolute',
+    bottom: theme.spacing(5),
+    right: theme.spacing(1),
+    overflow: 'hidden',
+  }
 }));
 
 const StatusRow = ({ name, content, fullColumn = false }) => {
@@ -109,23 +123,19 @@ const StatusRow = ({ name, content, fullColumn = false }) => {
   return (
     <Box 
       sx={{ 
-        display: 'block', 
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         mb: 1,
-        minWidth: '60px',
-        mr: 2, 
-        mb: 1,
-        minWidth: '60px',
+        width: "33%",
         ...(fullColumn ? {flex: 1} : {}),
       }}
     >
-      <Typography variant="caption" color="textSecondary">
+      <Typography fontSize={"0.75rem"} color="textSecondary">
         {name}
       </Typography>
-      <Typography variant="subtitle2">
+      <Typography fontSize={"0.75rem"} fontWeight={600}>
         {content}
       </Typography>
     </Box>
@@ -217,7 +227,7 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
                   </IconButton>
                 </CardMedia>
               ) : (
-                <div className={classes.header}>
+                <div className={[classes.header]}>
                   <Typography variant="body2" color="textSecondary">
                     {device.name}
                   </Typography>
@@ -233,7 +243,7 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
               {position && (
                 <CardContent className={classes.content}>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                    {positionItems.split(',').filter((key) => position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)).map((key) => (
+                    {positionItems.split(',').filter((key) => (position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)) && key !== "address" ).map((key) => (
                       <StatusRow
                         key={key}
                         name={positionAttributes[key]?.name || key}
@@ -242,59 +252,81 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
                           <PositionValue
                             position={position}
                             property={position.hasOwnProperty(key) ? key : null}
-                            attribute={position.hasOwnProperty(key) ? null : key}
-                            
+                            attribute={position.hasOwnProperty(key) ? null : key}        
                           />
                         )}
                       />
                     ))}
                   </Box>
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    <Link component={RouterLink} to={`/position/${position.id}`}>{t('sharedShowDetails')}</Link>
-                  </Typography>
+                  {positionItems.split(',').includes('address') && 
+                    <Box sx={{ mt: 1}}>
+                      <Typography fontSize={"0.75rem"} color="textSecondary" >
+                        {t('positionAddress')}
+                      </Typography>
+                      <Typography fontSize={"0.75rem"} fontWeight={600}>
+                        <PositionValue
+                          position={position}
+                          property={position.hasOwnProperty('address') ? 'address' : null}
+                          attribute={position.hasOwnProperty('address') ? null : 'address'}        
+                        />
+                      </Typography>
+                    </Box>
+                  }
+                  <Tooltip title={t('sharedShowDetails')}>
+                  <div className={classes.floatingInfo}>
+                    <IconButton size='small' onClick={e => navigate(`/position/${position.id}`)} >
+                      <ExpandMoreIcon fontSize='small' />
+                    </IconButton>
+                  </div>
+                  </Tooltip>
                 </CardContent>
               )}
               <CardActions classes={{ root: classes.actions }} disableSpacing>
-                <Tooltip title={t('sharedExtra')}>
-                  <IconButton
-                    color="secondary"
-                    onClick={(e) => setAnchorEl(e.currentTarget)}
-                    disabled={!position}
-                  >
-                    <PendingIcon />
-                  </IconButton>
-                </Tooltip>
                 <Tooltip title={t('reportReplay')}>
                   <IconButton
+                    size="small"
                     onClick={() => navigate('/replay')}
                     disabled={disableActions || !position}
                   >
-                    <ReplayIcon />
+                    <ReplayIcon fontSize='small' />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={t('commandTitle')}>
                   <IconButton
+                  size="small"
                     onClick={() => navigate(`/settings/device/${deviceId}/command`)}
                     disabled={disableActions}
                   >
-                    <PublishIcon />
+                    <PublishIcon fontSize='small' />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={t('sharedEdit')}>
                   <IconButton
+                  size="small"
                     onClick={() => navigate(`/settings/device/${deviceId}`)}
                     disabled={disableActions || deviceReadonly}
                   >
-                    <EditIcon />
+                    <EditIcon fontSize='small' />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={t('sharedRemove')}>
                   <IconButton
+                  size="small"
                     color="error"
                     onClick={() => setRemoving(true)}
                     disabled={disableActions || deviceReadonly}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={t('sharedExtra')}>
+                  <IconButton
+                    color="secondary"
+                    size="small"
+                    onClick={(e) => setAnchorEl(e.currentTarget)}
+                    disabled={!position}
+                  >
+                    <MoreVertIcon fontSize='small' />
                   </IconButton>
                 </Tooltip>
               </CardActions>
