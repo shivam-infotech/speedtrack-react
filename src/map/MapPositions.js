@@ -195,11 +195,11 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
     }, [mapCluster, clusters, onMarkerClick, onClusterClick]);
 
     const animatePositions = (startTime, targetPositions) => {
-        const duration = animationDuration; // 1 second
+        const duration = animationDuration;
         const progress = Math.min((Date.now() - startTime) / duration, 1);
 
-        const newPositions = targetPositions.map((targetPosition, index) => {
-            const currentPosition = animatedPositions[index] || targetPosition;
+        const newPositions = targetPositions.map((targetPosition) => {
+            const currentPosition = animatedPositions.find(p => p.deviceId === targetPosition.deviceId) || targetPosition;
 
             const deltaLon = targetPosition.longitude - currentPosition.longitude;
             const deltaLat = targetPosition.latitude - currentPosition.latitude;
@@ -207,7 +207,6 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
             const newLon = currentPosition.longitude + deltaLon * progress;
             const newLat = currentPosition.latitude + deltaLat * progress;
 
-            // Calculate the rotation based on the direction of movement
             const rotation = Math.atan2(deltaLon, deltaLat) * (180 / Math.PI);
 
             return {
@@ -229,7 +228,6 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
         if (positions.length > 0) {
             if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
             const startTime = Date.now();
-            setAnimatedPositions(positions);
             animationFrameId.current = requestAnimationFrame(() => animatePositions(startTime, positions));
         }
 

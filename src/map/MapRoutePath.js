@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { map } from './core/MapView';
 import getSpeedColor from '../common/util/colors';
 
-const MapRoutePath = ({ positions }) => {
+const MapRoutePath = ({ positions, color = null, width = 3 }) => {
   const id = useId();
 
   const theme = useTheme();
@@ -44,7 +44,7 @@ const MapRoutePath = ({ positions }) => {
       },
       paint: {
         'line-color': ['get', 'color'],
-        'line-width': 2,
+        'line-width': width,
       },
     });
 
@@ -73,7 +73,7 @@ const MapRoutePath = ({ positions }) => {
           coordinates: [[positions[i].longitude, positions[i].latitude], [positions[i + 1].longitude, positions[i + 1].latitude]],
         },
         properties: {
-          color: reportColor || getSpeedColor(
+          color: color || reportColor || getSpeedColor(
             positions[i + 1].speed,
             minSpeed,
             maxSpeed,

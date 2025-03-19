@@ -101,10 +101,19 @@ const DeviceRow = ({ data, index, style }) => {
         onClick={() => dispatch(devicesActions.selectId(item.id))}
         disabled={!admin && item.disabled}
       >
-        <ListItemAvatar>
-          <Avatar sx={{ backgroundColor: theme.palette[getDeviceStatusColor(position)]?.main || theme.palette.error?.main }}>
+        <ListItemAvatar sx={{ position: 'relative' }}>
+          <Avatar sx={{ backgroundColor: theme.palette[getDeviceStatusColor(position)]?.main || theme.palette.error?.main, position: 'relative', overflow: 'auto' }} overlap="circular" >
             <img className={classes.icon} src={mapIcons[mapIconKey(item.category)]} alt="" />
           </Avatar>
+          {item.status === 'online' ? (
+            <Tooltip title={t('positionOnline')}>
+              <div style={{ position: 'absolute', bottom: 2, right: 16, backgroundColor: '#36db27', width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white' }} />
+            </Tooltip>
+          ) : (
+            <Tooltip title={t('positionOffline')}>
+              <div style={{ position: 'absolute', bottom: 2, right: 16, backgroundColor: '#b0b0b0', width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white' }} />
+            </Tooltip>
+          )}
         </ListItemAvatar>
         <ListItemText
           primary={<Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap' }}>

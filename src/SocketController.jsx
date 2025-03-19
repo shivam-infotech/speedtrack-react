@@ -10,6 +10,8 @@ import alarm from './resources/alarm.mp3';
 import { eventsActions } from './store/events';
 import useFeatures from './common/util/useFeatures';
 import { useAttributePreference } from './common/util/preferences';
+import { refreshDevices, updateDevices } from './store/devices';
+import { updatePositionsWithSummary } from './store/session';
 
 const logoutCode = 4000;
 
@@ -54,10 +56,10 @@ const SocketController = () => {
 		socket.onmessage = (event) => {
 			const data = JSON.parse(event.data);
 			if (data.devices) {
-				dispatch(devicesActions.update(data.devices));
+				dispatch(updateDevices(data.devices));
 			}
 			if (data.positions) {
-				dispatch(sessionActions.updatePositions(data.positions));
+				dispatch(updatePositionsWithSummary(data.positions));
 			}
 			if (data.events) {
 				if (!features.disableEvents) {
@@ -77,11 +79,11 @@ const SocketController = () => {
 			try {
 				const devicesResponse = await fetch('/api/devices');
 				if (devicesResponse.ok) {
-					dispatch(devicesActions.update(await devicesResponse.json()));
+					dispatch(updateDevices(await devicesResponse.json()));
 				}
 				const positionsResponse = await fetch('/api/positions');
 				if (positionsResponse.ok) {
-					dispatch(sessionActions.updatePositions(await positionsResponse.json()));
+					dispatch(updatePositionsWithSummary(await positionsResponse.json()));
 				}
 				if (devicesResponse.status === 401 || positionsResponse.status === 401) {
 					navigate('/login');
@@ -107,7 +109,7 @@ const SocketController = () => {
 		if (authenticated) {
 			const response = await fetch('/api/devices');
 			if (response.ok) {
-				dispatch(devicesActions.refresh(await response.json()));
+				dispatch(refreshDevices(await response.json()));
 			} else {
 				throw Error(await response.text());
 			}

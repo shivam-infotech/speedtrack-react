@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
 import { errorsReducer as errors } from './errors';
 import { sessionReducer as session } from './session';
+import { summaryReducer as summary } from './summary';
 import { devicesReducer as devices } from './devices';
 import { eventsReducer as events } from './events';
 import { geofencesReducer as geofences } from './geofences';
@@ -15,6 +16,7 @@ import throttleMiddleware from './throttleMiddleware';
 const reducer = combineReducers({
   errors,
   session,
+  summary,
   devices,
   events,
   geofences,
@@ -28,6 +30,7 @@ const reducer = combineReducers({
 export { errorsActions } from './errors';
 export { sessionActions } from './session';
 export { devicesActions } from './devices';
+export { summaryActions } from './summary';
 export { eventsActions } from './events';
 export { geofencesActions } from './geofences';
 export { groupsActions } from './groups';

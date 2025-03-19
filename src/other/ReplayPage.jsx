@@ -6,7 +6,10 @@ import {
   IconButton, Paper, Slider, Toolbar, Typography,
   useTheme, Stack,
   Menu,
-  MenuItem
+  MenuItem,
+  Checkbox,
+  Select,
+  TextField
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -30,9 +33,10 @@ import MapCamera from '../map/MapCamera';
 import MapGeofence from '../map/MapGeofence';
 import StatusCard from '../common/components/StatusCard';
 import MapScale from '../map/MapScale';
-import { calculateDistance, decimateCoordinates } from '../common/util/position';
+import { calculateDistance, calculateDistanceFromCoords, decimateCoordinates } from '../common/util/position';
 import { FilterAlt } from '@mui/icons-material';
 import MapStoppages from '../map/MapStoppages';
+import FilteredPolylines from './FilteredPolylines';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -93,6 +97,7 @@ const ReplayPage = () => {
   const defaultDeviceId = useSelector((state) => state.devices.selectedId);
 
   const [positions, setPositions] = useState([]);
+  const [rawPositions, setRawPositions] = useState([]);
   const [index, setIndex] = useState(0);
   const [selectedDeviceId, setSelectedDeviceId] = useState(defaultDeviceId);
   const [showCard, setShowCard] = useState(false);
@@ -101,11 +106,18 @@ const ReplayPage = () => {
   const [expanded, setExpanded] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [summary, setSummary] = useState(undefined);
   const [multiplier, setMultiplier] = useState(1);
   const [stoppages, setStoppages] = useState([]);
 
   const [multiplierAnchor, setMultiplierAnchor] = useState(null);
   const multiplierMenuExpanded = Boolean(multiplierAnchor);
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const filterMenuExpanded = Boolean(filterAnchor);
+  const [stoppedMoreThan, setStoppedMoreThan] = useState(null);
+  const [idleMoreThan, setIdleMoreThan] = useState(null);
+  const [speedMoreThan, setSpeedMoreThan] = useState(null);
+  const [inactivity, setInactivity] = useState(false);
 
   const openMultiplierMenu = (event) => {
     setMultiplierAnchor(event.currentTarget);
@@ -114,6 +126,18 @@ const ReplayPage = () => {
   const closeMultiplierMenu = () => {
     setMultiplierAnchor(null);
   }
+
+  const openFilterMenu = (event) => {
+    setFilterAnchor(event.currentTarget);
+  }
+
+  const closeFilterMenu = () => {
+    setFilterAnchor(null);
+  }
+
+  const Indicator = ({color}) => (
+    <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: color, borderRadius: '50%', margin: '0 5px' }}></span>
+  )
 
   const deviceName = useSelector((state) => {
     if (selectedDeviceId) {
@@ -175,6 +199,17 @@ const ReplayPage = () => {
     return stoppages;
   };
 
+  const fetchSummary = async (deviceId, from, to) => {
+    const response = await fetch(`/api/reports/summary?deviceId=${deviceId}&from=${from}&to=${to}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (response.ok) {
+      const [summary] = await response.json();
+      return summary;
+    }
+    return undefined;
+  };
+
   const handleSubmit = useCatch(async ({ deviceId, from, to }) => {
     setLoading(true);
     setSelectedDeviceId(deviceId);
@@ -185,13 +220,15 @@ const ReplayPage = () => {
       const response = await fetch(`/api/positions?${query.toString()}`);
       if (response.ok) {
         setIndex(0);
-        const rawPositions = await response.json();
-        const positions = decimateCoordinates(rawPositions, 10);
+        const rawPosition = await response.json();
+        const positions = decimateCoordinates(rawPosition, 10);
+        setRawPositions(rawPosition);
         setPositions(positions);
         if (positions.length) {
           setExpanded(false);
           setShowCard(true);
-          setStoppages(findStoppages(rawPositions));
+          setStoppages(findStoppages(rawPosition));
+          setSummary(await fetchSummary(deviceId, from, to));
         } else {
           throw Error(t('sharedNoData'));
         }
@@ -212,12 +249,21 @@ const ReplayPage = () => {
     <div className={classes.root}>
       <MapView>
         <MapGeofence />
-        <MapRoutePath positions={positions} />
-        <MapRoutePoints positions={positions} onClick={onPointClick} />
         {index < positions.length && (
-          <MapPositions positions={[positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
+          <>
+            <MapRoutePath positions={positions} />
+            <MapRoutePoints positions={positions} onClick={onPointClick} />
+            <MapPositions positions={[positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
+            <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} />
+            <FilteredPolylines
+              positions={rawPositions}
+              stoppedMoreThan={stoppedMoreThan}
+              idleMoreThan={idleMoreThan}
+              speedMoreThan={speedMoreThan}
+              inactivity={inactivity}
+            />
+          </>
         )}
-        <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} />
       </MapView>
       <MapScale />
       <MapCamera positions={positions} />
@@ -268,9 +314,90 @@ const ReplayPage = () => {
                       <MenuItem onClick={() => {setMultiplier(6); closeMultiplierMenu()}}>6x</MenuItem>
                     </Menu>
                   </div>
-                  <IconButton onClick={() => {}} size='small' >
+                  <IconButton onClick={openFilterMenu} size='small' >
                     <FilterAlt />
                   </IconButton>
+                  <Menu
+                    id="filter-menu"
+                    anchorEl={filterAnchor}
+                    open={filterMenuExpanded}
+                    onClose={closeFilterMenu}
+                    MenuListProps={{
+                      'aria-labelledby': 'filter-button',
+                    }}
+                  >
+                    <MenuItem>
+                      <label style={{ flex: 1 }}>
+                        <Checkbox
+                          checked={stoppedMoreThan !== null}
+                          onChange={(e) => setStoppedMoreThan(e.target.checked ? 5 : null)}
+                        />
+                        Stopped more than
+                        <Indicator color="#e33124" />
+                      </label>
+                      <Select
+                        size='small'
+                        value={stoppedMoreThan || ''}
+                        onChange={(e) => setStoppedMoreThan(e.target.value)}
+                        disabled={stoppedMoreThan === null}
+                        sx={{ ml: 1 }}
+                      >
+                        <MenuItem value={5}>5 min</MenuItem>
+                        <MenuItem value={10}>10 min</MenuItem>
+                        <MenuItem value={15}>15 min</MenuItem>
+                        <MenuItem value={30}>30 min</MenuItem>
+                      </Select>
+                    </MenuItem>
+                    <MenuItem>
+                      <label style={{ flex: 1 }}>
+                        <Checkbox
+                          checked={idleMoreThan !== null}
+                          onChange={(e) => setIdleMoreThan(e.target.checked ? 5 : null)}
+                        />
+                        Idle more than
+                        <Indicator color="#FFC107" />
+                      </label>
+                      <Select
+                        size='small'
+                        value={idleMoreThan || ''}
+                        onChange={(e) => setIdleMoreThan(e.target.value)}
+                        disabled={idleMoreThan === null}
+                        sx={{ ml: 1 }}
+                      >
+                        <MenuItem value={5}>5 min</MenuItem>
+                        <MenuItem value={10}>10 min</MenuItem>
+                        <MenuItem value={15}>15 min</MenuItem>
+                        <MenuItem value={30}>30 min</MenuItem>
+                      </Select>
+                    </MenuItem>
+                    <MenuItem>
+                      <label style={{ flex: 1 }}>
+                        <Checkbox
+                          checked={speedMoreThan !== null}
+                          onChange={(e) => setSpeedMoreThan(e.target.checked ? 0 : null)}
+                        />
+                        Speed more than
+                        <Indicator color="#c70fff" />
+                      </label>
+                      <TextField
+                        type="number"
+                        value={speedMoreThan || ''}
+                        onChange={(e) => setSpeedMoreThan(e.target.value)}
+                        disabled={speedMoreThan === null}
+                        sx={{ ml: 1, width: '100px' }}
+                      />
+                    </MenuItem>
+                    <MenuItem>
+                      <label>
+                        <Checkbox
+                          checked={inactivity}
+                          onChange={(e) => setInactivity(e.target.checked)}
+                        />
+                        Inactivity
+                        <Indicator color="#2950ff" />
+                      </label>
+                    </MenuItem>
+                  </Menu>
                 </Box>
               </Box>
               
@@ -305,6 +432,7 @@ const ReplayPage = () => {
           position={positions[index]}
           onClose={() => setShowCard(false)}
           disableActions
+          summary={summary}
         />
       )}
     </div>

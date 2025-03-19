@@ -18,7 +18,8 @@ import {
   TableFooter,
   Link,
   Tooltip,
-  Box
+  Box,
+  Divider
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CloseIcon from '@mui/icons-material/Close';
@@ -36,6 +37,7 @@ import usePositionAttributes from '../attributes/usePositionAttributes';
 import { devicesActions } from '../../store';
 import { useCatch, useCatchCallback } from '../../reactHelper';
 import { useAttributePreference } from '../util/preferences';
+import useSummaryAttributes from '../attributes/useSummaryAttributes';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -98,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
     pointerEvents: 'none',
     position: 'fixed',
     zIndex: 5,
-    right: '0%',
+    right: '0',
     [theme.breakpoints.up('md')]: {
       left: `calc(50% + ${desktopPadding} / 2)`,
       bottom: theme.spacing(3),
@@ -142,13 +144,12 @@ const StatusRow = ({ name, content, fullColumn = false }) => {
   );
 };
 
-const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPadding = 0 }) => {
+const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPadding = 0, summary = undefined }) => {
   const keepInFullSpaceColumns = ['address'];
   const classes = useStyles({ desktopPadding });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const t = useTranslation();
-
   const deviceReadonly = useDeviceReadonly();
 
   const shareDisabled = useSelector((state) => state.session.server.attributes.disableShare);
@@ -158,7 +159,9 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
   const deviceImage = device?.attributes?.deviceImage;
 
   const positionAttributes = usePositionAttributes(t);
+  const summaryAttributes = useSummaryAttributes(t);
   const positionItems = useAttributePreference('positionItems', 'fixTime,speed,totalDistance,address');
+  const SummaryFields = useAttributePreference('popupSummaryInfo');
 
   const navigationAppLink = useAttributePreference('navigationAppLink');
   const navigationAppTitle = useAttributePreference('navigationAppTitle');
@@ -258,6 +261,25 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
                       />
                     ))}
                   </Box>
+                  {summary && (
+                    <>
+                      <Divider mb={2} />
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                        {SummaryFields.split(',').filter((key) => summary.hasOwnProperty(key)).map((key) => (
+                          <StatusRow
+                            key={key}
+                            name={summaryAttributes[key]?.name || key}
+                            content={
+                              <PositionValue
+                                position={summary}
+                                property={key}
+                                attribute={null}
+                                />
+                            }
+                          />))}
+                      </Box>
+                    </>
+                  )}
                   {positionItems.split(',').includes('address') && 
                     <Box sx={{ mt: 1}}>
                       <Typography fontSize={"0.75rem"} color="textSecondary" >

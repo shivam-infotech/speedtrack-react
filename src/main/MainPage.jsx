@@ -74,8 +74,8 @@ const MainPage = () => {
   const positions = useSelector((state) => state.session.positions);
   const [filteredPositions, setFilteredPositions] = useState([]);
   const selectedPosition = filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId);
-
   const [filteredDevices, setFilteredDevices] = useState([]);
+  const { items: summaries } = useSelector((state) => state.summary);
 
   const [keyword, setKeyword] = useState('');
   const [filter, setFilter] = usePersistedState('filter', {
@@ -151,6 +151,7 @@ const MainPage = () => {
           position={selectedPosition}
           onClose={() => dispatch(devicesActions.selectId(null))}
           desktopPadding={theme.dimensions.drawerWidthDesktop}
+          summary={summaries[selectedDeviceId] || {}}
         />
       )}
     </div>

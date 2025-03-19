@@ -48,17 +48,21 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'fixTime':
       case 'deviceTime':
       case 'serverTime':
+      case 'startTime':
+      case 'endTime':
         return formatTime(value, 'time');
       case 'latitude':
         return formatCoordinate('latitude', value, coordinateFormat);
       case 'longitude':
         return formatCoordinate('longitude', value, coordinateFormat);
       case 'speed':
+      case 'averageSpeed':
+      case 'maxSpeed':
         return value != null ? formatSpeed(value, speedUnit, t) : '';
       case 'obdSpeed':
         return value != null ? formatSpeed(speedToKnots(value, 'kmh'), speedUnit, t) : '';
       case 'ignition':
-        return <div><span className={`icon ${value ? 'icon-ignition-on' : 'icon-ignition-off'}`}></span> { value ? t('positionIgnitionOn') : t('positionIgnitionOff') }</div>;
+        return <span><span style={{ display: 'inline-block', width: '0.875em', height: '0.875em', backgroundColor: value ? 'green' : 'gray', borderRadius: '50%', margin: '0 0.2em' }} ></span> { value ? t('positionIgnitionOn') : t('positionIgnitionOff') }</span>;
       case 'course':
         return formatCourse(value);
       case 'altitude':
@@ -77,12 +81,17 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'alarm':
         return formatAlarm(value, t);
       case 'odometer':
+      case 'startOdometer':
+      case 'endOdometer':
       case 'serviceOdometer':
       case 'tripOdometer':
       case 'obdOdometer':
       case 'distance':
       case 'totalDistance':
         return value != null ? formatDistance(value, distanceUnit, t) : '';
+      case "startHours":
+      case "endHours":
+      case "engineHours":
       case 'hours':
         return value != null ? formatNumericHours(value, t) : '';
       default:

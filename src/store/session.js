@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { updateSummaryFromPosition } from './summary';
 
 const { reducer, actions } = createSlice({
   name: 'session',
@@ -48,6 +49,11 @@ const { reducer, actions } = createSlice({
     },
   },
 });
+
+export const updatePositionsWithSummary = (payload) => async (dispatch) => {
+  dispatch(actions.updatePositions(payload));
+  payload.forEach((position) => dispatch(updateSummaryFromPosition(position)));
+};
 
 export { actions as sessionActions };
 export { reducer as sessionReducer };
