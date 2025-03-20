@@ -36,6 +36,8 @@ const SettingsMenu = () => {
 
   const features = useFeatures();
 
+  console.log('features', features);
+
   return (
     <>
       <List>

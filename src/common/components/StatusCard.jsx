@@ -8,18 +8,14 @@ import {
   Typography,
   CardActions,
   IconButton,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
   Menu,
   MenuItem,
   CardMedia,
-  TableFooter,
-  Link,
   Tooltip,
   Box,
-  Divider
+  Divider,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import InfoIcon from '@mui/icons-material/Info';
 import { useTranslation } from './LocalizationProvider';
 import RemoveDialog from './RemoveDialog';
 import PositionValue from './PositionValue';
@@ -43,6 +40,10 @@ const useStyles = makeStyles((theme) => ({
   card: {
     pointerEvents: 'auto',
     width: theme.dimensions.popupMaxWidth,
+    [theme.breakpoints.down('md')]: {
+      width: "100vw", 
+      padding: theme.spacing(1),
+    },
   },
   media: {
     height: theme.dimensions.popupImageHeight,
@@ -57,6 +58,9 @@ const useStyles = makeStyles((theme) => ({
   content: {
     paddingTop: theme.spacing(0.5),
     paddingBottom: theme.spacing(0.5),
+    [theme.breakpoints.down('md')]: {
+      padding: theme.spacing(1),
+    },
     maxHeight: theme.dimensions.cardContentMaxHeight,
     overflow: 'auto',
   },
@@ -75,11 +79,22 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   cell: {
-    borderBottom: 'none',
-    padding: theme.spacing(0.5, 0),
+    display: 'flex',
+    flexDirection: 'column',
+    mb: 1,
+    [theme.breakpoints.up('md')]: {
+      width: "33%",
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    [theme.breakpoints.down('md')]: {
+      width: "30%",
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+    }
   },
   cellHeader: {
-    fontSize: '0.25rem' 
+    fontSize: '0.25rem'
   },
   cellValue: {
     fontSize: '0.25rem',
@@ -109,6 +124,11 @@ const useStyles = makeStyles((theme) => ({
       left: '50%',
       bottom: `calc(${theme.spacing(3)} + ${theme.dimensions.bottomBarHeight}px)`,
     },
+    [theme.breakpoints.down('sm')]: {
+      left: '50%',
+      width: "100%",
+      bottom: `calc(${theme.spacing(1)} + ${theme.dimensions.bottomBarHeight}px)`
+    },
     transform: 'translateX(-50%)',
   }),
   floatingInfo: {
@@ -116,22 +136,17 @@ const useStyles = makeStyles((theme) => ({
     bottom: theme.spacing(5),
     right: theme.spacing(1),
     overflow: 'hidden',
-  }
+  },
 }));
 
 const StatusRow = ({ name, content, fullColumn = false }) => {
   const classes = useStyles();
 
   return (
-    <Box 
-      sx={{ 
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        mb: 1,
-        width: "33%",
-        ...(fullColumn ? {flex: 1} : {}),
+    <Box
+      className={classes.cell}
+      sx={{
+        ...(fullColumn ? { flex: 1 } : {}),
       }}
     >
       <Typography fontSize={"0.75rem"} color="textSecondary">
@@ -147,6 +162,8 @@ const StatusRow = ({ name, content, fullColumn = false }) => {
 const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPadding = 0, summary = undefined }) => {
   const keepInFullSpaceColumns = ['address'];
   const classes = useStyles({ desktopPadding });
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const t = useTranslation();
@@ -167,8 +184,10 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
   const navigationAppTitle = useAttributePreference('navigationAppTitle');
 
   const [anchorEl, setAnchorEl] = useState(null);
-
+  const [mobileActionMenuEl, setMobileActionMenuEL] = useState(null);
   const [removing, setRemoving] = useState(false);
+
+  console.log(isMobile);
 
   const handleRemove = useCatch(async (removed) => {
     if (removed) {
@@ -208,153 +227,204 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
     }
   }, [navigate, position]);
 
+  let card = (<Card elevation={3} className={classes.card}>
+    {deviceImage ? (
+      <CardMedia
+        className={classes.media}
+        image={`/api/media/${device.uniqueId}/${deviceImage}`}
+      >
+        { isMobile && (
+          <>
+            <IconButton size="small" onClick={e => setMobileActionMenuEL(e.currentTarget)} onTouchStart={e => setMobileActionMenuEL(e.currentTarget)} >
+              <MoreVertIcon fontSize='small' />
+            </IconButton>
+            <Menu anchorEl={mobileActionMenuEl} open={Boolean(mobileActionMenuEl)} onClose={() => setMobileActionMenuEL(null)}>
+              <MenuItem onClick={() => navigate('/replay')} disabled={disableActions || !position} >{t('reportReplay')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/command`)} disabled={disableActions} >{t('commandTitle')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}`)} disabled={disableActions || deviceReadonly} >{t('sharedEdit')}</MenuItem>
+              <MenuItem onClick={() => setRemoving(true)} disabled={disableActions || deviceReadonly} >{t('sharedRemove')}</MenuItem>
+            {position && (
+              <>
+                <MenuItem onClick={handleGeofence}>{t('sharedCreateGeofence')}</MenuItem>
+                <MenuItem component="a" target="_blank" href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}>{t('linkGoogleMaps')}</MenuItem>
+                <MenuItem component="a" target="_blank" href={`http://maps.apple.com/?ll=${position.latitude},${position.longitude}`}>{t('linkAppleMaps')}</MenuItem>
+                <MenuItem component="a" target="_blank" href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${position.latitude}%2C${position.longitude}&heading=${position.course}`}>{t('linkStreetView')}</MenuItem>
+                {navigationAppTitle && <MenuItem component="a" target="_blank" href={navigationAppLink.replace('{latitude}', position.latitude).replace('{longitude}', position.longitude)}>{navigationAppTitle}</MenuItem>}
+                {!shareDisabled && !user.temporary && (
+                  <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/share`)}><Typography color="secondary">{t('deviceShare')}</Typography></MenuItem>
+                )}
+              </>
+            )}
+            </Menu>
+          </>
+        ) }
+        <IconButton
+          size="small"
+          onClick={onClose}
+          onTouchStart={onClose}
+        >
+          <CloseIcon fontSize="small" className={classes.mediaButton} />
+        </IconButton>
+      </CardMedia>
+    ) : (
+      <div className={[classes.header]}>
+        <Typography variant="body2" color="textSecondary">
+          {device.name}
+        </Typography>
+        <IconButton
+          size="small"
+          onClick={onClose}
+          onTouchStart={onClose}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </div>
+    )}
+    {position && (
+      <CardContent className={classes.content}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            [theme.breakpoints.down('sm')]: {
+              justifyContent: 'flex-start',
+              gap: theme.spacing(0.5),
+            }
+          }}
+        >
+          {positionItems.split(',').filter((key) => (position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)) && key !== "address").map((key) => (
+            <StatusRow
+              key={key}
+              name={positionAttributes[key]?.name || key}
+              fullColumn={keepInFullSpaceColumns.includes(key)}
+              content={(
+                <PositionValue
+                  position={position}
+                  property={position.hasOwnProperty(key) ? key : null}
+                  attribute={position.hasOwnProperty(key) ? null : key}
+                />
+              )}
+            />
+          ))}
+        </Box>
+        {summary && (
+          <Box >
+            <Divider sx={{ margin: theme.spacing(2, 0) }} />
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                [theme.breakpoints.down('sm')]: {
+                  justifyContent: 'flex-start',
+                  gap: theme.spacing(0.5),
+                }
+              }}
+            >
+              {SummaryFields.split(',').filter((key) => summary.hasOwnProperty(key)).map((key) => (
+                <StatusRow
+                  key={key}
+                  name={summaryAttributes[key]?.name || key}
+                  content={
+                    <PositionValue
+                      position={summary}
+                      property={key}
+                      attribute={null}
+                    />
+                  }
+                />))}
+            </Box>
+          </Box>
+        )}
+        {positionItems.split(',').includes('address') &&
+          <Box sx={{ mt: 1 }}>
+            <Typography fontSize={"0.75rem"} color="textSecondary" >
+              {t('positionAddress')}
+            </Typography>
+            <Typography fontSize={"0.75rem"} fontWeight={600}>
+              <PositionValue
+                position={position}
+                property={position.hasOwnProperty('address') ? 'address' : null}
+                attribute={position.hasOwnProperty('address') ? null : 'address'}
+              />
+            </Typography>
+          </Box>
+        }
+        <Tooltip title={t('sharedShowDetails')}>
+          <div className={classes.floatingInfo}>
+            <IconButton size='small' onClick={e => navigate(`/position/${position.id}`)} >
+              <InfoIcon fontSize='small' />
+            </IconButton>
+          </div>
+        </Tooltip>
+      </CardContent>
+    )}
+    { !isMobile && (
+      <CardActions classes={{ root: classes.actions }} disableSpacing>
+      <Tooltip title={t('reportReplay')}>
+        <IconButton
+          size="small"
+          onClick={() => navigate('/replay')}
+          disabled={disableActions || !position}
+        >
+          <ReplayIcon fontSize='small' />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={t('commandTitle')}>
+        <IconButton
+          size="small"
+          onClick={() => navigate(`/settings/device/${deviceId}/command`)}
+          disabled={disableActions}
+        >
+          <PublishIcon fontSize='small' />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={t('sharedEdit')}>
+        <IconButton
+          size="small"
+          onClick={() => navigate(`/settings/device/${deviceId}`)}
+          disabled={disableActions || deviceReadonly}
+        >
+          <EditIcon fontSize='small' />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={t('sharedRemove')}>
+        <IconButton
+          size="small"
+          color="error"
+          onClick={() => setRemoving(true)}
+          disabled={disableActions || deviceReadonly}
+        >
+          <DeleteIcon fontSize='small' />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={t('sharedExtra')}>
+        <IconButton
+          color="secondary"
+          size="small"
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+          disabled={!position}
+        >
+          <MoreVertIcon fontSize='small' />
+        </IconButton>
+      </Tooltip>
+    </CardActions>
+    ) }
+  </Card>)
+
+  if(!isMobile) card = (
+    <Draggable
+      handle={`.${classes.media}, .${classes.header}`}
+    >
+     {card}       
+    </Draggable>
+  )
+
   return (
     <>
       <div className={classes.root}>
-        {device && (
-          <Draggable
-            handle={`.${classes.media}, .${classes.header}`}
-          >
-            <Card elevation={3} className={classes.card}>
-              {deviceImage ? (
-                <CardMedia
-                  className={classes.media}
-                  image={`/api/media/${device.uniqueId}/${deviceImage}`}
-                >
-                  <IconButton
-                    size="small"
-                    onClick={onClose}
-                    onTouchStart={onClose}
-                  >
-                    <CloseIcon fontSize="small" className={classes.mediaButton} />
-                  </IconButton>
-                </CardMedia>
-              ) : (
-                <div className={[classes.header]}>
-                  <Typography variant="body2" color="textSecondary">
-                    {device.name}
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={onClose}
-                    onTouchStart={onClose}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </div>
-              )}
-              {position && (
-                <CardContent className={classes.content}>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                    {positionItems.split(',').filter((key) => (position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)) && key !== "address" ).map((key) => (
-                      <StatusRow
-                        key={key}
-                        name={positionAttributes[key]?.name || key}
-                        fullColumn={keepInFullSpaceColumns.includes(key)}
-                        content={(
-                          <PositionValue
-                            position={position}
-                            property={position.hasOwnProperty(key) ? key : null}
-                            attribute={position.hasOwnProperty(key) ? null : key}        
-                          />
-                        )}
-                      />
-                    ))}
-                  </Box>
-                  {summary && (
-                    <>
-                      <Divider mb={2} />
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                        {SummaryFields.split(',').filter((key) => summary.hasOwnProperty(key)).map((key) => (
-                          <StatusRow
-                            key={key}
-                            name={summaryAttributes[key]?.name || key}
-                            content={
-                              <PositionValue
-                                position={summary}
-                                property={key}
-                                attribute={null}
-                                />
-                            }
-                          />))}
-                      </Box>
-                    </>
-                  )}
-                  {positionItems.split(',').includes('address') && 
-                    <Box sx={{ mt: 1}}>
-                      <Typography fontSize={"0.75rem"} color="textSecondary" >
-                        {t('positionAddress')}
-                      </Typography>
-                      <Typography fontSize={"0.75rem"} fontWeight={600}>
-                        <PositionValue
-                          position={position}
-                          property={position.hasOwnProperty('address') ? 'address' : null}
-                          attribute={position.hasOwnProperty('address') ? null : 'address'}        
-                        />
-                      </Typography>
-                    </Box>
-                  }
-                  <Tooltip title={t('sharedShowDetails')}>
-                  <div className={classes.floatingInfo}>
-                    <IconButton size='small' onClick={e => navigate(`/position/${position.id}`)} >
-                      <ExpandMoreIcon fontSize='small' />
-                    </IconButton>
-                  </div>
-                  </Tooltip>
-                </CardContent>
-              )}
-              <CardActions classes={{ root: classes.actions }} disableSpacing>
-                <Tooltip title={t('reportReplay')}>
-                  <IconButton
-                    size="small"
-                    onClick={() => navigate('/replay')}
-                    disabled={disableActions || !position}
-                  >
-                    <ReplayIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('commandTitle')}>
-                  <IconButton
-                  size="small"
-                    onClick={() => navigate(`/settings/device/${deviceId}/command`)}
-                    disabled={disableActions}
-                  >
-                    <PublishIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('sharedEdit')}>
-                  <IconButton
-                  size="small"
-                    onClick={() => navigate(`/settings/device/${deviceId}`)}
-                    disabled={disableActions || deviceReadonly}
-                  >
-                    <EditIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('sharedRemove')}>
-                  <IconButton
-                  size="small"
-                    color="error"
-                    onClick={() => setRemoving(true)}
-                    disabled={disableActions || deviceReadonly}
-                  >
-                    <DeleteIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('sharedExtra')}>
-                  <IconButton
-                    color="secondary"
-                    size="small"
-                    onClick={(e) => setAnchorEl(e.currentTarget)}
-                    disabled={!position}
-                  >
-                    <MoreVertIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-              </CardActions>
-            </Card>
-          </Draggable>
-        )}
+        {device && card}
       </div>
       {position && (
         <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>

@@ -3,9 +3,9 @@ import { useSelector } from 'react-redux';
 
 const get = (server, user, key) => {
   if (server && user) {
-    if (user.administrator) {
-      return false;
-    }
+    // if (user.administrator) {
+    //   return false;
+    // }
     if (server.forceSettings) {
       return server.attributes[key] || user.attributes[key] || false;
     }

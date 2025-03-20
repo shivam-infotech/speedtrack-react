@@ -6,6 +6,21 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
   const groups = useSelector((state) => state.groups.items);
   const devices = useSelector((state) => state.devices.items);
 
+  const isRunning = (device) => {
+    const position = positions[device.id];
+    return position && position?.attributes?.ignition && position.speed > 5;
+  };
+
+  const isStopped = (device) => {
+    const position = positions[device.id];
+    return position && !position?.attributes?.ignition;
+  };
+
+  const isIdle = (device) => {
+    const position = positions[device.id];
+    return position && position?.attributes?.ignition && position.speed <= 5;
+  };
+
   useEffect(() => {
     const deviceGroups = (device) => {
       const groupIds = [];
@@ -18,8 +33,16 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
     };
 
     const filtered = Object.values(devices)
-      .filter((device) => !filter.statuses.length || filter.statuses.includes(device.status))
-      .filter((device) => !filter.groups.length || deviceGroups(device).some((id) => filter.groups.includes(id)))
+      .filter((device) => 
+        !filter.statuses.length || 
+        filter.statuses.includes(device.status) || 
+        filter.statuses.includes('running') && isRunning(device) ||
+        filter.statuses.includes('stopped') && isStopped(device) ||
+        filter.statuses.includes('idle') && isIdle(device)
+      )
+      .filter((device) => {
+        return  filter.groups != "" ? deviceGroups(device).includes(filter.groups) : true;
+      })
       .filter((device) => {
         const lowerCaseKeyword = keyword.toLowerCase();
         return [device.name, device.uniqueId, device.phone, device.model, device.contact].some((s) => s && s.toLowerCase().includes(lowerCaseKeyword));
