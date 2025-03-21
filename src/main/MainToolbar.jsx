@@ -91,7 +91,7 @@ const MainToolbar = ({
   const [devicesAnchorEl, setDevicesAnchorEl] = useState(null);
   const [sortAnchorEl, setSortAnchorEl] = useState(null);
 
-  const deviceStatusCount = (status) => Object.values(devices).filter((d) => d.status === status).length;
+  // const deviceStatusCount = (status) => Object.values(devices).filter((d) => d.status === status).length;
 
   const checkDeviceCountForStatus = (status) => {
     const dvsc = Object.values(devices);

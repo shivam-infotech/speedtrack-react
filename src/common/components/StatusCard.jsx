@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import InfoIcon from '@mui/icons-material/Info';
 import { useTranslation } from './LocalizationProvider';
 import RemoveDialog from './RemoveDialog';
@@ -134,7 +135,7 @@ const useStyles = makeStyles((theme) => ({
   floatingInfo: {
     position: 'absolute',
     bottom: theme.spacing(5),
-    right: theme.spacing(1),
+    right: theme.spacing(2),
     overflow: 'hidden',
   },
 }));
@@ -179,7 +180,7 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
   const summaryAttributes = useSummaryAttributes(t);
   const positionItems = useAttributePreference('positionItems', 'fixTime,speed,totalDistance,address');
   const SummaryFields = useAttributePreference('popupSummaryInfo');
-
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const navigationAppLink = useAttributePreference('navigationAppLink');
   const navigationAppTitle = useAttributePreference('navigationAppTitle');
 
@@ -187,7 +188,6 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
   const [mobileActionMenuEl, setMobileActionMenuEL] = useState(null);
   const [removing, setRemoving] = useState(false);
 
-  console.log(isMobile);
 
   const handleRemove = useCatch(async (removed) => {
     if (removed) {
@@ -286,9 +286,7 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
           sx={{
             display: 'flex',
             flexWrap: 'wrap',
-            justifyContent: 'center',
             [theme.breakpoints.down('sm')]: {
-              justifyContent: 'flex-start',
               gap: theme.spacing(0.5),
             }
           }}
@@ -309,7 +307,7 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
           ))}
         </Box>
         {summary && (
-          <Box >
+          <Box sx={{ display: summaryExpanded ? 'block' : 'none' }} >
             <Divider sx={{ margin: theme.spacing(2, 0) }} />
             <Box
               sx={{
@@ -351,13 +349,19 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
             </Typography>
           </Box>
         }
-        <Tooltip title={t('sharedShowDetails')}>
+        
           <div className={classes.floatingInfo}>
+          <Tooltip title={t('sharedShowDetails')}>
+            <IconButton size='small' onClick={e => setSummaryExpanded(!summaryExpanded)} >
+              { summaryExpanded ? <ExpandMoreIcon fontSize='small' /> : <ExpandLessIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+            <Tooltip title={t('sharedShowDetails')}>
             <IconButton size='small' onClick={e => navigate(`/position/${position.id}`)} >
               <InfoIcon fontSize='small' />
             </IconButton>
+          </Tooltip>
           </div>
-        </Tooltip>
       </CardContent>
     )}
     { !isMobile && (
