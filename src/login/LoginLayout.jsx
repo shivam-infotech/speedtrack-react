@@ -7,37 +7,28 @@ import LogoImage from './LogoImage';
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
-    height: '100%',
-  },
-  sidebar: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    background: theme.palette.primary.main,
-    paddingBottom: theme.spacing(5),
-    width: theme.dimensions.sidebarWidth,
-    [theme.breakpoints.down('lg')]: {
-      width: theme.dimensions.sidebarWidthTablet,
-    },
-    [theme.breakpoints.down('sm')]: {
-      width: '0px',
-    },
+    height: '100vh',
+    overflow: 'hidden',
+    background: theme.palette.background.default,
   },
   paper: {
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
     flex: 1,
-    boxShadow: '-2px 0px 16px rgba(0, 0, 0, 0.25)',
-    [theme.breakpoints.up('lg')]: {
-      padding: theme.spacing(0, 25, 0, 0),
-    },
+    padding: 0,
+    margin: 0,
+    borderRadius: 0,
+    overflow: 'hidden',
+    boxShadow: 'none',
   },
   form: {
-    maxWidth: theme.spacing(52),
-    padding: theme.spacing(5),
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
     width: '100%',
+    height: '100%',
+    padding: 0,
+    margin: 0,
   },
 }));
 
@@ -47,10 +38,10 @@ const LoginLayout = ({ children }) => {
 
   return (
     <main className={classes.root}>
-      <div className={classes.sidebar}>
+      {/* <div className={classes.sidebar}>
         {!useMediaQuery(theme.breakpoints.down('lg')) && <LogoImage color={theme.palette.secondary.contrastText} />}
-      </div>
-      <Paper className={classes.paper}>
+      </div> */}
+      <Paper className={classes.paper} elevation={0}>
         <form className={classes.form}>
           {children}
         </form>

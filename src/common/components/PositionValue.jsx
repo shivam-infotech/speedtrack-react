@@ -88,10 +88,15 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'obdOdometer':
       case 'distance':
       case 'totalDistance':
-        return value != null ? formatDistance(value, distanceUnit, t) : '';
+        return value != null && value > 0 ? formatDistance(value, distanceUnit, t) : '0 km';
       case "startHours":
       case "endHours":
       case "engineHours":
+      case "runningHours":
+      case "idleHours":
+      case "stoppedHours":
+      case "activityDurationHours":
+      case "durationHours":
       case 'hours':
         return value != null ? formatNumericHours(value, t) : '';
       default:

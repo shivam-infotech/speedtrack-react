@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
   Accordion, AccordionSummary, AccordionDetails, Typography, Container, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, FormGroup, InputAdornment, IconButton, OutlinedInput, Autocomplete, TextField, createFilterOptions, Button,
+  Radio,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CachedIcon from '@mui/icons-material/Cached';
@@ -235,7 +236,15 @@ const PreferencesPage = () => {
                     label={t('mapOnSelect')}
                   />
                 </FormGroup>
-              </AccordionDetails>
+                <FormGroup>
+                  <Typography variant="subtitle1">
+                    {t('dashboardType')} 
+                  </Typography>
+                  <Typography variant='caption'>({t('dashboardTypeDescription')})</Typography>
+                  <FormControlLabel label={t('dashboardTypeCompact')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'compact' : false } onChange={(e) => setAttributes({...attributes, dashboardType: 'compact'})} />} />
+                  <FormControlLabel label={t('dashboardTypeLiveMap')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'live-map' : true } onChange={(e) => setAttributes({...attributes, dashboardType: 'live-map'})} />} />
+                </FormGroup>
+              </AccordionDetails>'
             </Accordion>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>

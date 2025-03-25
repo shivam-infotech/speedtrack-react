@@ -25,10 +25,13 @@ const columnsArray = [
   ['startOdometer', 'reportStartOdometer'],
   ['endOdometer', 'reportEndOdometer'],
   ['averageSpeed', 'reportAverageSpeed'],
+  ['ignitionHours', 'reportIgnitionHours'],
+  ['ignitionIdleHours', 'reportIgnitionIdleHours'],
+  ['stoppedHours', 'reportStoppedHours'],
   ['maxSpeed', 'reportMaximumSpeed'],
   ['engineHours', 'reportEngineHours'],
-  ['startHours', 'reportStartEngineHours'],
-  ['endHours', 'reportEndEngineHours'],
+  // ['startHours', 'reportStartEngineHours'],
+  // ['endHours', 'reportEndEngineHours'],
   ['spentFuel', 'reportSpentFuel'],
 ];
 const columnsMap = new Map(columnsArray);
@@ -94,7 +97,7 @@ const SummaryReportPage = () => {
       case 'deviceId':
         return devices[value].name;
       case 'startTime':
-        return formatTime(value, 'date');
+        return formatTime(value, 'minutes');
       case 'startOdometer':
       case 'endOdometer':
       case 'distance':
@@ -104,6 +107,9 @@ const SummaryReportPage = () => {
         return value > 0 ? formatSpeed(value, speedUnit, t) : null;
       case 'engineHours':
       case 'startHours':
+      case 'ignitionHours':
+      case 'ignitionIdleHours':
+      case 'stoppedHours':
       case 'endHours':
         return value > 0 ? formatNumericHours(value, t) : null;
       case 'spentFuel':

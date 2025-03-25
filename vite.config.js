@@ -15,6 +15,13 @@ export default defineConfig(() => ({
   build: {
     outDir: 'build',
   },
+  optimizeDeps: {
+    include: [
+      '@emotion/react', 
+      '@emotion/styled', 
+      '@mui/material/Tooltip'
+    ],
+  },
   plugins: [
     svgr(),
     react(),

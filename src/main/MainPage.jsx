@@ -16,6 +16,9 @@ import useFilter from './useFilter';
 import MainToolbar from './MainToolbar';
 import MainMap from './MainMap';
 import { useAttributePreference } from '../common/util/preferences';
+import { useNavigate } from 'react-router-dom';
+import DeviceRow from './DeviceRow';
+import DeviceCard from './DeviceCard';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -62,14 +65,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const MainPage = () => {
+const LiveMap = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'));
 
   const mapOnSelect = useAttributePreference('mapOnSelect', true);
+  const dashboardType = useAttributePreference('dashboardType', 'live-map');
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
   const positions = useSelector((state) => state.session.positions);
   const [filteredPositions, setFilteredPositions] = useState([]);
@@ -96,9 +102,65 @@ const MainPage = () => {
     }
   }, [desktop, mapOnSelect, selectedDeviceId]);
 
+  useEffect(() => {
+    if(dashboardType === 'compact' && (selectedDeviceId != undefined && selectedDeviceId != null) && isSmallDevice){
+      navigate('/live');
+    }
+  }, [selectedDeviceId, dashboardType, isSmallDevice])
+
+  useEffect(() => {
+    if(isSmallDevice && !desktop){
+      setDevicesOpen(true);
+    }
+  }, [isSmallDevice, desktop])
+
   useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
 
-  return (
+  const renderCompactLayout = () => (
+    <div className={classes.root}>
+      <Paper square elevation={3} className={classes.header}>
+        <MainToolbar
+          filteredDevices={filteredDevices}
+          devicesOpen={devicesOpen}
+          setDevicesOpen={setDevicesOpen}
+          hideDevicesOpen={true}
+          keyword={keyword}
+          setKeyword={setKeyword}
+          filter={filter}
+          setFilter={setFilter}
+          filterSort={filterSort}
+          setFilterSort={setFilterSort}
+          filterMap={filterMap}
+          setFilterMap={setFilterMap}
+        />
+      </Paper>
+      <div className={classes.contentMap} style={{ padding: theme.spacing(2), height: "20rem", borderRadius: "4rem", overflow: 'hidden' }} onClick={() => navigate('/live')}>
+        <MainMap
+          filteredPositions={filteredPositions}
+          selectedPosition={selectedPosition}
+          onEventsClick={onEventsClick}
+          hideControls={true}
+        />
+      </div>
+      <Paper square className={classes.contentList}>
+        {filteredDevices.map((_, index) => (
+            <DeviceCard key={filteredDevices[index].id} isDeviceSelected={selectedDeviceId == filteredDevices[index].id} data={filteredDevices} index={index} style={{ marginBottom: theme.spacing(1) }} />
+        ))}
+      </Paper>
+      <EventsDrawer open={eventsOpen} onClose={() => setEventsOpen(false)} />
+      {selectedDeviceId && (
+        <StatusCard
+          deviceId={selectedDeviceId}
+          position={selectedPosition}
+          onClose={() => dispatch(devicesActions.selectId(null))}
+          desktopPadding={theme.dimensions.drawerWidthDesktop}
+          summary={summaries[selectedDeviceId] || {}}
+        />
+      )}
+    </div>
+  );
+
+  const renderLiveMapLayout = () => (
     <div className={classes.root}>
       {desktop && (
         <MainMap
@@ -156,6 +218,8 @@ const MainPage = () => {
       )}
     </div>
   );
+
+  return isSmallDevice && dashboardType === 'compact' ? renderCompactLayout() : renderLiveMapLayout();
 };
 
-export default MainPage;
+export default LiveMap;

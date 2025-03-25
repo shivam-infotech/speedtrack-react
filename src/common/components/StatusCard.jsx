@@ -57,8 +57,8 @@ const useStyles = makeStyles((theme) => ({
     mixBlendMode: 'difference',
   },
   content: {
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
+    paddingTop: 0,
+    paddingBottom: "0px !important",
     [theme.breakpoints.down('md')]: {
       padding: theme.spacing(1),
     },
@@ -137,6 +137,10 @@ const useStyles = makeStyles((theme) => ({
     bottom: theme.spacing(5),
     right: theme.spacing(2),
     overflow: 'hidden',
+    [theme.breakpoints.down('sm')]: {
+      bottom: theme.spacing(1),
+      right: theme.spacing(1),
+    }
   },
 }));
 
@@ -233,9 +237,22 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
         className={classes.media}
         image={`/api/media/${device.uniqueId}/${deviceImage}`}
       >
+        <IconButton
+          size="small"
+          onClick={onClose}
+          onTouchStart={onClose}
+        >
+          <CloseIcon fontSize="small" className={classes.mediaButton} />
+        </IconButton>
+      </CardMedia>
+    ) : (
+      <div className={[classes.header]}>
+        <Typography variant="body2" color="textSecondary" style={{ flex: 1 }}>
+          {device?.name}
+        </Typography>
         { isMobile && (
           <>
-            <IconButton size="small" onClick={e => setMobileActionMenuEL(e.currentTarget)} onTouchStart={e => setMobileActionMenuEL(e.currentTarget)} >
+            <IconButton size="small" onClick={e => setMobileActionMenuEL(e.currentTarget)} >
               <MoreVertIcon fontSize='small' />
             </IconButton>
             <Menu anchorEl={mobileActionMenuEl} open={Boolean(mobileActionMenuEl)} onClose={() => setMobileActionMenuEL(null)}>
@@ -258,19 +275,6 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
             </Menu>
           </>
         ) }
-        <IconButton
-          size="small"
-          onClick={onClose}
-          onTouchStart={onClose}
-        >
-          <CloseIcon fontSize="small" className={classes.mediaButton} />
-        </IconButton>
-      </CardMedia>
-    ) : (
-      <div className={[classes.header]}>
-        <Typography variant="body2" color="textSecondary">
-          {device.name}
-        </Typography>
         <IconButton
           size="small"
           onClick={onClose}

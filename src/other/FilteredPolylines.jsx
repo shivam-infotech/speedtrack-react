@@ -18,7 +18,7 @@ const FilteredPolylines = ({ positions, stoppedMoreThan, idleMoreThan, speedMore
       if (position.attributes.ignition === false) {
         currentSegment.push(position);
       } else if (currentSegment.length > 0) {
-        const duration = (dayjs(currentSegment[currentSegment.length - 1].fixTime) - dayjs(currentSegment[0].fixTime)) / 1000 / 60;
+        const duration = dayjs(currentSegment[currentSegment.length - 1].fixTime || undefined).diff(dayjs(currentSegment[0].fixTime), 'second') / 60;
         if (duration >= stoppedMoreThan) {
           segments.push(currentSegment);
         }
@@ -94,16 +94,16 @@ const FilteredPolylines = ({ positions, stoppedMoreThan, idleMoreThan, speedMore
   return (
     <>
       {stoppedSegments.map((segment, index) => (
-        <MapRoutePath key={`stopped-${index}`} positions={segment} color="#e33124" width={6} />
+        <MapRoutePath key={`stopped-${index}`} positions={segment} color="#e33124" width={8} />
       ))}
       {idleSegments.map((segment, index) => (
-        <MapRoutePath key={`idle-${index}`} positions={segment} color="#FFC107" width={6} />
+        <MapRoutePath key={`idle-${index}`} positions={segment} color="#FFC107" width={8} />
       ))}
       {speedSegments.map((segment, index) => (
-        <MapRoutePath key={`speed-${index}`} positions={segment} color="#c70fff" width={6} />
+        <MapRoutePath key={`speed-${index}`} positions={segment} color="#c70fff" width={8} />
       ))}
       {inactiveSegments.map((segment, index) => (
-        <MapRoutePath key={`inactive-${index}`} positions={segment} color="#2950ff" width={6} />
+        <MapRoutePath key={`inactive-${index}`} positions={segment} color="#2950ff" width={8} />
       ))}
     </>
   );

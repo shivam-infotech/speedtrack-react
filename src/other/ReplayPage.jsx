@@ -174,7 +174,7 @@ const ReplayPage = () => {
   }, [setIndex]);
 
   const onMarkerClick = useCallback((positionId) => {
-    setShowCard(!!positionId);
+    if(showCard) setShowCard(!!positionId);
   }, [setShowCard]);
 
   const findStoppages = (positions) => {
@@ -188,7 +188,7 @@ const ReplayPage = () => {
       const position = positions[i];
       if(calculateDistance(startPosition.latitude, startPosition.longitude, position.latitude, position.longitude) < 15 && calculateDistance(position.latitude, position.longitude, endPosition.latitude, endPosition.longitude) < 15) continue;
       if (position.attributes.ignition === false) { currentStoppage.push(position); }
-      else if(position.attributes.ignition === true && currentStoppage.length > 0){
+      else if(position.attributes.ignition === true && currentStoppage.length > 1){
         stoppages.push(currentStoppage);
         currentStoppage = [];
       }
@@ -215,6 +215,7 @@ const ReplayPage = () => {
     setSelectedDeviceId(deviceId);
     setFrom(from);
     setTo(to);
+    setStoppages(null);
     const query = new URLSearchParams({ deviceId, from, to });
     try {
       const response = await fetch(`/api/positions?${query.toString()}`);
@@ -227,7 +228,7 @@ const ReplayPage = () => {
         if (positions.length) {
           setExpanded(false);
           setShowCard(true);
-          setStoppages(findStoppages(rawPosition));
+          // setStoppages(findStoppages(rawPosition));
           setSummary(await fetchSummary(deviceId, from, to));
         } else {
           throw Error(t('sharedNoData'));
@@ -239,6 +240,12 @@ const ReplayPage = () => {
       setLoading(false);
     }
   });
+
+  useEffect(() => {
+    if (rawPositions.length > 0) {
+      setStoppages(findStoppages(rawPositions));
+    }
+  }, [rawPositions]); // Update stoppages whenever rawPositions changes
 
   const handleDownload = () => {
     const query = new URLSearchParams({ deviceId: selectedDeviceId, from, to });
@@ -254,7 +261,7 @@ const ReplayPage = () => {
             <MapRoutePath positions={positions} />
             <MapRoutePoints positions={positions} onClick={onPointClick} />
             <MapPositions positions={[positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
-            <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} />
+            {stoppages && <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} />}
             <FilteredPolylines
               positions={rawPositions}
               stoppedMoreThan={stoppedMoreThan}

@@ -7,6 +7,7 @@ import {
   ListItem,
   Chip,
   Divider,
+  Switch,
 } from '@mui/material';
 import { makeStyles, useTheme } from '@mui/styles';
 import MapIcon from '@mui/icons-material/Map';
@@ -64,6 +65,7 @@ const MainToolbar = ({
   filteredDevices,
   devicesOpen,
   setDevicesOpen,
+  hideDevicesOpen = false,
   keyword,
   setKeyword,
   filter,
@@ -116,9 +118,9 @@ const MainToolbar = ({
   return (
     <Toolbar ref={toolbarRef} className={classes.toolbarContainer} >
       <div className={classes.toolbar}>
-        <IconButton edge="start" onClick={() => setDevicesOpen(!devicesOpen)}>
+        { !hideDevicesOpen && <IconButton edge="start" onClick={() => setDevicesOpen(!devicesOpen)}>
           {devicesOpen ? <MapIcon /> : <ViewListIcon />}
-        </IconButton>
+        </IconButton>}
         <OutlinedInput
           ref={inputRef}
           placeholder={t('sharedSearchDevices')}
@@ -234,28 +236,28 @@ const MainToolbar = ({
       {devicesOpen && <div className={classes.filterContainer}>
         <List className={classes.chipContainer} >
           <Chip
-            icon={filter.statuses.includes('running') && <CheckIcon />}
+            icon={filter.statuses.includes('running') ? <CheckIcon /> : undefined}
             size="small"
             // color='secondary'
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('running') ? 'running' : '') })}
             label={`${checkDeviceCountForStatus('running')} ${t('deviceStatusRunning')}`}
           />
           <Chip
-            icon={filter.statuses.includes('stopped') && <CheckIcon />}
+            icon={filter.statuses.includes('stopped') ? <CheckIcon /> : undefined}
             size="small"
             // color='error'
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('stopped') ? 'stopped' : '') })}
             label={`${checkDeviceCountForStatus('stopped')} ${t('deviceStatusStopped')}`}
           />
           <Chip
-            icon={filter.statuses.includes('idle') && <CheckIcon />}
+            icon={filter.statuses.includes('idle') ? <CheckIcon /> : undefined}
             size="small"
             // color='warning'
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('idle') ? 'idle' : '') })}
             label={`${checkDeviceCountForStatus('idle')} ${t('deviceStatusIdle')}`}
           />
           <Chip
-            icon={filter.statuses.includes('online') && <CheckIcon />}
+            icon={filter.statuses.includes('online') ? <CheckIcon /> : undefined}
             size="small"
             // color='success'
             // style={{ color: 'white' }}
@@ -263,20 +265,30 @@ const MainToolbar = ({
             label={`${checkDeviceCountForStatus('online')} ${t('deviceStatusOnline')}`}
           />
           <Chip
-            icon={filter.statuses.includes('offline') && <CheckIcon />}
+            icon={filter.statuses.includes('offline') ? <CheckIcon /> : undefined}
             label={`${checkDeviceCountForStatus('offline')} ${t('deviceStatusOffline')}`}
             size="small"
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('offline') ? 'offline' : '') })}
           />
           {Object.values(groups).length > 0 && <Divider orientation="vertical" flexItem className={classes.divider} />}
           {Object.values(groups).sort((a, b) => a.name.localeCompare(b.name)).map((group) => (
-            <Chip key={group.id} icon={filter.groups === group.id && <CheckIcon />} label={group.name} size="small" onClick={() => setFilter({ ...filter, groups: (filter.groups === group.id ? '' : group.id) })} />
+            <Chip key={group.id} icon={filter.groups === group.id ? <CheckIcon /> : undefined} label={group.name} size="small" onClick={() => setFilter({ ...filter, groups: (filter.groups === group.id ? '' : group.id) })} />
           ))}
         </List>
 
-        <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)}>
-          <SortIcon />
-        </IconButton>
+        <Tooltip title={t('sharedSortBy')}>
+          <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)} size='small'>
+            <SortIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={t('sharedFilterMap')}>
+          <Switch
+            checked={filterMap}
+            onChange={(e) => setFilterMap(e.target.checked)}
+            inputProps={{ 'aria-label': 'Filter on map' }}
+            size='small'
+          />
+        </Tooltip>
       </div>}
       <Popover
         open={Boolean(sortAnchorEl)}

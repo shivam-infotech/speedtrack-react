@@ -51,14 +51,14 @@ export const formatTime = (value, format) => {
   return '';
 };
 
-export const TimeDiffInHumanReadableFormat = (value) => {
+export const TimeDiffInHumanReadableFormat = (date, anotherDate = null) => {
   const secondsInMinute = 60;
   const secondsInHour = 3600;
   const secondsInDay = 86400;
   const secondsInWeek = 604800;
   const secondsInMonth = 2592000; // Approximate month as 30 days
 
-  const totalSeconds = dayjs().diff(dayjs(value), 'second');
+  const totalSeconds = dayjs(anotherDate || undefined).diff(dayjs(date), 'second');
 
   let months = Math.floor(totalSeconds / secondsInMonth);
   let weeks = Math.floor((totalSeconds % secondsInMonth) / secondsInWeek);

@@ -6,6 +6,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import { devicesActions } from '../store';
 import { useEffectAsync } from '../reactHelper';
 import DeviceRow from './DeviceRow';
+import DeviceCard from './DeviceCard';
 
 const useStyles = makeStyles((theme) => ({
   list: {
@@ -13,6 +14,7 @@ const useStyles = makeStyles((theme) => ({
   },
   listInner: {
     position: 'relative',
+    width: "100%",
     margin: theme.spacing(1.5, 0),
   },
 }));
@@ -25,7 +27,6 @@ const DeviceList = ({ devices }) => {
   if (listInnerEl.current) {
     listInnerEl.current.className = classes.listInner;
   }
-
   const [, setTime] = useState(Date.now());
 
   useEffect(() => {
@@ -46,19 +47,19 @@ const DeviceList = ({ devices }) => {
 
   return (
     <AutoSizer className={classes.list}>
-      {({ height, width }) => (
-        <FixedSizeList
-          width={width}
-          height={height}
-          itemCount={devices.length}
-          itemData={devices}
-          itemSize={72}
-          overscanCount={10}
-          innerRef={listInnerEl}
-        >
-          {DeviceRow}
-        </FixedSizeList>
-      )}
+      {({ height, width }) => {
+        return <FixedSizeList
+        width={width}
+        height={height}
+        itemCount={devices.length}
+        itemData={devices}
+        itemSize={244}
+        overscanCount={10}
+        innerRef={listInnerEl}
+      >
+        {DeviceCard}
+      </FixedSizeList>
+      }}
     </AutoSizer>
   );
 };

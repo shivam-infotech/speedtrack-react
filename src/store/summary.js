@@ -49,6 +49,17 @@ export const updateSummaryFromPosition = (position) => async (dispatch, getState
             endHours: position.attributes.hours || existingSummary.endHours,
             spentFuel: existingSummary.spentFuel + (position.attributes.fuelUsed || 0),
         };
+        switch(position.activity){
+            case 'running':
+                updatedSummary.runningHours + position.activityDurationHours
+                break;
+            case 'idle': 
+                updatedSummary.idleHours + position.activityDurationHours
+                break;
+            case 'stopped': 
+                updatedSummary.idleHours + position.activityDurationHours
+                break;
+        }
         dispatch(actions.update([updatedSummary]));
     }
 };

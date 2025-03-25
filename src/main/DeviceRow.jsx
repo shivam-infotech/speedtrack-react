@@ -27,6 +27,8 @@ import { useAdministrator } from '../common/util/permissions';
 import EngineIcon from '../resources/images/data/engine.svg?react';
 import { useAttributePreference } from '../common/util/preferences';
 import AddressValue from '../common/components/AddressValue';
+import { ReplayOutlined } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 dayjs.extend(relativeTime);
 
@@ -62,7 +64,8 @@ const DeviceRow = ({ data, index, style }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
-  const selectedDeviceId = useSelector((state) => state.devices.selectedId);
+  const selectedDeviceId = useSelector((state) => state.devices.selectedId);  
+  const navigate = useNavigate();
 
   const admin = useAdministrator();
 
@@ -167,6 +170,13 @@ const DeviceRow = ({ data, index, style }) => {
                 </IconButton>
               </Tooltip>
             )}
+            {
+              <Tooltip title={t('reportReplay')}>
+                <IconButton size='small' onClick={() => navigate('/replay')} >
+                  <ReplayOutlined fontSize='small' />
+                </IconButton>
+              </Tooltip>
+            }
           </>
         )}
       </ListItemButton>
