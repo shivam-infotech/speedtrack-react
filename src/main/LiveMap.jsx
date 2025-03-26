@@ -49,6 +49,10 @@ export default function LiveMap() {
 
     useEffect(() => {
         setFilteredPositions(Object.values(devices).map((device) => positions[device.id]).filter(Boolean))
+
+        return () => {
+            dispatch(devicesActions.selectId(null));
+        }
     }, [positions, devices])
 
     return (
@@ -56,7 +60,7 @@ export default function LiveMap() {
             <div className={styles.sidebar}>
                 <Paper elevation={3} square>
                     <Toolbar>
-                        <IconButton edge="start" sx={{ mr: 2 }} onClick={() => {dispatch(devicesActions.selectId(null)) ; navigate(-1);}}>
+                        <IconButton edge="start" sx={{ mr: 2 }} onClick={() => {dispatch(devicesActions.selectId(null)); navigate(-1)}}>
                             <ArrowBackIcon />
                         </IconButton>
                         <Typography variant="h6" sx={{ flexGrow: 1 }} >{t('mapLiveRoutes')}</Typography>
@@ -69,6 +73,7 @@ export default function LiveMap() {
                     selectedPosition={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
                     hideControls={true}
                     onEventsClick={() => {}}
+                    filteredDevices={selectedDeviceId ? [devices[selectedDeviceId]] : undefined}
                 />
             </div>
             {selectedDeviceId && <StatusCard

@@ -1,7 +1,7 @@
 import React, {
   useState, useCallback, useEffect,
 } from 'react';
-import { Paper } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -63,6 +63,11 @@ const useStyles = makeStyles((theme) => ({
     gridArea: '1 / 1',
     zIndex: 4,
   },
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }
 }));
 
 const LiveMap = () => {
@@ -135,10 +140,14 @@ const LiveMap = () => {
         />
       </Paper>
       <div className={classes.contentMap} style={{ padding: theme.spacing(2), height: "20rem", borderRadius: "4rem", overflow: 'hidden' }} onClick={() => navigate('/live')}>
+        <Box className={classes.sectionHeader}>
+          <Typography varient="body2" fontWeight="bold" ></Typography>
+        </Box>
         <MainMap
           filteredPositions={filteredPositions}
           selectedPosition={selectedPosition}
           onEventsClick={onEventsClick}
+          filteredDevices={filterMap ? filteredDevices : undefined}
           hideControls={true}
         />
       </div>
@@ -167,7 +176,7 @@ const LiveMap = () => {
           filteredPositions={filteredPositions}
           selectedPosition={selectedPosition}
           onEventsClick={onEventsClick}
-          filteredDevices={filteredDevices}
+          filteredDevices={filterMap ? filteredDevices : undefined}
         />
       )}
       <div className={classes.sidebar}>
@@ -193,6 +202,7 @@ const LiveMap = () => {
                 filteredPositions={filteredPositions}
                 selectedPosition={selectedPosition}
                 onEventsClick={onEventsClick}
+                filteredDevices={filterMap ? filteredDevices : undefined}
               />
             </div>
           )}

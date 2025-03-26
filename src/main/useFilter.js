@@ -8,17 +8,17 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
 
   const isRunning = (device) => {
     const position = positions[device.id];
-    return position && position?.attributes?.ignition && position.speed > 5;
+    return position && position?.attributes?.activity === 'running';
   };
 
   const isStopped = (device) => {
     const position = positions[device.id];
-    return position && !position?.attributes?.ignition;
+    return position && position?.attributes?.activity ===  'stopped';
   };
 
   const isIdle = (device) => {
     const position = positions[device.id];
-    return position && position?.attributes?.ignition && position.speed <= 5;
+    return position && position?.attributes?.activity === 'idle';
   };
 
   useEffect(() => {

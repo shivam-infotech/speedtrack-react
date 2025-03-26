@@ -19,7 +19,7 @@ import MapScale from '../map/MapScale';
 import MapNotification from '../map/notification/MapNotification';
 import useFeatures from '../common/util/useFeatures';
 
-const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
+const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -44,6 +44,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
           positions={filteredPositions}
           onClick={onMarkerClick}
           selectedPosition={selectedPosition}
+          filteredDevices={filteredDevices}
           showStatus
         />
         <MapDefaultCamera />

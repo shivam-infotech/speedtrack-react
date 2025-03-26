@@ -8,8 +8,9 @@ import { mapIconKey } from './core/preloadImages';
 import { useAttributePreference } from '../common/util/preferences';
 import { useCatchCallback } from '../reactHelper';
 import { findFonts } from './core/mapUtil';
+import usePersistedState from '../common/util/usePersistedState';
 
-const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField, animationDuration = 1000 }) => {
+const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField, animationDuration = 1000, filteredDevices }) => {
     const id = useId();
     const [animatedPositions, setAnimatedPositions] = useState([]);
     const animationFrameId = useRef(null);
@@ -241,6 +242,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
             map.getSource(source)?.setData({
                 type: 'FeatureCollection',
                 features: animatedPositions.filter((it) => devices.hasOwnProperty(it.deviceId))
+                    .filter((d) => filteredDevices ? filteredDevices.map(fd => fd.id).includes(d.deviceId): true)
                     .filter((it) => (source === id ? it.deviceId !== selectedDeviceId : it.deviceId === selectedDeviceId))
                     .map((position) => ({
                         type: 'Feature',
@@ -252,7 +254,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
                     })),
             });
         });
-    }, [mapCluster, clusters, onMarkerClick, onClusterClick, devices, animatedPositions, selectedPosition]);
+    }, [mapCluster, clusters, onMarkerClick, onClusterClick, devices, animatedPositions, selectedPosition, filteredDevices]);
 
     return null;
 };

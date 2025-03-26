@@ -79,9 +79,28 @@ const DevicePage = () => {
               <TextField
                 value={item.uniqueId || ''}
                 onChange={(event) => setItem({ ...item, uniqueId: event.target.value })}
-                label={t('deviceIdentifier')}
+                label={`${t('deviceIdentifier')} / ${t('deviceImei')}`}
                 helperText={t('deviceIdentifierHelp')}
                 disabled={Boolean(uniqueId)}
+              />
+              <TextField
+                value={item.phone || ''}
+                onChange={(event) => setItem({ ...item, phone: event.target.value })}
+                label={`${t('sharedPhone')} / ${t('ShareSimNumber')}`}
+              />
+              <TextField
+                value={item.model || ''}
+                onChange={(event) => setItem({ ...item, model: event.target.value })}
+                label={t('deviceModel')}
+              />
+              <SelectField
+                value={item.category || 'default'}
+                onChange={(event) => setItem({ ...item, category: event.target.value })}
+                data={deviceCategories.map((category) => ({
+                  id: category,
+                  name: t(`category${category.replace(/^\w/, (c) => c.toUpperCase())}`),
+                })).sort((a, b) => a.name.localeCompare(b.name))}
+                label={t('deviceCategory')}
               />
             </AccordionDetails>
           </Accordion>
@@ -99,28 +118,9 @@ const DevicePage = () => {
                 label={t('groupParent')}
               />
               <TextField
-                value={item.phone || ''}
-                onChange={(event) => setItem({ ...item, phone: event.target.value })}
-                label={t('sharedPhone')}
-              />
-              <TextField
-                value={item.model || ''}
-                onChange={(event) => setItem({ ...item, model: event.target.value })}
-                label={t('deviceModel')}
-              />
-              <TextField
                 value={item.contact || ''}
                 onChange={(event) => setItem({ ...item, contact: event.target.value })}
                 label={t('deviceContact')}
-              />
-              <SelectField
-                value={item.category || 'default'}
-                onChange={(event) => setItem({ ...item, category: event.target.value })}
-                data={deviceCategories.map((category) => ({
-                  id: category,
-                  name: t(`category${category.replace(/^\w/, (c) => c.toUpperCase())}`),
-                })).sort((a, b) => a.name.localeCompare(b.name))}
-                label={t('deviceCategory')}
               />
               <SelectField
                 value={item.calendarId}

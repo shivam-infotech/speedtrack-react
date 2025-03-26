@@ -206,9 +206,6 @@ const DeviceCard = ({ data, index, style }) => {
       case 'playback':
         navigate('/replay');
         break;
-      case 'follow':
-        // Implement follow action
-        break;
       case 'share':
         navigate(`/settings/device/${item.id}/share`)
         break;
@@ -306,9 +303,6 @@ const DeviceCard = ({ data, index, style }) => {
             <MenuItem onClick={() => handleMenuAction('playback')} disabled={!position}>
               <PlayArrowIcon sx={{ mr: 1 }} /> {t('reportReplay')}
             </MenuItem>
-            <MenuItem onClick={() => handleMenuAction('follow')} disabled={!position}>
-              <MyLocationIcon sx={{ mr: 1 }} /> {t('deviceFollow')}
-            </MenuItem>
             <MenuItem onClick={() => handleMenuAction('share')} disabled={shareDisabled || user.temporary}>
               <ShareIcon sx={{ mr: 1 }} /> {t('deviceShare')}
             </MenuItem>
@@ -340,7 +334,7 @@ const DeviceCard = ({ data, index, style }) => {
               size="small"
               icon={<EngineIcon width={16} height={16} />}
               label={
-                position ? (position?.attributes?.ignition ? (position?.speed > 5 ? t('deviceStatusRunning') : t('deviceStatusIdle')) : t('deviceStatusStopped')) : t('deviceStatusOffline')
+                position ? (position?.attributes?.activity ? t(`deviceStatus${position?.attributes?.activity.ucfirst()}`) : t('deviceStatusStopped')) : t('deviceStatusOffline')
               }
               className={classes.statusChip}
               color={position ? (position?.attributes?.ignition ? (position?.speed > 5 ? "success" : "warning") : "error") : 'default'}
@@ -364,7 +358,7 @@ const DeviceCard = ({ data, index, style }) => {
             <div className={classes.statText}>
               <Typography variant="caption">Distance</Typography>
               <Typography variant="body2" noWrap>
-                {position ? <PositionValue position={position} property={null} attribute={'distance'} /> : '0 km'}
+                {summary ? <PositionValue position={summary} property={'distance'} attribute={null} /> : '0 km'}
               </Typography>
             </div>
           </div>

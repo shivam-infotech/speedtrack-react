@@ -165,11 +165,12 @@ export const getStatusColor = (status) => {
 };
 
 export const getDeviceStatusColor = (position) => {
-  if(position?.attributes?.ignition){
-    if(position.speed > 5) return 'success';
-    else return 'warning';
+  switch(position?.attributes?.activity){
+    case 'running': return 'success';
+    case 'idle': return 'warning';
+    case 'stopped': return 'error';
+    default: return 'error';
   }
-  return 'error';
 }
 
 export const getBatteryStatus = (batteryLevel) => {

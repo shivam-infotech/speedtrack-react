@@ -238,29 +238,29 @@ const MainToolbar = ({
           <Chip
             icon={filter.statuses.includes('running') ? <CheckIcon /> : undefined}
             size="small"
-            // color='secondary'
+            color='secondary'
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('running') ? 'running' : '') })}
             label={`${checkDeviceCountForStatus('running')} ${t('deviceStatusRunning')}`}
           />
           <Chip
             icon={filter.statuses.includes('stopped') ? <CheckIcon /> : undefined}
             size="small"
-            // color='error'
+            color='error'
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('stopped') ? 'stopped' : '') })}
             label={`${checkDeviceCountForStatus('stopped')} ${t('deviceStatusStopped')}`}
           />
           <Chip
             icon={filter.statuses.includes('idle') ? <CheckIcon /> : undefined}
             size="small"
-            // color='warning'
+            color='warning'
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('idle') ? 'idle' : '') })}
             label={`${checkDeviceCountForStatus('idle')} ${t('deviceStatusIdle')}`}
           />
           <Chip
             icon={filter.statuses.includes('online') ? <CheckIcon /> : undefined}
             size="small"
-            // color='success'
-            // style={{ color: 'white' }}
+            color='success'
+            style={{ color: 'white' }}
             onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('online') ? 'online' : '') })}
             label={`${checkDeviceCountForStatus('online')} ${t('deviceStatusOnline')}`}
           />
