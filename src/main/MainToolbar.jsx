@@ -19,6 +19,8 @@ import SortIcon from '@mui/icons-material/Sort';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import { useDeviceReadonly } from '../common/util/permissions';
 import DeviceRow from './DeviceRow';
+import PinDropIcon from '@mui/icons-material/PinDrop';
+import WrongLocationIcon from '@mui/icons-material/WrongLocation';
 
 const useStyles = makeStyles((theme) => ({
   toolbarContainer: {
@@ -66,6 +68,7 @@ const MainToolbar = ({
   devicesOpen,
   setDevicesOpen,
   hideDevicesOpen = false,
+  onLeftTop,
   keyword,
   setKeyword,
   filter,
@@ -75,6 +78,7 @@ const MainToolbar = ({
   filterMap,
   setFilterMap,
   selectedDeviceId,
+  hidefilters,
 }) => {
   const classes = useStyles();
   const theme = useTheme();
@@ -118,6 +122,7 @@ const MainToolbar = ({
   return (
     <Toolbar ref={toolbarRef} className={classes.toolbarContainer} >
       <div className={classes.toolbar}>
+        {onLeftTop}
         { !hideDevicesOpen && <IconButton edge="start" onClick={() => setDevicesOpen(!devicesOpen)}>
           {devicesOpen ? <MapIcon /> : <ViewListIcon />}
         </IconButton>}
@@ -233,7 +238,7 @@ const MainToolbar = ({
           </Tooltip>
         </IconButton>
       </div>
-      {devicesOpen && <div className={classes.filterContainer}>
+      {!hidefilters && <div className={classes.filterContainer}>
         <List className={classes.chipContainer} >
           <Chip
             icon={filter.statuses.includes('running') ? <CheckIcon /> : undefined}
@@ -276,18 +281,15 @@ const MainToolbar = ({
           ))}
         </List>
 
+        <Tooltip title={t('sharedFilterMap')}>
+          <IconButton onClick={() => setFilterMap(!filterMap)} size='small' >
+            { filterMap ? <PinDropIcon fontSize='small' sx={{ color: theme.palette.primary.main }} /> : <WrongLocationIcon fontSize='small' /> }
+          </IconButton>
+        </Tooltip>
         <Tooltip title={t('sharedSortBy')}>
           <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)} size='small'>
             <SortIcon fontSize='small' />
           </IconButton>
-        </Tooltip>
-        <Tooltip title={t('sharedFilterMap')}>
-          <Switch
-            checked={filterMap}
-            onChange={(e) => setFilterMap(e.target.checked)}
-            inputProps={{ 'aria-label': 'Filter on map' }}
-            size='small'
-          />
         </Tooltip>
       </div>}
       <Popover

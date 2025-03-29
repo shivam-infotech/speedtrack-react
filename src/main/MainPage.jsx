@@ -1,7 +1,7 @@
 import React, {
-  useState, useCallback, useEffect,
+  useState, useCallback, useEffect, useRef,
 } from 'react';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, IconButton } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -16,9 +16,10 @@ import useFilter from './useFilter';
 import MainToolbar from './MainToolbar';
 import MainMap from './MainMap';
 import { useAttributePreference } from '../common/util/preferences';
-import { useNavigate } from 'react-router-dom';
+import { createSearchParams, useNavigate } from 'react-router-dom';
 import DeviceRow from './DeviceRow';
 import DeviceCard from './DeviceCard';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -75,6 +76,7 @@ const LiveMap = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const navigate = useNavigate();
+  const hasClearedDevice = useRef(false);
 
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'));
@@ -82,6 +84,15 @@ const LiveMap = () => {
   const mapOnSelect = useAttributePreference('mapOnSelect', true);
   const dashboardType = useAttributePreference('dashboardType', 'live-map');
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
+
+  // Clear selected device only once when page loads in compact layout on small devices
+  useEffect(() => {
+    if (!hasClearedDevice.current && isSmallDevice && dashboardType === 'compact' && selectedDeviceId) {
+      dispatch(devicesActions.selectId(null));
+      hasClearedDevice.current = true;
+    }
+  }, [isSmallDevice, dashboardType, selectedDeviceId, dispatch]);
+
   const positions = useSelector((state) => state.session.positions);
   const [filteredPositions, setFilteredPositions] = useState([]);
   const selectedPosition = filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId);
@@ -107,14 +118,14 @@ const LiveMap = () => {
     }
   }, [desktop, mapOnSelect, selectedDeviceId]);
 
-  useEffect(() => {
-    if(dashboardType === 'compact' && (selectedDeviceId != undefined && selectedDeviceId != null) && isSmallDevice){
-      navigate('/live');
-    }
-  }, [selectedDeviceId, dashboardType, isSmallDevice])
+  // useEffect(() => {
+  //   if (dashboardType === 'compact' && (selectedDeviceId != undefined && selectedDeviceId != null) && isSmallDevice) {
+  //     navigate('/live');
+  //   }
+  // }, [selectedDeviceId, dashboardType, isSmallDevice])
 
   useEffect(() => {
-    if(isSmallDevice && !desktop){
+    if (isSmallDevice && !desktop) {
       setDevicesOpen(true);
     }
   }, [isSmallDevice, desktop])
@@ -139,21 +150,45 @@ const LiveMap = () => {
           setFilterMap={setFilterMap}
         />
       </Paper>
-      <div className={classes.contentMap} style={{ padding: theme.spacing(2), height: "20rem", borderRadius: "4rem", overflow: 'hidden' }} onClick={() => navigate('/live')}>
+      <div className={classes.contentMap} style={{ padding: theme.spacing(2), height: "20rem", marginBottom: theme.spacing(2) }}>
         <Box className={classes.sectionHeader}>
-          <Typography varient="body2" fontWeight="bold" ></Typography>
+          <Typography varient="body2" fontWeight="bold">Live Map</Typography>
+          <Typography
+            variant='body3'
+            sx={{ cursor: 'pointer' }}
+            onClick={() => navigate('/live')}
+          >
+            See All
+          </Typography>
         </Box>
-        <MainMap
-          filteredPositions={filteredPositions}
-          selectedPosition={selectedPosition}
-          onEventsClick={onEventsClick}
-          filteredDevices={filterMap ? filteredDevices : undefined}
-          hideControls={true}
-        />
+        <Box sx={{ borderRadius: "8px", height: "100%", width: "100%", overflow: 'hidden' }}>
+          <MainMap
+            filteredPositions={filteredPositions}
+            selectedPosition={selectedPosition}
+            onEventsClick={onEventsClick}
+            filteredDevices={filterMap ? filteredDevices : undefined}
+            hideControls={true}
+            onMarkerClick={(deviceId) => { }}
+          />
+        </Box>
       </div>
       <Paper square className={classes.contentList}>
+        <Box className={classes.sectionHeader} sx={{ padding: `0 ${theme.spacing(2)}` }}>
+          <Typography varient="body2" fontWeight="bold">Recent Devices</Typography>
+          {/* <Typography variant='body3'>See All</Typography> */}
+        </Box>
         {filteredDevices.map((_, index) => (
-            <DeviceCard key={filteredDevices[index].id} isDeviceSelected={selectedDeviceId == filteredDevices[index].id} data={filteredDevices} index={index} style={{ marginBottom: theme.spacing(1) }} />
+          <DeviceCard
+            key={filteredDevices[index].id}
+            isDeviceSelected={selectedDeviceId == filteredDevices[index].id}
+            data={filteredDevices}
+            index={index}
+            style={{ marginBottom: theme.spacing(1) }}
+            onClick={() => {
+              // dispatch(devicesActions.selectId(filteredDevices[index].id));
+              navigate({ pathname: '/live', search: createSearchParams({ deviceId: filteredDevices[index].id }).toString() });
+            }}
+          />
         ))}
       </Paper>
       <EventsDrawer open={eventsOpen} onClose={() => setEventsOpen(false)} />

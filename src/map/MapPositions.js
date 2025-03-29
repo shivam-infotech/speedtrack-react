@@ -10,7 +10,7 @@ import { useCatchCallback } from '../reactHelper';
 import { findFonts } from './core/mapUtil';
 import usePersistedState from '../common/util/usePersistedState';
 
-const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField, animationDuration = 1000, filteredDevices }) => {
+const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField, animationDuration = 1000, filteredDevices = undefined }) => {
     const id = useId();
     const [animatedPositions, setAnimatedPositions] = useState([]);
     const animationFrameId = useRef(null);
@@ -57,9 +57,9 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
     const onMouseLeave = () => map.getCanvas().style.cursor = '';
 
     const onMapClick = useCallback((event) => {
-        if (!event.defaultPrevented && onClick) {
-            onClick(event.lngLat.lat, event.lngLat.lng);
-        }
+        // if (!event.defaultPrevented && onClick) {
+        //     onClick(event.lngLat.lat, event.lngLat.lng);
+        // }
     }, [onClick]);
 
     const onMarkerClick = useCallback((event) => {
@@ -242,7 +242,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
             map.getSource(source)?.setData({
                 type: 'FeatureCollection',
                 features: animatedPositions.filter((it) => devices.hasOwnProperty(it.deviceId))
-                    .filter((d) => filteredDevices ? filteredDevices.map(fd => fd.id).includes(d.deviceId): true)
+                    .filter((d) => filteredDevices ? filteredDevices.map(fd => fd?.id).includes(d.deviceId): true)
                     .filter((it) => (source === id ? it.deviceId !== selectedDeviceId : it.deviceId === selectedDeviceId))
                     .map((position) => ({
                         type: 'Feature',

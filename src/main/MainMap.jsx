@@ -19,7 +19,7 @@ import MapScale from '../map/MapScale';
 import MapNotification from '../map/notification/MapNotification';
 import useFeatures from '../common/util/useFeatures';
 
-const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices }) => {
+const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices, onMarkerClick }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -29,8 +29,9 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
 
   const features = useFeatures();
 
-  const onMarkerClick = useCallback((_, deviceId) => {
-    dispatch(devicesActions.selectId(deviceId));
+  const markerClick = useCallback((_, deviceId) => {
+    if(onMarkerClick) onMarkerClick(deviceId)
+    else dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
 
   return (
@@ -39,10 +40,10 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
         <MapOverlay />
         <MapGeofence />
         <MapAccuracy positions={filteredPositions} />
-        <MapLiveRoutes />
+        <MapLiveRoutes filteredDevices={filteredDevices} />
         <MapPositions
           positions={filteredPositions}
-          onClick={onMarkerClick}
+          onClick={markerClick}
           selectedPosition={selectedPosition}
           filteredDevices={filteredDevices}
           showStatus

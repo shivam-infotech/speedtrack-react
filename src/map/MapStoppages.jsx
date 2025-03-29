@@ -4,59 +4,19 @@ import StartFlag from "../resources/images/icon/start.svg";
 import FinishFlag from "../resources/images/icon/finish.svg";
 import { Popup } from 'maplibre-gl';
 import { TimeDiffInHumanReadableFormat } from '../common/util/formatter';
-import { Typography, Box, Chip, useTheme } from '@mui/material';
 import { createRoot } from 'react-dom/client';
+import MapPin from '../common/components/MapPin';
+import PopupContent from '../common/components/MarkerPopupContent';
 
-const PopupContent = ({ duration, startTime, endTime, address }) => {
-  const theme = useTheme();
-  const Cell = ({ name, content, style }) => (
-    <Box style={style}>
-      <Typography fontSize={"0.75rem"} color="textSecondary">
-        {name}
-      </Typography>
-      <Typography fontSize={"0.75rem"} fontWeight={600}>
-        {content}
-      </Typography>
-    </Box>
-  );
-
-  return (
-    <Box>
-      <Box style={{ flex: 1 }}>
-        <Chip size="small" label={`Duration: ${duration}`} />
-      </Box>
-      <Box sx={{ padding: 1, display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'center', gap: theme.spacing(1) }}>
-        <Cell name="Stopped at" content={startTime.toLocaleTimeString()} />
-        <Cell name="Resumed at" content={endTime.toLocaleTimeString()} />
-      </Box>
-      <Cell name="Address" content={address} style={{ flex: 1 }} />
-    </Box>
-  );
-};
 
 const stoppageIcon = (index) => {
   const iconId = `stoppage-icon-${index}`;
-  console.log(iconId, map.hasImage(iconId));
   if (map.hasImage(iconId)){
     map.removeImage(iconId);
   }
 
-  const svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-  <svg version="1.1" id="Icons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" xml:space="preserve" width="48px" height="48px">
-    <defs>
-      <linearGradient id="redGradient" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ff8a80"/>
-        <stop offset="100%" stop-color="#d32f2f"/>
-      </linearGradient>
-    </defs>
-    <g id="SVGRepo_iconCarrier">
-        <path d="M25,13c0,8-9,15-9,15s-9-7-9-15c0-5,4-9,9-9S25,8,25,13z" fill="url(#redGradient)"/>
-        <text x="16" y="16" text-anchor="middle" dominant-baseline="middle" style="font-family:Arial; font-size:8px; fill:#ffffff;">${index}</text>
-    </g>
-  </svg>
-`;
+  const svg = MapPin({ text: index });
   const dataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
-
   const img = new Image();
   img.src = dataUrl;
   img.onload = () => {
@@ -84,7 +44,7 @@ const startEndIcons = (type) => new Promise((loaded) => {
   };
 });
 
-const MapStoppages = ({ positions, startPosition, endPosition }) => {
+const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
   const componentId = useId();
   const id = `${componentId}-stoppage-marker`;
 
@@ -124,7 +84,9 @@ const MapStoppages = ({ positions, startPosition, endPosition }) => {
           const endTime = new Date(positionGroup[positionGroup.length - 1].fixTime);
           const duration = TimeDiffInHumanReadableFormat(positionGroup[0].fixTime, positionGroup[positionGroup.length - 1].fixTime);
 
-          const address = "Address not available"; // Replace with actual address
+          const address = positionGroup[0]?.address || "Address not available"; // Replace with actual address
+          const deviceName = device?.name || "Unknown Device";
+          const activityStatus = "Stoppage";
 
           const container = document.createElement('div');
           const root = createRoot(container);
@@ -134,6 +96,9 @@ const MapStoppages = ({ positions, startPosition, endPosition }) => {
               startTime={startTime}
               endTime={endTime}
               address={address}
+              coordinates={coordinates}
+              deviceName={deviceName}
+              activityStatus={activityStatus}
             />
           );
 

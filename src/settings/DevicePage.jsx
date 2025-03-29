@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Accordion,
   AccordionSummary,
@@ -35,6 +35,7 @@ const DevicePage = () => {
   const query = useQuery();
   const uniqueId = query.get('uniqueId');
 
+  const [protocol, setProtocol] = useState(null);
   const [item, setItem] = useState(uniqueId ? { uniqueId } : null);
 
   const handleFiles = useCatch(async (files) => {
@@ -101,6 +102,22 @@ const DevicePage = () => {
                   name: t(`category${category.replace(/^\w/, (c) => c.toUpperCase())}`),
                 })).sort((a, b) => a.name.localeCompare(b.name))}
                 label={t('deviceCategory')}
+              />
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography varient="subtitle1" >
+                  {t('deviceConnectTitle')}
+                </Typography>
+            </AccordionSummary>
+            <AccordionDetails className={classes.details}>
+              <SelectField
+                value={item.id}
+                onChange={(event) => setProtocol(Number(event.target.value))}
+                endpoint="/api/protocols"
+                label={t('positionProtocol')}
+                titleGetter={(item) => item.device}
               />
             </AccordionDetails>
           </Accordion>

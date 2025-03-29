@@ -115,7 +115,7 @@ const useStyles = makeStyles((theme) => ({
   root: ({ desktopPadding }) => ({
     pointerEvents: 'none',
     position: 'fixed',
-    zIndex: 5,
+    zIndex: 2,
     right: '0',
     [theme.breakpoints.up('md')]: {
       left: `calc(50% + ${desktopPadding} / 2)`,
@@ -237,6 +237,31 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
         className={classes.media}
         image={`/api/media/${device.uniqueId}/${deviceImage}`}
       >
+        { isMobile && (
+          <>
+            <IconButton size="small" className={classes.mediaButton} onClick={e => setMobileActionMenuEL(e.currentTarget)} >
+              <MoreVertIcon fontSize='small' />
+            </IconButton>
+            <Menu anchorEl={mobileActionMenuEl} open={Boolean(mobileActionMenuEl)} onClose={() => setMobileActionMenuEL(null)}>
+              <MenuItem onClick={() => navigate('/replay')} disabled={disableActions || !position} >{t('reportReplay')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/command`)} disabled={disableActions} >{t('commandTitle')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}`)} disabled={disableActions || deviceReadonly} >{t('sharedEdit')}</MenuItem>
+              <MenuItem onClick={() => setRemoving(true)} disabled={disableActions || deviceReadonly} >{t('sharedRemove')}</MenuItem>
+            {position && (
+              <>
+                <MenuItem onClick={handleGeofence}>{t('sharedCreateGeofence')}</MenuItem>
+                <MenuItem component="a" target="_blank" href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}>{t('linkGoogleMaps')}</MenuItem>
+                <MenuItem component="a" target="_blank" href={`http://maps.apple.com/?ll=${position.latitude},${position.longitude}`}>{t('linkAppleMaps')}</MenuItem>
+                <MenuItem component="a" target="_blank" href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${position.latitude}%2C${position.longitude}&heading=${position.course}`}>{t('linkStreetView')}</MenuItem>
+                {navigationAppTitle && <MenuItem component="a" target="_blank" href={navigationAppLink.replace('{latitude}', position.latitude).replace('{longitude}', position.longitude)}>{navigationAppTitle}</MenuItem>}
+                {!shareDisabled && !user.temporary && (
+                  <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/share`)}><Typography color="secondary">{t('deviceShare')}</Typography></MenuItem>
+                )}
+              </>
+            )}
+            </Menu>
+          </>
+        ) }
         <IconButton
           size="small"
           onClick={onClose}

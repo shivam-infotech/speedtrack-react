@@ -4,7 +4,7 @@ import { useTheme } from '@mui/styles';
 import { map } from '../core/MapView';
 import { useAttributePreference } from '../../common/util/preferences';
 
-const MapLiveRoutes = () => {
+const MapLiveRoutes = ({ filteredDevices }) => {
   const id = useId();
 
   const theme = useTheme();
@@ -55,7 +55,6 @@ const MapLiveRoutes = () => {
   }, [type]);
 
   useEffect(() => {
-    
     if (type !== 'none') {
       const deviceIds = Object.values(devices)
         .map((device) => device.id)
@@ -63,7 +62,7 @@ const MapLiveRoutes = () => {
         .filter((id) => history.hasOwnProperty(id));
       map.getSource(id)?.setData({
         type: 'FeatureCollection',
-        features: deviceIds.map((deviceId) => ({
+        features: deviceIds.filter(d => filteredDevices ? filteredDevices.map(fd => fd.id).includes(d) : true).map((deviceId) => ({
           type: 'Feature',
           geometry: {
             type: 'LineString',

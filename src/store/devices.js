@@ -14,14 +14,14 @@ const { reducer, actions } = createSlice({
       action.payload.forEach((item) => state.items[item.id] = item);
     },
     update(state, action) {
-      const newDevices = [];
+      state.newDevices = [];
       action.payload.forEach((item) => {
+        const isNewDevice = !state.items[item.id];
         state.items[item.id] = item;
-        if (!state.items[item.id]) {
-          newDevices.push(item.id);
+        if (isNewDevice) {
+          state.newDevices.push(item.id);
         }
       });
-      return { ...state, newDevices };
     },
     selectId(state, action) {
       state.selectTime = Date.now();
@@ -48,7 +48,7 @@ export const updateDevices = (payload) => async (dispatch, getState) => {
   dispatch(actions.update(payload));
   const { newDevices } = getState().devices;
   if (newDevices && newDevices.length > 0) {
-    newDevices.forEach((deviceId) => dispatch(fetchSummaryForDevice(deviceId)));
+    newDevices.forEach((deviceId) => {dispatch(fetchSummaryForDevice(deviceId))});
   }
 };
 

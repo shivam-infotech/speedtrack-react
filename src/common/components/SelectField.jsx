@@ -3,6 +3,7 @@ import {
   FormControl, InputLabel, MenuItem, Select, Autocomplete, TextField,
 } from '@mui/material';
 import { useEffectAsync } from '../../reactHelper';
+import { List } from 'react-virtualized';
 
 const SelectField = ({
   label,
@@ -17,7 +18,7 @@ const SelectField = ({
   keyGetter = (item) => item.id,
   titleGetter = (item) => item.name,
 }) => {
-  const [items, setItems] = useState();
+  const [items, setItems] = useState([]);
 
   const getOptionLabel = (option) => {
     if (typeof option !== 'object') {
@@ -39,7 +40,16 @@ const SelectField = ({
     }
   }, []);
 
-  if (items) {
+  const rowRenderer = ({ index, key, style }) => {
+    const item = items[index];
+    return (
+      <MenuItem key={key} value={keyGetter(item)} style={style}>
+        {titleGetter(item)}
+      </MenuItem>
+    );
+  };
+
+  if (items.length > 0) {
     return (
       <FormControl fullWidth={fullWidth}>
         {multiple ? (
@@ -51,9 +61,13 @@ const SelectField = ({
               value={value}
               onChange={onChange}
             >
-              {items.map((item) => (
-                <MenuItem key={keyGetter(item)} value={keyGetter(item)}>{titleGetter(item)}</MenuItem>
-              ))}
+              <List
+                width={300}
+                height={200}
+                rowCount={items.length}
+                rowHeight={35}
+                rowRenderer={rowRenderer}
+              />
             </Select>
           </>
         ) : (
@@ -68,6 +82,22 @@ const SelectField = ({
             value={value}
             onChange={(_, value) => onChange({ target: { value: value ? keyGetter(value) : emptyValue } })}
             renderInput={(params) => <TextField {...params} label={label} />}
+            ListboxComponent={({ children, ...other }) => (
+              <List
+                {...other}
+                width={300}
+                height={200}
+                rowCount={items.length}
+                rowHeight={35}
+                rowRenderer={({ index, key, style }) => (
+                  <MenuItem key={key} value={keyGetter(items[index])} style={style}>
+                    {titleGetter(items[index])}
+                  </MenuItem>
+                )}
+              >
+                {children}
+              </List>
+            )}
           />
         )}
       </FormControl>

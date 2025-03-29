@@ -253,7 +253,7 @@ export default (t) => useMemo(() => ({
     type: 'boolean',
   },
   distance: {
-    name: t('positionDistance'),
+    name: t('positionLastDistance'),
     type: 'number',
     dataType: 'distance',
   },

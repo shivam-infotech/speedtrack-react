@@ -174,7 +174,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const DeviceCard = ({ data, index, style }) => {
+const DeviceCard = ({ data, index, style, onClick }) => {
   const theme = useTheme();
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -202,6 +202,7 @@ const DeviceCard = ({ data, index, style }) => {
 
   const handleMenuAction = (action) => {
     handleMenuClose();
+    dispatch(devicesActions.selectId(item.id));
     switch (action) {
       case 'playback':
         navigate('/replay');
@@ -245,7 +246,10 @@ const DeviceCard = ({ data, index, style }) => {
   return (
     <Card 
       className={`${classes.card} ${selectedDeviceId === item.id ? classes.selectedCard : ''}`}
-      onClick={() => dispatch(devicesActions.selectId(item.id))}
+      onClick={() => {
+        dispatch(devicesActions.selectId(item.id));
+        if (onClick) onClick();
+      }}
       style={{...style}}
     >
       <CardContent className={classes.compactContent}>
@@ -300,16 +304,28 @@ const DeviceCard = ({ data, index, style }) => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={() => handleMenuAction('playback')} disabled={!position}>
+            <MenuItem onClick={(e) => {
+              e.stopPropagation();
+              handleMenuAction('playback');
+            }} disabled={!position}>
               <PlayArrowIcon sx={{ mr: 1 }} /> {t('reportReplay')}
             </MenuItem>
-            <MenuItem onClick={() => handleMenuAction('share')} disabled={shareDisabled || user.temporary}>
+            <MenuItem onClick={(e) => {
+              e.stopPropagation();
+              handleMenuAction('share');
+            }} disabled={shareDisabled || user.temporary}>
               <ShareIcon sx={{ mr: 1 }} /> {t('deviceShare')}
             </MenuItem>
-            <MenuItem onClick={() => handleMenuAction('command')}>
+            <MenuItem onClick={(e) => {
+              e.stopPropagation();
+              handleMenuAction('command');
+            }}>
               <SendIcon sx={{ mr: 1 }} /> {t('positionCommand')}
             </MenuItem>
-            <MenuItem onClick={() => handleMenuAction('edit')} disabled={deviceReadonly}>
+            <MenuItem onClick={(e) => {
+              e.stopPropagation();
+              handleMenuAction('edit');
+            }} disabled={deviceReadonly}>
               <EditIcon sx={{ mr: 1 }} /> {t('sharedEdit')}
             </MenuItem>
           </Menu>
@@ -337,7 +353,7 @@ const DeviceCard = ({ data, index, style }) => {
                 position ? (position?.attributes?.activity ? t(`deviceStatus${position?.attributes?.activity.ucfirst()}`) : t('deviceStatusStopped')) : t('deviceStatusOffline')
               }
               className={classes.statusChip}
-              color={position ? (position?.attributes?.ignition ? (position?.speed > 5 ? "success" : "warning") : "error") : 'default'}
+              color={position ? (getDeviceStatusColor(position)) : 'default'}
             />
           </Tooltip>
         </Box>

@@ -91,7 +91,9 @@ const Navigation = () => {
       } else {
         throw Error(await response.text());
       }
-      navigate('/');
+      if (!pathname.startsWith('/live')) {
+        navigate('/');
+      }
     } else if (query.get('eventId')) {
       const eventId = parseInt(query.get('eventId'), 10);
       navigate(`/event/${eventId}`);
@@ -116,7 +118,7 @@ const Navigation = () => {
       <Route path="/change-server" element={<ChangeServerPage />} />
       <Route path="/" element={<App />}>
         <Route index element={<MainPage />} />
-        <Route path='/live' element={<LiveMap />} onLeave={() => dispatch(devicesActions.selectId(null))} />
+        <Route path='/live' element={<LiveMap />} />
 
         <Route path="position/:id" element={<PositionPage />} />
         <Route path="network/:positionId" element={<NetworkPage />} />

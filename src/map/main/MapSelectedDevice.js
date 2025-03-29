@@ -6,7 +6,7 @@ import { map } from '../core/MapView';
 import { usePrevious } from '../../reactHelper';
 import { useAttributePreference } from '../../common/util/preferences';
 
-const MapSelectedDevice = () => {
+const MapSelectedDevice = ({ deviceId }) => {
   const currentTime = useSelector((state) => state.devices.selectTime);
   const currentId = useSelector((state) => state.devices.selectedId);
   const previousTime = usePrevious(currentTime);

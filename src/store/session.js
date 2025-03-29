@@ -52,7 +52,7 @@ const { reducer, actions } = createSlice({
 
 export const updatePositionsWithSummary = (payload) => async (dispatch) => {
   dispatch(actions.updatePositions(payload));
-  payload.forEach((position) => dispatch(updateSummaryFromPosition(position)));
+  payload.forEach((position) => {dispatch(updateSummaryFromPosition(position))});
 };
 
 export { actions as sessionActions };
