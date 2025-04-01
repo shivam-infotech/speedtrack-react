@@ -151,7 +151,7 @@ const PreferencesPage = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <Autocomplete
+                {/* <Autocomplete
                   multiple
                   freeSolo
                   options={Object.keys(positionAttributes)}
@@ -173,7 +173,7 @@ const PreferencesPage = () => {
                       label={t('attributePopupInfo')}
                     />
                   )}
-                />
+                /> */}
                 <FormControl>
                   <InputLabel>{t('mapLiveRoutes')}</InputLabel>
                   <Select
@@ -269,6 +269,20 @@ const PreferencesPage = () => {
                 />
               </AccordionDetails>
             </Accordion>
+            {/* <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1">
+                  {t('settingsUsers')}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails className={classes.details}>
+                  <TextField 
+                    value={}
+                    label={t('settingsDefaultCreditDeduction')}
+                    helperText={t('settingsDefaultCreditDeductionHelp')}
+                  />
+              </AccordionDetails>
+            </Accordion> */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1">

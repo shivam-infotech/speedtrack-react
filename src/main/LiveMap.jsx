@@ -11,6 +11,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import MainToolbar from "./MainToolbar";
 import usePersistedState from '../common/util/usePersistedState';
 import useFilter from "./useFilter";
+import DeviceStatusCard from "../common/components/DeviceStatusCard";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -59,6 +60,7 @@ export default function LiveMap() {
     const positions = useSelector((state) => state.session.positions);
     const selectedDeviceId = useSelector((state) => state.devices.selectedId);
     const { items: summaries } = useSelector((state) => state.summary);
+    const devices = useSelector(state => state.devices.items)
     const dispatch = useDispatch();
 
     // Add necessary state variables for MainToolbar
@@ -114,12 +116,12 @@ export default function LiveMap() {
                     selectedPosition={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
                     hideControls={true}
                     onEventsClick={() => {}}
-                    filteredDevices={ params.has('deviceId') && filteredDevices.map(fd => fd.id).includes(Number(params.get('deviceId'))) ? filteredDevices.filter(fd => fd.id == params.get('deviceId')) :  filteredDevices}
+                    filteredDevices={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(devices).filter(fd => fd.id == params.get('deviceId')) :  filteredDevices}
                 />
             </div>
-            {selectedDeviceId && <StatusCard
+            {selectedDeviceId && <DeviceStatusCard 
                 deviceId={selectedDeviceId}
-                position={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
+                position={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(positions).find(position => selectedDeviceId && position.deviceId === selectedDeviceId ) : filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
                 onClose={() => dispatch(devicesActions.selectId(null))}
                 desktopPadding={theme.dimensions.drawerWidthDesktop}
                 summary={summaries[selectedDeviceId] || {}}

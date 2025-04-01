@@ -18,7 +18,9 @@ import {
     useMediaQuery,
     CardHeader,
     Avatar,
-    CircularProgress
+    CircularProgress,
+    Stack,
+    Chip
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CloseIcon from '@mui/icons-material/Close';
@@ -42,9 +44,16 @@ import useSummaryAttributes from '../attributes/useSummaryAttributes';
 import { mapIconKey, mapIcons } from '../../map/core/preloadImages';
 import { getDeviceStatusColor, TimeDiffInHumanReadableFormat } from '../util/formatter';
 import FmdGoodIcon from '@mui/icons-material/FmdGood';
+import SpeedIcon from '@mui/icons-material/Speed';
+import RouteIcon from '@mui/icons-material/Route';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun'; // running
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk'; // idle
+import BackHandIcon from '@mui/icons-material/BackHand'; // stopped
+import LeakRemoveIcon from '@mui/icons-material/LeakRemove'; // offline
 const useStyles = makeStyles((theme) => ({
     card: {
         pointerEvents: 'auto',
+        borderRadius: theme.spacing(1),
         width: theme.dimensions.popupMaxWidth,
         [theme.breakpoints.down('md')]: {
             width: "100vw",
@@ -66,15 +75,15 @@ const useStyles = makeStyles((theme) => ({
     //     color: theme.palette.primary.contrastText,
     //     mixBlendMode: 'difference',
     // },
-    // content: {
-    //     paddingTop: 0,
-    //     paddingBottom: "0px !important",
-    //     [theme.breakpoints.down('md')]: {
-    //         padding: theme.spacing(1),
-    //     },
-    //     maxHeight: theme.dimensions.cardContentMaxHeight,
-    //     overflow: 'auto',
-    // },
+    content: {
+        padding: theme.spacing(1),
+        paddingBottom: `${theme.spacing(1)} !important`,
+        // [theme.breakpoints.down('md')]: {
+        //     padding: theme.spacing(1),
+        // },
+        maxHeight: theme.dimensions.cardContentMaxHeight,
+        overflow: 'auto',
+    },
     icon: {
         width: '25px',
         height: '25px',
@@ -93,21 +102,38 @@ const useStyles = makeStyles((theme) => ({
     //         paddingRight: theme.spacing(1),
     //     },
     // },
-    // cell: {
-    //     display: 'flex',
-    //     flexDirection: 'column',
-    //     mb: 1,
-    //     [theme.breakpoints.up('md')]: {
-    //         width: "33%",
-    //         justifyContent: 'center',
-    //         alignItems: 'center',
-    //     },
-    //     [theme.breakpoints.down('md')]: {
-    //         width: "30%",
-    //         justifyContent: 'flex-start',
-    //         alignItems: 'flex-start',
-    //     }
-    // },
+    actionBar: {
+        display: 'flex',
+        flexDirection: 'row',
+        overflow: 'auto',
+        gap: theme.spacing(0.5),
+        scrollBehavior: 'smooth',
+        '&::-webkit-scrollbar': {
+            display: 'none'
+        },
+        '&::-moz-scrollbar': {
+            display: 'none'
+        }
+    },
+    cell: {
+        display: 'flex',
+        flexDirection: 'column',
+        mb: 1,
+        alignItems: 'flex-start',
+        width: "47%"
+    },
+    actionCell: {
+        display: 'inline-flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        cursor: 'pointer',
+        minWidth: "4.2rem",
+        backgroundColor: theme.palette.background.default,
+        flex: 1,
+    },
+    stackBlock: {
+        padding: theme.spacing(1)
+    },
     // cellHeader: {
     //     fontSize: '0.25rem'
     // },
@@ -122,7 +148,7 @@ const useStyles = makeStyles((theme) => ({
     header: {
         display: 'flex',
         alignItems: 'center',
-        padding: theme.spacing(0.5, 1, 0, 2),
+        padding: theme.spacing(1, 1, 0, 2),
         marginBottom: theme.spacing(1),
     },
     headerInfo: {
@@ -181,6 +207,37 @@ const StatusRow = ({ name, content, fullColumn = false }) => {
         </Box>
     );
 };
+
+const PositionCell = ({title, value}) => {
+    const classes = useStyles();
+    return <Box className={classes.cell}>
+        <Typography fontSize={"0.8rem"} fontFamily={'monospace'}>{value}</Typography>
+        <Typography fontSize={"0.65rem"} color="textSecondary" >{title}</Typography>
+    </Box>
+}
+
+const statusIcon = (status) => {0.
+    switch (status){
+        case 'running':
+            return <DirectionsRunIcon />
+        case 'stopped':
+            return <BackHandIcon />
+        case 'idle':
+            return <DirectionsWalkIcon />
+        default: 
+            return <LeakRemoveIcon />
+    }
+}
+
+const ActionCell = ({icon, title, onClick, href}) => {
+    const classes = useStyles();
+    let cell = <Box onClick={onClick} className={classes.actionCell} >
+        <div>{icon}</div>
+        <Typography fontSize={"0.65rem"} color="textSecondary" >{title}</Typography>
+    </Box>;
+    if(href) cell = <a href={href} target='_blank'>{cell}</a>
+    return cell;
+}
 
 const formattedLastUpdate = (device) => {
     if (device.lastUpdate) {
@@ -482,9 +539,9 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                 </Avatar>
                 <div className={classes.headerInfo}>
                     <Typography variant='body1' fontWeight="bold" >{device?.name}</Typography>
-                    <Typography fontSize="0.65rem" color="neutral" fontWeight="300" >{formattedLastUpdate(device)}</Typography>
+                    <Typography fontSize="0.65rem" color="neutral" fontWeight="300" >{formattedLastUpdate(device) || '0s'}</Typography>
                 </div>
-                <IconButton size="small" onClick={e => setMobileActionMenuEL(e.currentTarget)} >
+                {/* <IconButton size="small" onClick={e => setMobileActionMenuEL(e.currentTarget)} >
                     <MoreVertIcon fontSize='small' />
                 </IconButton>
                 <Menu anchorEl={mobileActionMenuEl} open={Boolean(mobileActionMenuEl)} onClose={() => setMobileActionMenuEL(null)}>
@@ -504,7 +561,7 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                             )}
                         </>
                     )}
-                </Menu>
+                </Menu> */}
                 <IconButton
                     size="small"
                     onClick={onClose}
@@ -514,22 +571,122 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                 </IconButton>
             </div>
             { position && 
-                <CardContent>
-                    <Box className={classes.flexBox}>
+                <CardContent className={classes.content}>
+                    <Stack direction="row" mb={1}>
+                        {/* Speedometer */}
+                        <Stack spacing={1} className={classes.stackBlock}>
+                            <Tooltip title={t('positionSpeed')}>
+                                <Chip size='large' color='info' icon={<SpeedIcon />} label={
+                                    <PositionValue position={position} property={'speed'} />
+                                } />
+                            </Tooltip>
+                            <Tooltip title={t('sharedDistance')}>
+                                <Chip size='large' color='primary' icon={<RouteIcon />} label={
+                                    <PositionValue position={summary} property={'distance'} />
+                                } />
+                            </Tooltip>
+                            <Tooltip title={t(`deviceStatus${position?.attributes?.activity?.ucfirst() || 'Offline'}`)}>
+                                <Chip size='large' color={getDeviceStatusColor(position)} icon={statusIcon(position?.attributes?.activity)} label={
+                                    <PositionValue position={position} attribute={'durationHours'} />
+                                } />
+                            </Tooltip>
+                        </Stack>
+                        <Stack spacing={1} className={classes.stackBlock}>
+                            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                                <PositionCell 
+                                    title={t('positionIgnition')}
+                                    value={<PositionValue position={position} attribute={'ignition'} />}
+                                />
+                                <PositionCell 
+                                    title={t('positionLastDistance')}
+                                    value={<PositionValue position={position} attribute={'distance'} />}
+                                />
+                                <PositionCell 
+                                    title={t('positionFixTime')}
+                                    value={<PositionValue position={position} property={'fixTime'} />}
+                                />
+                                <PositionCell 
+                                    title={t('reportMaximumSpeed')}
+                                    value={<PositionValue position={summary} property={'maxSpeed'} />}
+                                />
+                                <PositionCell 
+                                    title={t('reportAverageSpeed')}
+                                    value={<PositionValue position={summary} property={'averageSpeed'} />}
+                                />
+                                <PositionCell 
+                                    title={t('positionOdometer')}
+                                    value={<PositionValue position={position} attribute={'odometer'} />}
+                                />
+                            </Stack>
+                        </Stack>
+                    </Stack>
+                    <Box>
+                        <Typography ml={2} variant='body2'>{t('SharedQuickActions')}</Typography>
+                        <div className={`${classes.stackBlock} ${classes.actionBar}`} >
+                            <ActionCell
+                                disabled={disableActions || !position}
+                                icon={<img src="https://img.icons8.com/?size=32&id=TRmqgRNqawWG&format=png&color=000000" alt='playback' />}
+                                title="Playback"
+                                onClick={() => navigate('/replay')}
+                            />
+                            <ActionCell 
+                                disabled={disableActions}
+                                icon={<img src="https://img.icons8.com/?size=32&id=l8E0YrmpRviZ&format=png&color=000000" alt='Send Command' />}
+                                title="Command"
+                                onClick={() => navigate(`/settings/device/${deviceId}/command`)}
+                            />
+                            <ActionCell 
+                                disabled={disableActions || deviceReadonly}
+                                icon={<img src="https://img.icons8.com/?size=32&id=k3b9tZlgPuSx&format=png&color=000000" alt='edit' />}
+                                title="Edit"
+                                onClick={() => navigate(`/settings/device/${deviceId}`)}
+                            />
+                            <ActionCell 
+                                icon={<img src="https://img.icons8.com/?size=32&id=2SIo2zPe4UCg&format=png&color=000000" alt='Delete' />}
+                                title="Delete"
+                                onClick={() => setRemoving(true)}
+                            />
+                            {position && <>
+                                <ActionCell 
+                                    icon={<img src="https://img.icons8.com/?size=32&id=qu4g39w3ZV2g&format=png&color=000000" alt='Create Geofence' />}
+                                    title="Geofence"
+                                    onClick={handleGeofence}
+                                />
+                                <ActionCell 
+                                    icon={<img src="https://img.icons8.com/?size=32&id=UQLRNCOpeqCj&format=png&color=000000" alt='Google maps' />}
+                                    title="Google map"
+                                    href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}
+                                />
+                                <ActionCell 
+                                    icon={<img src="https://img.icons8.com/?size=32&id=TFZJw4av6Pp8&format=png&color=000000" alt='Apple maps' />}
+                                    title="Apple map"
+                                    href={`http://maps.apple.com/?ll=${position.latitude},${position.longitude}`}
+                                />
+                                <ActionCell 
+                                    icon={<img src="https://img.icons8.com/?size=32&id=2Q3zNlrb6FWU&format=png&color=000000" alt='Street view' />}
+                                    title="Street view"
+                                    href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${position.latitude}%2C${position.longitude}&heading=${position.course}`}
+                                />
+                                {!shareDisabled && !user.temporary && <ActionCell 
+                                    icon={<img src="https://img.icons8.com/?size=32&id=upt8G88JNc8V&format=png&color=000000" alt='Share Device' />}
+                                    title="Share"
+                                    onClick={() => navigate(`/settings/device/${deviceId}/share`)}
+                                />}
+                            </>}
+                        </div>
+                    </Box>
+                    <Box className={classes.flexBox} sx={{ padding: theme.spacing(0.5, 0) }}>
                         <FmdGoodIcon fontSize='small' sx={{ marginRight: theme.spacing(1) }} />
                         <Typography fontSize="0.75rem" fontWeight="400">
-                            <PositionValue position={position} property={'address'} />
+                            <PositionValue
+                                position={position}
+                                property={position.hasOwnProperty('address') ? 'address' : null}
+                                attribute={position.hasOwnProperty('address') ? null : 'address'}
+                            />
                         </Typography>
                     </Box>
-                    <Box>
-                        {/* Speedometer */}
-                        <Box>
-                            
-
-                        </Box>
-                    </Box>
                 </CardContent>
-            }<CircularProgress variant="determinate" value={10} sx={{ transform: 'rotate(180deg)' }} />
+            }
         </Card>
     )
 

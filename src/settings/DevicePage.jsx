@@ -7,6 +7,10 @@ import {
   FormControlLabel,
   Checkbox,
   TextField,
+  FormControl,
+  Paper,
+  useTheme,
+  Alert,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { DropzoneArea } from 'react-mui-dropzone';
@@ -26,6 +30,7 @@ import useSettingsStyles from './common/useSettingsStyles';
 const DevicePage = () => {
   const classes = useSettingsStyles();
   const t = useTranslation();
+  const theme = useTheme();
 
   const admin = useAdministrator();
 
@@ -35,6 +40,7 @@ const DevicePage = () => {
   const query = useQuery();
   const uniqueId = query.get('uniqueId');
 
+  const [protocols, setProtocols] = useState([]);
   const [protocol, setProtocol] = useState(null);
   const [item, setItem] = useState(uniqueId ? { uniqueId } : null);
 
@@ -52,7 +58,21 @@ const DevicePage = () => {
     }
   });
 
+  const fetchProtocols = useCallback(async () => {
+    try{
+      const res = await fetch('/api/protocols');
+      const protos = await res.json();
+      setProtocols(protos);
+    }catch(error){
+      console.error("Fail to fetch the protocols", error);
+    }
+  }, [])
+
   const validate = () => item && item.name && item.uniqueId;
+
+  useEffect(() => {
+    if(!protocols.length) fetchProtocols();
+  })
 
   return (
     <EditItemView
@@ -112,13 +132,25 @@ const DevicePage = () => {
                 </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
-              <SelectField
-                value={item.id}
-                onChange={(event) => setProtocol(Number(event.target.value))}
-                endpoint="/api/protocols"
-                label={t('positionProtocol')}
-                titleGetter={(item) => item.device}
-              />
+              <FormControl>
+                <SelectField
+                  value={protocol}
+                  onChange={(event) => setProtocol(Number(event.target.value))}
+                  data={protocols.map(p => ({id: p.id, name: p.device}))}
+                  label={t('positionProtocol')}
+                />
+                <Typography variant='caption' >{t('deviceConnectHelp')}</Typography>
+              </FormControl>
+              { (protocols.length > 0 && (protocol !== 0 && protocol != undefined)) ? (
+                <Alert severity="info">
+                  <Typography variant="caption" gutterBottom >
+                    {t('PortConnectCaption')}
+                  </Typography>
+                  <Typography variant='h6'>
+                    {import.meta.env.VITE_SERVER_IP}:{protocols[protocol].port}
+                  </Typography>
+                </Alert>
+              ) : <></> }
             </AccordionDetails>
           </Accordion>
           <Accordion>

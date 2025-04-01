@@ -20,6 +20,7 @@ import { createSearchParams, useNavigate } from 'react-router-dom';
 import DeviceRow from './DeviceRow';
 import DeviceCard from './DeviceCard';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DeviceStatusCard from '../common/components/DeviceStatusCard';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -185,21 +186,28 @@ const LiveMap = () => {
             index={index}
             style={{ marginBottom: theme.spacing(1) }}
             onClick={() => {
-              // dispatch(devicesActions.selectId(filteredDevices[index].id));
-              navigate({ pathname: '/live', search: createSearchParams({ deviceId: filteredDevices[index].id }).toString() });
+              setFilter
+              navigate({ pathname: '/live', search: createSearchParams({ deviceId: filteredDevices[index].id }).toString() }, {replace: false});
             }}
           />
         ))}
       </Paper>
       <EventsDrawer open={eventsOpen} onClose={() => setEventsOpen(false)} />
       {selectedDeviceId && (
-        <StatusCard
+        <DeviceStatusCard 
           deviceId={selectedDeviceId}
           position={selectedPosition}
           onClose={() => dispatch(devicesActions.selectId(null))}
           desktopPadding={theme.dimensions.drawerWidthDesktop}
           summary={summaries[selectedDeviceId] || {}}
         />
+        // <StatusCard
+        //   deviceId={selectedDeviceId}
+        //   position={selectedPosition}
+        //   onClose={() => dispatch(devicesActions.selectId(null))}
+        //   desktopPadding={theme.dimensions.drawerWidthDesktop}
+        //   summary={summaries[selectedDeviceId] || {}}
+        // />
       )}
     </div>
   );
@@ -253,7 +261,14 @@ const LiveMap = () => {
       </div>
       <EventsDrawer open={eventsOpen} onClose={() => setEventsOpen(false)} />
       {selectedDeviceId && (
-        <StatusCard
+        // <StatusCard
+        //   deviceId={selectedDeviceId}
+        //   position={selectedPosition}
+        //   onClose={() => dispatch(devicesActions.selectId(null))}
+        //   desktopPadding={theme.dimensions.drawerWidthDesktop}
+        //   summary={summaries[selectedDeviceId] || {}}
+        // />
+        <DeviceStatusCard 
           deviceId={selectedDeviceId}
           position={selectedPosition}
           onClose={() => dispatch(devicesActions.selectId(null))}

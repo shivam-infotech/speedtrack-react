@@ -1,10 +1,17 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
+import { useAttributePreference } from '../common/util/preferences';
 
 export default (keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions) => {
   const groups = useSelector((state) => state.groups.items);
   const devices = useSelector((state) => state.devices.items);
+  const daysBeforeExpiry = useAttributePreference('daysBeforeExpiry');
+
+  const isOffline = (device) => {
+    const position = positions[device.id];
+    return position != undefined && device.status === 'offline';
+  }
 
   const isRunning = (device) => {
     const position = positions[device.id];
@@ -21,6 +28,23 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
     return position && position?.attributes?.activity === 'idle';
   };
 
+  const isExpired = (device) => {
+    return device.expirationTime && dayjs(device.expirationTime).diff(dayjs()) < 0;
+  }
+
+  const isNoData = (device) => {
+    const position = positions[device.id];
+    return position === undefined && device.status === 'offline';
+  }
+
+  const isExpireSoon = (device) => {
+    if(device.expirationTime){
+      const days = dayjs(device.expirationTime).diff(dayjs(), 'days');
+      return days > 0 && days < daysBeforeExpiry;
+    }
+    return false;
+  }
+
   useEffect(() => {
     const deviceGroups = (device) => {
       const groupIds = [];
@@ -35,10 +59,13 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
     const filtered = Object.values(devices)
       .filter((device) => 
         !filter.statuses.length || 
-        filter.statuses.includes(device.status) || 
+        filter.statuses.includes('offline') && isOffline(device) || 
         filter.statuses.includes('running') && isRunning(device) ||
         filter.statuses.includes('stopped') && isStopped(device) ||
-        filter.statuses.includes('idle') && isIdle(device)
+        filter.statuses.includes('idle') && isIdle(device) || 
+        filter.statuses.includes('expired') && isExpired(device) || 
+        filter.statuses.includes("expiresoon") && isExpireSoon(device) ||
+        filter.statuses.includes('nodata') && isNoData(device)
       )
       .filter((device) => {
         return  filter.groups != "" ? deviceGroups(device).includes(filter.groups) : true;

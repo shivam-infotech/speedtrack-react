@@ -21,6 +21,8 @@ import { useDeviceReadonly } from '../common/util/permissions';
 import DeviceRow from './DeviceRow';
 import PinDropIcon from '@mui/icons-material/PinDrop';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
+import dayjs from 'dayjs';
+import { useAttributePreference } from '../common/util/preferences';
 
 const useStyles = makeStyles((theme) => ({
   toolbarContainer: {
@@ -96,28 +98,81 @@ const MainToolbar = ({
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [devicesAnchorEl, setDevicesAnchorEl] = useState(null);
   const [sortAnchorEl, setSortAnchorEl] = useState(null);
+  const daysBeforeExpiry = useAttributePreference('daysBeforeExpiry');
 
   // const deviceStatusCount = (status) => Object.values(devices).filter((d) => d.status === status).length;
 
   const checkDeviceCountForStatus = (status) => {
     const dvsc = Object.values(devices);
     switch (status) {
-      case 'online':
-        return dvsc.filter((d) => d.status === 'online').length;
+      case 'all':
+        return dvsc.length;
+      // case 'online':
+      //   return dvsc.filter((d) => d.status === 'online').length;
       case 'offline':
-        return dvsc.filter((d) => d.status === 'offline').length;
+        return dvsc.filter((d) => d.status === 'offline' && positions[d.id] !== undefined).length;
       case 'running':
         return dvsc.filter((d) => positions[d.id]?.attributes?.ignition && positions[d.id]?.speed > 5).length;
       case 'idle':
         return dvsc.filter((d) => positions[d.id]?.attributes?.ignition && positions[d.id]?.speed <= 5).length;
       case 'stopped':
         return dvsc.filter((d) => !positions[d.id]?.attributes?.ignition && d.status === 'online').length;
+      case 'expired': 
+        return dvsc.filter(d => d.expirationTime && dayjs(d.expirationTime).diff(dayjs()) < 0 ).length;
+      case 'expiresoon': 
+        return dvsc.filter(d => {
+          if(d.expirationTime){
+             var days = dayjs(d.expirationTime).diff(dayjs(), "days")
+             return days > 0 && days < daysBeforeExpiry;
+          }
+          return false;
+        }).length;
+      case 'nodata': 
+        return dvsc.filter((d) => d.status === 'offline' && positions[d.id] === undefined).length;
       case 'unknown':
         return dvsc.filter((d) => d.status === 'unknown').length;
       default:
         return 0;
     }
   }
+
+  const deviceStatus = [
+    {
+      status: 'running',
+      title: t('deviceStatusRunning'),
+      color: 'secondary',
+    },
+    {
+      status: 'idle',
+      title: t('deviceStatusIdle'),
+      color: 'warning',
+    },
+    {
+      status: 'stopped',
+      title: t('deviceStatusStopped'),
+      color:     'error',    
+    },
+    {
+      status: 'offline',
+      title: t('deviceStatusOffline'),
+      color: '',
+    },
+    {
+      status: 'expiresoon',
+      title: t('deviceStatusExpireSoon'),
+      color: 'tertiary',
+    },
+    {
+      status: 'expired',
+      title: t('deviceStatusExpired'),
+      color: 'analogous',
+    },
+    {
+      status: 'nodata',
+      title: t('deviceStatusNoData'),
+      color: 'quadrial',
+    }
+  ]
 
   return (
     <Toolbar ref={toolbarRef} className={classes.toolbarContainer} >
@@ -241,41 +296,24 @@ const MainToolbar = ({
       {!hidefilters && <div className={classes.filterContainer}>
         <List className={classes.chipContainer} >
           <Chip
-            icon={filter.statuses.includes('running') ? <CheckIcon /> : undefined}
-            size="small"
-            color='secondary'
-            onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('running') ? 'running' : '') })}
-            label={`${checkDeviceCountForStatus('running')} ${t('deviceStatusRunning')}`}
-          />
-          <Chip
-            icon={filter.statuses.includes('stopped') ? <CheckIcon /> : undefined}
-            size="small"
-            color='error'
-            onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('stopped') ? 'stopped' : '') })}
-            label={`${checkDeviceCountForStatus('stopped')} ${t('deviceStatusStopped')}`}
-          />
-          <Chip
-            icon={filter.statuses.includes('idle') ? <CheckIcon /> : undefined}
-            size="small"
-            color='warning'
-            onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('idle') ? 'idle' : '') })}
-            label={`${checkDeviceCountForStatus('idle')} ${t('deviceStatusIdle')}`}
-          />
-          <Chip
-            icon={filter.statuses.includes('online') ? <CheckIcon /> : undefined}
-            size="small"
-            color='success'
-            style={{ color: 'white' }}
-            onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('online') ? 'online' : '') })}
-            label={`${checkDeviceCountForStatus('online')} ${t('deviceStatusOnline')}`}
-          />
-          <Chip
-            icon={filter.statuses.includes('offline') ? <CheckIcon /> : undefined}
-            label={`${checkDeviceCountForStatus('offline')} ${t('deviceStatusOffline')}`}
-            size="small"
-            onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes('offline') ? 'offline' : '') })}
-          />
-          {Object.values(groups).length > 0 && <Divider orientation="vertical" flexItem className={classes.divider} />}
+              key="all"
+              icon={filter.statuses === "" ? <CheckIcon /> : undefined}
+              size='small'
+              color="info"
+              onClick={() => setFilter({ ...filter, statuses: "" })}
+              label={ `${checkDeviceCountForStatus('all')} ${t('deviceStatusAll')}` }
+            />
+          { deviceStatus.map(ds => (
+            <Chip
+              key={ds.status}
+              icon={filter.statuses.includes(ds.status) ? <CheckIcon /> : undefined}
+              size='small'
+              color={ds.color || undefined}
+              onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes(ds.status) ? ds.status : '') })}
+              label={ `${checkDeviceCountForStatus(ds.status)} ${ds.title}` }
+            />
+          )) }
+          {Object.values(groups).length > 0 && <Divider key="divider" orientation="vertical" flexItem className={classes.divider} />}
           {Object.values(groups).sort((a, b) => a.name.localeCompare(b.name)).map((group) => (
             <Chip key={group.id} icon={filter.groups === group.id ? <CheckIcon /> : undefined} label={group.name} size="small" onClick={() => setFilter({ ...filter, groups: (filter.groups === group.id ? '' : group.id) })} />
           ))}

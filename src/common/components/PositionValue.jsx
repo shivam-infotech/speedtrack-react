@@ -50,7 +50,7 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'serverTime':
       case 'startTime':
       case 'endTime':
-        return formatTime(value, 'time');
+        return formatTime(value, 'minutesOnly');
       case 'latitude':
         return formatCoordinate('latitude', value, coordinateFormat);
       case 'longitude':
@@ -98,7 +98,7 @@ const PositionValue = ({ position, property, attribute }) => {
       case "activityDurationHours":
       case "durationHours":
       case 'hours':
-        return value != null ? formatNumericHours(value, t) : '';
+        return value != null ? formatNumericHours(value, t) : '0s';
       default:
         if (typeof value === 'number') {
           return formatNumber(value);

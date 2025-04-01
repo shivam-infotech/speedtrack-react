@@ -1,9 +1,46 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, forwardRef } from 'react';
 import {
   FormControl, InputLabel, MenuItem, Select, Autocomplete, TextField,
 } from '@mui/material';
-import { useEffectAsync } from '../../reactHelper';
-import { List } from 'react-virtualized';
+import { FixedSizeList } from 'react-window';
+
+const LISTBOX_PADDING = 8; // px
+
+// Row renderer for react-window, adjusting for padding.
+const renderRow = ({ data, index, style }) => {
+  // Clone the option element, merging the style
+  return React.cloneElement(data[index], {
+    style: {
+      ...style,
+      top: style.top + LISTBOX_PADDING,
+    },
+  });
+};
+
+const ListboxComponent = forwardRef(function ListboxComponent(props, ref) {
+  const { children, ...other } = props;
+  // Convert children to an array of elements
+  const itemData = React.Children.toArray(children);
+  const itemCount = itemData.length;
+  const itemSize = 35; // height for each row
+  // Calculate total height or use a max height (here, 200px)
+  const height = Math.min(200, itemCount * itemSize + 2 * LISTBOX_PADDING);
+
+  return (
+    <div ref={ref} {...other}>
+      <FixedSizeList
+        height={height}
+        width="100%"
+        itemData={itemData}
+        overscanCount={5}
+        itemSize={itemSize}
+        itemCount={itemCount}
+      >
+        {renderRow}
+      </FixedSizeList>
+    </div>
+  );
+});
 
 const SelectField = ({
   label,
@@ -27,83 +64,80 @@ const SelectField = ({
     return option ? titleGetter(option) : emptyTitle;
   };
 
-  useEffect(() => setItems(data), [data]);
+  // Update items when data prop changes.
+  useEffect(() => {
+    setItems(data);
+  }, [data]);
 
-  useEffectAsync(async () => {
-    if (endpoint) {
-      const response = await fetch(endpoint);
-      if (response.ok) {
-        setItems(await response.json());
-      } else {
-        throw Error(await response.text());
+  // Fetch data if an endpoint is provided.
+  useEffect(() => {
+    async function fetchData() {
+      if (endpoint) {
+        const response = await fetch(endpoint);
+        if (response.ok) {
+          const json = await response.json();
+          setItems(json);
+        } else {
+          throw Error(await response.text());
+        }
       }
     }
-  }, []);
+    fetchData();
+  }, [endpoint]);
 
-  const rowRenderer = ({ index, key, style }) => {
-    const item = items[index];
-    return (
-      <MenuItem key={key} value={keyGetter(item)} style={style}>
-        {titleGetter(item)}
-      </MenuItem>
-    );
-  };
-
-  if (items.length > 0) {
-    return (
-      <FormControl fullWidth={fullWidth}>
-        {multiple ? (
-          <>
-            <InputLabel>{label}</InputLabel>
-            <Select
-              label={label}
-              multiple
-              value={value}
-              onChange={onChange}
-            >
-              <List
-                width={300}
-                height={200}
-                rowCount={items.length}
-                rowHeight={35}
-                rowRenderer={rowRenderer}
-              />
-            </Select>
-          </>
-        ) : (
-          <Autocomplete
-            size="small"
-            options={items}
-            getOptionLabel={getOptionLabel}
-            renderOption={(props, option) => (
-              <MenuItem {...props} key={keyGetter(option)} value={keyGetter(option)}>{titleGetter(option)}</MenuItem>
-            )}
-            isOptionEqualToValue={(option, value) => keyGetter(option) === value}
-            value={value}
-            onChange={(_, value) => onChange({ target: { value: value ? keyGetter(value) : emptyValue } })}
-            renderInput={(params) => <TextField {...params} label={label} />}
-            ListboxComponent={({ children, ...other }) => (
-              <List
-                {...other}
-                width={300}
-                height={200}
-                rowCount={items.length}
-                rowHeight={35}
-                rowRenderer={({ index, key, style }) => (
-                  <MenuItem key={key} value={keyGetter(items[index])} style={style}>
-                    {titleGetter(items[index])}
-                  </MenuItem>
-                )}
-              >
-                {children}
-              </List>
-            )}
-          />
-        )}
-      </FormControl>
-    );
+  if (!items || items.length === 0) {
+    return null;
   }
-  return null;
+
+  return (
+    <FormControl fullWidth={fullWidth}>
+      {multiple ? (
+        <>
+          <InputLabel>{label}</InputLabel>
+          <Select
+            label={label}
+            multiple
+            value={value}
+            onChange={onChange}
+            // For multiple selections, render all items without virtualization
+          >
+            {items.map((item) => (
+              <MenuItem key={keyGetter(item)} value={keyGetter(item)}>
+                {titleGetter(item)}
+              </MenuItem>
+            ))}
+          </Select>
+        </>
+      ) : (
+        <Autocomplete
+          size="small"
+          options={items}
+          getOptionLabel={getOptionLabel}
+          renderOption={(props, option) => (
+            <MenuItem
+              {...props}
+              key={keyGetter(option)}
+              value={keyGetter(option)}
+            >
+              {titleGetter(option)}
+            </MenuItem>
+          )}
+          isOptionEqualToValue={(option, value) =>
+            keyGetter(option) === value
+          }
+          // Match the stored value with the correct item from items.
+          value={items.find((item) => keyGetter(item) === value) || null}
+          onChange={(_, newValue) =>
+            onChange({
+              target: { value: newValue ? keyGetter(newValue) : emptyValue },
+            })
+          }
+          renderInput={(params) => <TextField {...params} label={label} />}
+          ListboxComponent={ListboxComponent}
+        />
+      )}
+    </FormControl>
+  );
 };
 
 export default SelectField;

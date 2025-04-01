@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
     background: theme.palette.background.default,
     overflow: 'hidden',
     [theme.breakpoints.down('md')]: {
-      padding: theme.spacing(1),
+      padding: theme.spacing(0),
     }
   },
   splitContainer: {
@@ -220,7 +220,7 @@ const LoginPage = () => {
         const user = await response.json();
         generateLoginToken();
         dispatch(sessionActions.updateUser(user));
-        navigate('/');
+        navigate('/', { replace: true });
       } else if (response.status === 401 && response.headers.get('WWW-Authenticate') === 'TOTP') {
         setCodeEnabled(true);
       } else {
