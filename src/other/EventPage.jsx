@@ -15,6 +15,8 @@ import MapGeofence from '../map/MapGeofence';
 import StatusCard from '../common/components/StatusCard';
 import { formatNotificationTitle } from '../common/util/formatter';
 import MapScale from '../map/MapScale';
+import DeviceStatusCard from '../common/components/DeviceStatusCard';
+import { useSelector } from 'react-redux';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -39,6 +41,7 @@ const EventPage = () => {
 
   const [event, setEvent] = useState();
   const [position, setPosition] = useState();
+  const summaries = useSelector(state => state.summary.items);
   const [showCard, setShowCard] = useState(false);
 
   const formatType = (event) => formatNotificationTitle(t, {
@@ -90,15 +93,16 @@ const EventPage = () => {
       <div className={classes.mapContainer}>
         <MapView>
           <MapGeofence />
-          {position && <MapPositions positions={[position]} onClick={onMarkerClick} titleField="fixTime" />}
+          {position && <MapPositions positions={[position]} onClick={onMarkerClick} titleField="fixTime" showStatus />}
         </MapView>
         <MapScale />
         {position && <MapCamera latitude={position.latitude} longitude={position.longitude} />}
         {position && showCard && (
-          <StatusCard
+          <DeviceStatusCard
             deviceId={position.deviceId}
             position={position}
             onClose={() => setShowCard(false)}
+            summary={summaries ? summaries[position.deviceId] : {}}
             disableActions
           />
         )}

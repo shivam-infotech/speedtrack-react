@@ -119,10 +119,10 @@ export default function LiveMap() {
                     filteredDevices={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(devices).filter(fd => fd.id == params.get('deviceId')) :  filteredDevices}
                 />
             </div>
-            {selectedDeviceId && <DeviceStatusCard 
+            {selectedDeviceId && <DeviceStatusCard
                 deviceId={selectedDeviceId}
                 position={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(positions).find(position => selectedDeviceId && position.deviceId === selectedDeviceId ) : filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
-                onClose={() => dispatch(devicesActions.selectId(null))}
+                // onClose={() => dispatch(devicesActions.selectId(null))}
                 desktopPadding={theme.dimensions.drawerWidthDesktop}
                 summary={summaries[selectedDeviceId] || {}}
             />}

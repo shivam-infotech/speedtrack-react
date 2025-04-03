@@ -40,6 +40,7 @@ import MapStoppages from '../map/MapStoppages';
 import FilteredPolylines from './FilteredSegments';
 import FilteredSegments from './FilteredSegments';
 import dayjs from 'dayjs';
+import DeviceStatusCard from '../common/components/DeviceStatusCard';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -501,14 +502,17 @@ const ReplayPage = () => {
           )}
         </Paper>
       </div>
-      {showCard && index < positions.length && (
-        <StatusCard
-          deviceId={selectedDeviceId}
-          position={positions[index]}
-          onClose={() => setShowCard(false)}
-          disableActions
-          summary={summary}
-        />
+      {(showCard && positions.length > 0 && summary) &&(
+        <>
+          <DeviceStatusCard
+            deviceId={selectedDeviceId}
+            position={positions[index]}
+            onClose={() => setShowCard(false)}
+            currentDistance={calculateDistanceFromCoords(positions.slice(0, index))}
+            disableActions
+            summary={summary}
+          />
+        </>
       )}
     </div>
   );

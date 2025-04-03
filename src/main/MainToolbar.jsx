@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
   toolbarContainer: {
     flexDirection: 'column',
     justifyContent: 'flex-start', 
-    padding: theme.spacing(1),
+    padding: `${theme.spacing(1)} !important`,
     gap: theme.spacing(1),
   },
   toolbar: {
@@ -150,12 +150,17 @@ const MainToolbar = ({
     {
       status: 'stopped',
       title: t('deviceStatusStopped'),
-      color:     'error',    
+      color: 'error',    
     },
     {
       status: 'offline',
       title: t('deviceStatusOffline'),
       color: '',
+    },
+    {
+      status: 'nodata',
+      title: t('deviceStatusNoData'),
+      color: 'quadrial',
     },
     {
       status: 'expiresoon',
@@ -166,11 +171,6 @@ const MainToolbar = ({
       status: 'expired',
       title: t('deviceStatusExpired'),
       color: 'analogous',
-    },
-    {
-      status: 'nodata',
-      title: t('deviceStatusNoData'),
-      color: 'quadrial',
     }
   ]
 

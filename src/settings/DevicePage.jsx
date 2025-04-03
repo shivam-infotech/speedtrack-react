@@ -11,6 +11,8 @@ import {
   Paper,
   useTheme,
   Alert,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { DropzoneArea } from 'react-mui-dropzone';
@@ -26,6 +28,7 @@ import useCommonDeviceAttributes from '../common/attributes/useCommonDeviceAttri
 import { useCatch } from '../reactHelper';
 import useQuery from '../common/util/useQuery';
 import useSettingsStyles from './common/useSettingsStyles';
+import { Close } from '@mui/icons-material';
 
 const DevicePage = () => {
   const classes = useSettingsStyles();
@@ -181,6 +184,20 @@ const DevicePage = () => {
                 label={t('userExpirationTime')}
                 type="date"
                 value={item.expirationTime ? item.expirationTime.split('T')[0] : '2099-01-01'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="Clear"
+                        onClick={() => setItem({ ...item, expirationTime: null })}
+                        edge="end"
+                        size="small"
+                      >
+                        <Close />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
                 onChange={(e) => {
                   if (e.target.value) {
                     setItem({ ...item, expirationTime: new Date(e.target.value).toISOString() });

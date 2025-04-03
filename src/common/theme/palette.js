@@ -16,9 +16,9 @@ export default (server, darkMode) => {
     default: darkMode ? grey[900] : grey[50],
   },
   primary: {
-    main: getModeColor(indigo[200], indigo[900], 'colorPrimary'),
+    main: getModeColor(indigo[200], indigo[800], 'colorPrimary'),
     light: darkMode ? indigo[100] : indigo[400],
-    dark: darkMode ? indigo[400] : indigo[950],
+    dark: darkMode ? indigo[400] : indigo[900],
     contrastText: darkMode ? grey[900] : grey[50],
   },
   secondary: {

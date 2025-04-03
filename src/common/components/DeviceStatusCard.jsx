@@ -42,7 +42,7 @@ import { useCatch, useCatchCallback } from '../../reactHelper';
 import { useAttributePreference } from '../util/preferences';
 import useSummaryAttributes from '../attributes/useSummaryAttributes';
 import { mapIconKey, mapIcons } from '../../map/core/preloadImages';
-import { getDeviceStatusColor, TimeDiffInHumanReadableFormat } from '../util/formatter';
+import { formatDistance, getDeviceStatusColor, TimeDiffInHumanReadableFormat } from '../util/formatter';
 import FmdGoodIcon from '@mui/icons-material/FmdGood';
 import SpeedIcon from '@mui/icons-material/Speed';
 import RouteIcon from '@mui/icons-material/Route';
@@ -76,7 +76,7 @@ const useStyles = makeStyles((theme) => ({
     //     mixBlendMode: 'difference',
     // },
     content: {
-        padding: theme.spacing(1),
+        padding: theme.spacing(0),
         paddingBottom: `${theme.spacing(1)} !important`,
         // [theme.breakpoints.down('md')]: {
         //     padding: theme.spacing(1),
@@ -108,6 +108,8 @@ const useStyles = makeStyles((theme) => ({
         overflow: 'auto',
         gap: theme.spacing(0.5),
         scrollBehavior: 'smooth',
+        paddingLeft: 0, 
+        paddingRight: 0 ,
         '&::-webkit-scrollbar': {
             display: 'none'
         },
@@ -123,13 +125,17 @@ const useStyles = makeStyles((theme) => ({
         width: "47%"
     },
     actionCell: {
+        padding: `${theme.spacing(1)} ${theme.spacing(0)}`,
         display: 'inline-flex',
         flexDirection: 'column',
         alignItems: 'center',
         cursor: 'pointer',
-        minWidth: "4.2rem",
+        minWidth: "4rem",
         backgroundColor: theme.palette.background.default,
         flex: 1,
+    },
+    disabledAction:{
+        opacity: 0.3
     },
     stackBlock: {
         padding: theme.spacing(1)
@@ -159,7 +165,7 @@ const useStyles = makeStyles((theme) => ({
     root: ({ desktopPadding }) => ({
         pointerEvents: 'none',
         position: 'fixed',
-        zIndex: 5,
+        zIndex: 2,
         right: '0',
         [theme.breakpoints.up('md')]: {
             left: `calc(50% + ${desktopPadding} / 2)`,
@@ -229,13 +235,13 @@ const statusIcon = (status) => {0.
     }
 }
 
-const ActionCell = ({icon, title, onClick, href}) => {
+const ActionCell = ({icon, title, onClick, href, disabled}) => {
     const classes = useStyles();
-    let cell = <Box onClick={onClick} className={classes.actionCell} >
+    let cell = <Box onClick={!disabled && onClick} className={`${classes.actionCell} ${disabled ? classes.disabledAction : ''}`} >
         <div>{icon}</div>
         <Typography fontSize={"0.65rem"} color="textSecondary" >{title}</Typography>
     </Box>;
-    if(href) cell = <a href={href} target='_blank'>{cell}</a>
+    if(href && !disabled) cell = <a href={href} target='_blank'>{cell}</a>
     return cell;
 }
 
@@ -246,7 +252,7 @@ const formattedLastUpdate = (device) => {
     return '';
 };
 
-const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktopPadding = 0, summary = undefined }) => {
+const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktopPadding = 0, summary = undefined , currentDistance}) => {
     const keepInFullSpaceColumns = ['address'];
     const classes = useStyles({ desktopPadding });
     const theme = useTheme();
@@ -255,6 +261,7 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
     const dispatch = useDispatch();
     const t = useTranslation();
     const deviceReadonly = useDeviceReadonly();
+    const distanceUnit = useAttributePreference('distanceUnit');
 
     const shareDisabled = useSelector((state) => state.session.server.attributes.disableShare);
     const user = useSelector((state) => state.session.user);
@@ -562,13 +569,19 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                         </>
                     )}
                 </Menu> */}
-                <IconButton
+                {currentDistance ? (
+                    <Box sx={{ padding: 0.5, backgroundColor: theme.palette.background.default, borderRadius: 1, display: 'flex', flexDirection: 'column' }} elevation={1}>
+                        <Typography fontSize="0.7rem">{t('sharedDistance')}</Typography>
+                        <Typography fontFamily="monospace" fontWeight="600" fontSize="0.8rem" >{formatDistance(currentDistance, distanceUnit, t)}</Typography>
+                    </Box>
+                ) : ''}
+                {onClose && <IconButton
                     size="small"
                     onClick={onClose}
                     onTouchStart={onClose}
                 >
                     <CloseIcon fontSize="small" className={classes.mediaButton} />
-                </IconButton>
+                </IconButton>}
             </div>
             { position && 
                 <CardContent className={classes.content}>
@@ -622,53 +635,53 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                     </Stack>
                     <Box>
                         <Typography ml={2} variant='body2'>{t('SharedQuickActions')}</Typography>
-                        <div className={`${classes.stackBlock} ${classes.actionBar}`} >
+                        <div className={`${classes.actionBar} ${classes.stackBlock}`} >
                             <ActionCell
                                 disabled={disableActions || !position}
-                                icon={<img src="https://img.icons8.com/?size=32&id=TRmqgRNqawWG&format=png&color=000000" alt='playback' />}
+                                icon={<img src="https://img.icons8.com/?size=24&id=TRmqgRNqawWG&format=png&color=000000" alt='playback' />}
                                 title="Playback"
                                 onClick={() => navigate('/replay')}
                             />
                             <ActionCell 
                                 disabled={disableActions}
-                                icon={<img src="https://img.icons8.com/?size=32&id=l8E0YrmpRviZ&format=png&color=000000" alt='Send Command' />}
+                                icon={<img src="https://img.icons8.com/?size=24&id=l8E0YrmpRviZ&format=png&color=000000" alt='Send Command' />}
                                 title="Command"
                                 onClick={() => navigate(`/settings/device/${deviceId}/command`)}
                             />
                             <ActionCell 
                                 disabled={disableActions || deviceReadonly}
-                                icon={<img src="https://img.icons8.com/?size=32&id=k3b9tZlgPuSx&format=png&color=000000" alt='edit' />}
+                                icon={<img src="https://img.icons8.com/?size=24&id=k3b9tZlgPuSx&format=png&color=000000" alt='edit' />}
                                 title="Edit"
                                 onClick={() => navigate(`/settings/device/${deviceId}`)}
                             />
                             <ActionCell 
-                                icon={<img src="https://img.icons8.com/?size=32&id=2SIo2zPe4UCg&format=png&color=000000" alt='Delete' />}
+                                icon={<img src="https://img.icons8.com/?size=24&id=2SIo2zPe4UCg&format=png&color=000000" alt='Delete' />}
                                 title="Delete"
                                 onClick={() => setRemoving(true)}
                             />
                             {position && <>
                                 <ActionCell 
-                                    icon={<img src="https://img.icons8.com/?size=32&id=qu4g39w3ZV2g&format=png&color=000000" alt='Create Geofence' />}
+                                    icon={<img src="https://img.icons8.com/?size=24&id=qu4g39w3ZV2g&format=png&color=000000" alt='Create Geofence' />}
                                     title="Geofence"
                                     onClick={handleGeofence}
                                 />
                                 <ActionCell 
-                                    icon={<img src="https://img.icons8.com/?size=32&id=UQLRNCOpeqCj&format=png&color=000000" alt='Google maps' />}
+                                    icon={<img src="https://img.icons8.com/?size=24&id=UQLRNCOpeqCj&format=png&color=000000" alt='Google maps' />}
                                     title="Google map"
                                     href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}
                                 />
                                 <ActionCell 
-                                    icon={<img src="https://img.icons8.com/?size=32&id=TFZJw4av6Pp8&format=png&color=000000" alt='Apple maps' />}
+                                    icon={<img src="https://img.icons8.com/?size=24&id=TFZJw4av6Pp8&format=png&color=000000" alt='Apple maps' />}
                                     title="Apple map"
                                     href={`http://maps.apple.com/?ll=${position.latitude},${position.longitude}`}
                                 />
                                 <ActionCell 
-                                    icon={<img src="https://img.icons8.com/?size=32&id=2Q3zNlrb6FWU&format=png&color=000000" alt='Street view' />}
+                                    icon={<img src="https://img.icons8.com/?size=24&id=2Q3zNlrb6FWU&format=png&color=000000" alt='Street view' />}
                                     title="Street view"
                                     href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${position.latitude}%2C${position.longitude}&heading=${position.course}`}
                                 />
                                 {!shareDisabled && !user.temporary && <ActionCell 
-                                    icon={<img src="https://img.icons8.com/?size=32&id=upt8G88JNc8V&format=png&color=000000" alt='Share Device' />}
+                                    icon={<img src="https://img.icons8.com/?size=24&id=upt8G88JNc8V&format=png&color=000000" alt='Share Device' />}
                                     title="Share"
                                     onClick={() => navigate(`/settings/device/${deviceId}/share`)}
                                 />}
