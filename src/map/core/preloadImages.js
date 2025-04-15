@@ -16,6 +16,11 @@ import carSvg from '../../resources/images/icon/car.svg';
 import carSucessSvg from '../../resources/images/icon/car-success.svg';
 import carErrorSvg from '../../resources/images/icon/car-error.svg';
 import carWarningSvg from '../../resources/images/icon/car-warning.svg';
+import carSuccess3d from "../../resources/images/icon/car-success-3d.svg";
+import carError3d from "../../resources/images/icon/car-error-3d.svg";
+import carWarning3d from "../../resources/images/icon/car-warning-3d.svg";
+import carNeutral3d from "../../resources/images/icon/car-neutral-3d.svg";
+
 import camperSvg from '../../resources/images/icon/camper.svg';
 import craneSvg from '../../resources/images/icon/crane.svg';
 import defaultSvg from '../../resources/images/icon/default.svg';
@@ -44,6 +49,7 @@ import vanSvg from '../../resources/images/icon/van.svg';
 import vanSuccessSvg from '../../resources/images/icon/van-success.svg';
 import vanErrorSvg from '../../resources/images/icon/van-error.svg';
 import vanWarningSvg from '../../resources/images/icon/van-warning.svg';
+import { useEffect, useState } from 'react';
 
 export const mapIcons = {
   animal: animalSvg,
@@ -69,6 +75,15 @@ export const mapIcons = {
   truck: truckSvg,
   van: vanSvg,
 };
+
+export const device3dIcons = {
+  car: {
+    success: carSuccess3d,
+    warning: carWarning3d,
+    error: carError3d,
+    neutral: carNeutral3d
+  }
+}
 
 export const mapIconsVarients = {
   car: {
@@ -109,6 +124,30 @@ export const mapIconKey = (category) => {
       return mapIcons.hasOwnProperty(category) ? category : 'default';
   }
 };
+
+export const useDeviceIcon3d = (category, status) => {
+    const fileName = `car-${status}-3d.svg`;
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [image, setImage] = useState(null)
+
+    useEffect(() => {
+        const fetchImage = () => {
+          import(`../../resources/images/icon/${fileName}`)
+            .then(response => setImage(response))
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+        }
+
+        fetchImage()
+    }, [fileName])
+
+    return {
+      loading,
+      error,
+      image,
+  }
+}
 
 export const mapImages = {};
 

@@ -75,3 +75,27 @@ export const calculateDistanceFromCoords = (coords) => {
         return parseFloat(Number(distance + prev).toFixed(2));
     }, 0);
 }
+
+export function calculateBearing(lat1, lon1, lat2, lon2) {
+    // Convert degrees to radians
+    const toRadians = (deg) => (deg * Math.PI) / 180;
+    const toDegrees = (rad) => (rad * 180) / Math.PI;
+
+    lat1 = toRadians(lat1);
+    lon1 = toRadians(lon1);
+    lat2 = toRadians(lat2);
+    lon2 = toRadians(lon2);
+
+    const dLon = lon2 - lon1;
+
+    const x = Math.sin(dLon) * Math.cos(lat2);
+    const y =
+        Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+
+    let bearing = Math.atan2(x, y);
+    bearing = toDegrees(bearing);
+    bearing = (bearing + 360) % 360; // Normalize to 0-360
+
+    return bearing;
+}

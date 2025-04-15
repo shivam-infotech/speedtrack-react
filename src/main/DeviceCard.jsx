@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import makeStyles from '@mui/styles/makeStyles';
 import {
@@ -6,11 +6,8 @@ import {
   useTheme, Typography, Box, Card, CardContent, Grid, Menu, MenuItem,
   Divider, Chip, Stack, Skeleton,
 } from '@mui/material';
-import BatteryFullIcon from '@mui/icons-material/BatteryFull';
 import BatteryChargingFullIcon from '@mui/icons-material/BatteryChargingFull';
-import Battery60Icon from '@mui/icons-material/Battery60';
 import BatteryCharging60Icon from '@mui/icons-material/BatteryCharging60';
-import Battery20Icon from '@mui/icons-material/Battery20';
 import BatteryCharging20Icon from '@mui/icons-material/BatteryCharging20';
 import ErrorIcon from '@mui/icons-material/Error';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -28,11 +25,11 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { devicesActions } from '../store';
 import {
-  formatAlarm, formatBoolean, formatPercentage, formatSpeed, formatStatus, getDeviceStatusColor, getStatusColor,
+  formatAlarm, formatBoolean, formatNumericHours, formatPercentage, formatSpeed, formatStatus, formatTime, getDeviceStatusColor, getStatusColor,
   TimeDiffInHumanReadableFormat,
 } from '../common/util/formatter';
 import { useTranslation } from '../common/components/LocalizationProvider';
-import { mapIconKey, mapIcons } from '../map/core/preloadImages';
+import { mapIconKey, mapIcons, device3dIcons } from '../map/core/preloadImages';
 import { useAdministrator, useDeviceReadonly } from '../common/util/permissions';
 import EngineIcon from '../resources/images/data/engine.svg?react';
 import { useAttributePreference } from '../common/util/preferences';
@@ -40,6 +37,21 @@ import AddressValue from '../common/components/AddressValue';
 import { ReplayOutlined } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import PositionValue from '../common/components/PositionValue';
+
+import SensorsIcon from '@mui/icons-material/Sensors';
+import SensorsOffIcon from '@mui/icons-material/SensorsOff';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
+import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
+import SignalCellularConnectedNoInternet0BarIcon from '@mui/icons-material/SignalCellularConnectedNoInternet0Bar';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import { useSpeech } from 'react-text-to-speech';
+import redcar from '../resources/images/Red car.svg';
+
+import { statusIcon, BatteryLevelIcon, GSMSignalIcon, ACIcon, SatelliteSignalIcon, ChargingIcon, ParkingIcon, FuelIcon, IgnitionIcon } from '../common/components/PostionalHelpers';
+import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
 
 dayjs.extend(relativeTime);
 
@@ -86,6 +98,7 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing(1),
     padding: theme.spacing(0.5),
     marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
   },
   statItem: {
     display: 'flex',
@@ -120,11 +133,12 @@ const useStyles = makeStyles((theme) => ({
       padding: '0 2px',
     },
   },
-  menuButton: {
-    padding: 4,
+  menuButtonContainer: {
     position: 'absolute',
     right: theme.spacing(0.5),
     top: theme.spacing(0),
+    display: 'flex',
+    gap: 1
   },
   compactContent: {
     padding: `${theme.spacing(1)} !important`,
@@ -150,9 +164,9 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     gap: theme.spacing(0.5),
     flexWrap: 'wrap',
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-    padding: `${theme.spacing(0)} ${theme.spacing(1)}`
+    // marginTop: theme.spacing(1),
+    // marginBottom: theme.spacing(1),
+    padding: `${theme.spacing(0)} ${theme.spacing(1)} ${theme.spacing(0)} ${theme.spacing(0)}`
   },
   placeholder: {
     color: theme.palette.text.disabled,
@@ -190,6 +204,8 @@ const DeviceCard = ({ data, index, style, onClick }) => {
   const devicePrimary = useAttributePreference('devicePrimary', 'name');
   const deviceSecondary = useAttributePreference('deviceSecondary', '');
   const summary = useSelector((state) => state.summary.items[item.id]);
+
+  const { start, stop, speechStatus } = useSpeech({ pitch: 1, rate: 0.8, volume: 1, lang: "hi-IN", voiceURI: "Google हिन्दी", autoPlay: false, text: position?.address || 'No Available address' });
 
   const handleMenuOpen = (event) => {
     event.stopPropagation();
@@ -237,26 +253,23 @@ const DeviceCard = ({ data, index, style, onClick }) => {
   };
 
   const formattedLastUpdate = () => {
-    if (item.lastUpdate) {
-      return TimeDiffInHumanReadableFormat(item.lastUpdate);
-    }
-    return '';
+    return position && position?.fixTime ? formatTime(position.fixTime, 'seconds') : '';
   };
-
+  
   return (
-    <Card 
+    <Card
       className={`${classes.card} ${selectedDeviceId === item.id ? classes.selectedCard : ''}`}
       onClick={() => {
         dispatch(devicesActions.selectId(item.id));
         if (onClick) onClick();
       }}
-      style={{...style}}
+      style={{ ...style }}
     >
       <CardContent className={classes.compactContent}>
         <Box className={classes.headerBox}>
-          <ListItemAvatar sx={{ minWidth: 40, position: 'relative' }}>
-            <Avatar 
-              sx={{ 
+          <ListItemAvatar sx={{ minWidth: 40, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {/* <Avatar
+              sx={{
                 backgroundColor: position ? (theme.palette[getDeviceStatusColor(position)]?.main || theme.palette.error?.main) : theme.palette.grey[300],
                 position: 'relative',
                 width: 32,
@@ -264,41 +277,51 @@ const DeviceCard = ({ data, index, style, onClick }) => {
               }}
             >
               <img className={classes.icon} src={mapIcons[mapIconKey(item.category)]} alt="" />
-            </Avatar>
-            <div 
+            </Avatar> */}
+            {/* <Avatar sx={{ width: 48, height: 48 }} > */}
+               <img src={device3dIcons.car[position ? getDeviceStatusColor(position) : 'neutral']} width={"56px"} />
+            {/* </Avatar> */}
+            {/* <div
               className={`${classes.statusIndicator} ${item.status === 'online' ? classes.onlineStatus : classes.offlineStatus}`}
-            />
+            /> */}
           </ListItemAvatar>
 
           <Box className={classes.deviceInfo}>
             <Typography variant="body2" noWrap>
               {item[devicePrimary] || <Skeleton variant="text" width={120} />}
             </Typography>
-            <Typography 
-              variant="caption" 
-              color="textSecondary" 
-              className={classes.addressText}
-              noWrap
-            >
-              {position ? (
-                <AddressValue 
-                  latitude={position.latitude} 
-                  longitude={position.longitude} 
-                  originalAddress={position.address} 
-                />
-              ) : (
-                <span className={classes.placeholder}>No position data available</span>
-              )}
+            <Typography variant="caption"
+              color="textSecondary" className={classes.addressText}>
+              {formattedLastUpdate() || 'N/A'}
             </Typography>
+            <Box>
+            <Tooltip title={position ? (`${t('positionIgnition')}: ${formatBoolean(position.attributes.ignition, t)}`) : t('deviceStatusOffline')}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                {statusIcon(position?.attributes?.activity, position ? (getDeviceStatusColor(position)) : 'default', '0.6rem')}
+                <Typography align='center' fontSize={"0.75rem"} sx={{ marginLeft: 0.5 }} color={position ? (getDeviceStatusColor(position)) : 'default'} >{position ? (position?.attributes?.activity ? (t(`deviceStatus${position?.attributes?.activity.ucfirst()}`) + " since " + formatNumericHours(position.attributes.activityDurationHours, t)) : t('deviceStatusStopped')) : t('deviceStatusOffline')}</Typography>
+              </Box>
+              {/* <Chip
+                size="small"
+                icon={statusIcon(position?.attributes?.activity)}
+                label={
+                  position ? (position?.attributes?.activity ? (t(`deviceStatus${position?.attributes?.activity.ucfirst()}`) + " " + formatNumericHours(position.attributes.activityDurationHours, t)) : t('deviceStatusStopped')) : t('deviceStatusOffline')
+                }
+                className={classes.statusChip}
+                color={position ? (getDeviceStatusColor(position)) : 'default'}
+              /> */}
+            </Tooltip>
+            </Box>
           </Box>
 
-          <IconButton 
-            className={classes.menuButton}
-            onClick={handleMenuOpen}
-            size="small"
-          >
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
+          <Box className={classes.menuButtonContainer}>
+            
+            <IconButton
+              onClick={handleMenuOpen}
+              size="small"
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+          </Box>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -330,56 +353,38 @@ const DeviceCard = ({ data, index, style, onClick }) => {
             </MenuItem>
           </Menu>
         </Box>
-
         <Box className={classes.chipGroup}>
-          <Chip 
+          {/* <Chip 
             size="small"
             icon={<AccessTimeIcon />}
-            label={formattedLastUpdate() || 'N/A'}
+            label={}
             className={classes.statusChip}
-          />
-          <Chip
-            size="small"
-            icon={<BatteryFullIcon />}
-            label={position?.attributes?.batteryLevel ? `${formatPercentage(position.attributes.batteryLevel)}` : 'N/A'}
-            className={classes.statusChip}
-            color={position?.attributes?.batteryLevel ? (position.attributes.batteryLevel > 70 ? "success" : position.attributes.batteryLevel > 30 ? "warning" : "error") : "default"}
-          />
-          <Tooltip title={position ? (`${t('positionIgnition')}: ${formatBoolean(position.attributes.ignition, t)}`) : t('deviceStatusOffline')}>
-            <Chip
-              size="small"
-              icon={<EngineIcon width={16} height={16} />}
-              label={
-                position ? (position?.attributes?.activity ? t(`deviceStatus${position?.attributes?.activity.ucfirst()}`) : t('deviceStatusStopped')) : t('deviceStatusOffline')
-              }
-              className={classes.statusChip}
-              color={position ? (getDeviceStatusColor(position)) : 'default'}
-            />
-          </Tooltip>
+          /> */}
+          <Box sx={{ flex: 1 }}>
+            
+          </Box>
         </Box>
-
         <div className={classes.statsContainer}>
           <div className={classes.statItem}>
-            <SpeedIcon color="primary" fontSize="small" />
-            <div className={classes.statText}>
-              <Typography variant="caption">Speed</Typography>
-              <Typography variant="body2" noWrap>
-                {position ? <PositionValue position={position} property={'speed'} attribute={null} /> : '0 km/h'}
-              </Typography>
+              <SpeedIcon color="primary" fontSize="small" />
+              <div className={classes.statText}>
+                <Typography variant="caption">Speed</Typography>
+                <Typography variant="body2" noWrap>
+                  {position ? <PositionValue position={position} property={'speed'} /> : '0 km/h'}
+                </Typography>
+              </div>
             </div>
-          </div>
-
           <div className={classes.statItem}>
             <RouteIcon color="primary" fontSize="small" />
             <div className={classes.statText}>
               <Typography variant="caption">Distance</Typography>
               <Typography variant="body2" noWrap>
-                {summary ? <PositionValue position={summary} property={'distance'} attribute={null} /> : '0 km'}
+                {summary ? <PositionValue position={summary} property={'distance'} /> : '0 km'}
               </Typography>
             </div>
           </div>
 
-          <div className={classes.statItem}>
+          {/* <div className={classes.statItem}>
             <TimerIcon color="success" fontSize="small" />
             <div className={classes.statText}>
               <Typography variant="caption">Running</Typography>
@@ -407,9 +412,9 @@ const DeviceCard = ({ data, index, style, onClick }) => {
                 {summary ? <PositionValue position={summary} property={'stoppedHours'} /> : '0s'}
               </Typography>
             </div>
-          </div>
+          </div> */}
 
-          <div className={classes.statItem}>
+          {/* <div className={classes.statItem}>
             <LocalGasStationIcon color="primary" fontSize="small" />
             <div className={classes.statText}>
               <Typography variant="caption">Fuel</Typography>
@@ -417,8 +422,43 @@ const DeviceCard = ({ data, index, style, onClick }) => {
                 {summary?.spentFuel ? `${summary.spentFuel.toFixed(1)} L` : '0 L'}
               </Typography>
             </div>
-          </div>
+          </div> */}
         </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+          <Typography
+            variant="subtitle1"
+            className={classes.addressText}
+            noWrap
+            sx={{ flex: 1 }}
+          >
+            {position ? (
+              <AddressValue
+                latitude={position.latitude}
+                longitude={position.longitude}
+                originalAddress={position.address}
+              />
+            ) : (
+              <span className={classes.placeholder}>No position data available</span>
+            )}
+          </Typography>
+          <IconButton size='small' onClick={(e) => {e.stopPropagation(); speechStatus === 'stopped' ? start() : stop()}}>
+            {speechStatus === 'stopped' ? <VolumeUpIcon /> : <VolumeOffIcon />}
+          </IconButton>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-around', overflowX: 'scroll', gap: 2 }}>
+          {IgnitionIcon(position?.attributes?.ignition || undefined)}
+          {ChargingIcon(position?.attributes?.charge || undefined)}
+          {/* <ElectricalServicesIcon fontSize='small' color={position?.attributes?.charge ? 'success' : 'error'} /> */}
+          {BatteryLevelIcon(position?.attributes?.batteryLevel)}
+          {GSMSignalIcon(position?.attributes?.rssi || 0)}
+          {SatelliteSignalIcon(position?.attributes?.sat || 0)}
+          <LockOpenIcon fontSize='small' color='success' />
+          {ParkingIcon(position)}
+          {/* <LocalParkingIcon fontSize='small' color='error' /> */}
+          {ACIcon(position?.attributes?.ac || 0)}
+          <DeviceThermostatIcon fontSize='small' color='neutral' />
+          {FuelIcon(position?.attributes?.fuel || undefined)}
+        </Box>
       </CardContent>
     </Card>
   );

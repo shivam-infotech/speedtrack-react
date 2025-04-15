@@ -52,12 +52,12 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
         <MapSelectedDevice />
         <PoiMap />
       </MapView>
-      <MapScale />
+      {/* <MapScale /> */}
       <MapCurrentLocation />
-      <MapGeocoder />
-      {!features.disableEvents && (
+      {/* <MapGeocoder /> */}
+      {/* {!features.disableEvents && (
         <MapNotification enabled={eventsAvailable} onClick={onEventsClick} />
-      )}
+      )} */}
       {desktop && (
         <MapPadding left={parseInt(theme.dimensions.drawerWidthDesktop, 10) + parseInt(theme.spacing(1.5), 10)} />
       )}

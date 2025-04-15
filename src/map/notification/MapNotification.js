@@ -16,7 +16,7 @@ class NotificationControl {
     this.button.onclick = () => this.eventHandler(this);
 
     this.container = document.createElement('div');
-    this.container.className = 'maplibregl-ctrl-group maplibregl-ctrl';
+    this.container.className = 'maplibregl-ctrl-group maplibregl-ctrl maplibregl-control-bar-elm';
     this.container.appendChild(this.button);
 
     return this.container;

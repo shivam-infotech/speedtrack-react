@@ -181,7 +181,7 @@ const FilteredSegments = ({
           key={`segment-${index}`} 
           positions={segment} 
           color={color} 
-          width={8} 
+          width={3} 
         />
       ))}
     </>

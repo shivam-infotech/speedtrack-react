@@ -8,7 +8,6 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useDispatch, useSelector } from 'react-redux';
 import DeviceList from './DeviceList';
 import BottomMenu from '../common/components/BottomMenu';
-import StatusCard from '../common/components/StatusCard';
 import { devicesActions } from '../store';
 import usePersistedState from '../common/util/usePersistedState';
 import EventsDrawer from './EventsDrawer';
@@ -17,10 +16,12 @@ import MainToolbar from './MainToolbar';
 import MainMap from './MainMap';
 import { useAttributePreference } from '../common/util/preferences';
 import { createSearchParams, useNavigate } from 'react-router-dom';
-import DeviceRow from './DeviceRow';
 import DeviceCard from './DeviceCard';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeviceStatusCard from '../common/components/DeviceStatusCard';
+import PersonIcon from '@mui/icons-material/Person';
+import MapControlLinks from '../map/extras/MapControlLinks';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import AccountModal from '../common/components/AccountModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -85,6 +86,8 @@ const LiveMap = () => {
   const mapOnSelect = useAttributePreference('mapOnSelect', true);
   const dashboardType = useAttributePreference('dashboardType', 'live-map');
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
+  const user = useSelector(state => state.session.user);
+  const [accountPopupOpen, setAccountPopupOpen] = useState(false);
 
   // Clear selected device only once when page loads in compact layout on small devices
   useEffect(() => {
@@ -135,8 +138,19 @@ const LiveMap = () => {
 
   const renderCompactLayout = () => (
     <div className={classes.root}>
-      <Paper square elevation={3} className={classes.header}>
+      <Paper square elevation={3} className={classes.header} sx={{ position: 'sticky', top: 0 }}>
         <MainToolbar
+          pageTitle={
+            <Box onClick={() => setAccountPopupOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: theme.spacing(0.5), justifyContent: 'center' }}>
+              <Typography fontSize={"0.6rem"} color={"neutral"} >Welcome</Typography>
+              <Typography fontSize={"1rem"} lineHeight={1} color={"primary"} >{user.name}</Typography>
+            </Box>
+          }
+          onLeftTop={
+            <IconButton onClick={() => setAccountPopupOpen(true)} edge="start" sx={{ backgroundColor: theme.palette.primary.contrastText }} >
+              <PersonIcon color='primary' />
+            </IconButton>
+          }
           filteredDevices={filteredDevices}
           devicesOpen={devicesOpen}
           setDevicesOpen={setDevicesOpen}
@@ -171,6 +185,7 @@ const LiveMap = () => {
             hideControls={true}
             onMarkerClick={(deviceId) => { }}
           />
+          { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> }
         </Box>
       </div>
       <Paper square className={classes.contentList}>
@@ -201,14 +216,8 @@ const LiveMap = () => {
           desktopPadding={theme.dimensions.drawerWidthDesktop}
           summary={summaries[selectedDeviceId] || {}}
         />
-        // <StatusCard
-        //   deviceId={selectedDeviceId}
-        //   position={selectedPosition}
-        //   onClose={() => dispatch(devicesActions.selectId(null))}
-        //   desktopPadding={theme.dimensions.drawerWidthDesktop}
-        //   summary={summaries[selectedDeviceId] || {}}
-        // />
       )}
+      <AccountModal open={accountPopupOpen} onClose={() => setAccountPopupOpen(false)} />
     </div>
   );
 
@@ -223,8 +232,19 @@ const LiveMap = () => {
         />
       )}
       <div className={classes.sidebar}>
-        <Paper square elevation={3} className={classes.header}>
+        <Paper square elevation={3} className={classes.header} sx={{ position: 'sticky', top: 0 }}>
           <MainToolbar
+            pageTitle={
+              <Box onClick={() => setAccountPopupOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: theme.spacing(0.5), justifyContent: 'center' }}>
+                <Typography fontSize={"0.6rem"} color={"neutral"} >Welcome</Typography>
+                <Typography fontSize={"1rem"} lineHeight={1} color={"primary"} >{user.name}</Typography>
+              </Box>
+            }
+            onLeftTop={
+              <IconButton onClick={() => setAccountPopupOpen(true)} edge="start" sx={{ backgroundColor: theme.palette.primary.contrastText }} >
+                <PersonIcon color='primary' />
+              </IconButton>
+            }
             filteredDevices={filteredDevices}
             devicesOpen={devicesOpen}
             setDevicesOpen={setDevicesOpen}
@@ -247,6 +267,7 @@ const LiveMap = () => {
                 onEventsClick={onEventsClick}
                 filteredDevices={filterMap ? filteredDevices : undefined}
               />
+              { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> }
             </div>
           )}
           <Paper square className={classes.contentList} style={devicesOpen ? {} : { visibility: 'hidden' }}>
@@ -276,6 +297,7 @@ const LiveMap = () => {
           summary={summaries[selectedDeviceId] || {}}
         />
       )}
+      <AccountModal open={accountPopupOpen} onClose={() => setAccountPopupOpen(false)} />
     </div>
   );
 

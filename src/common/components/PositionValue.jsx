@@ -32,10 +32,10 @@ const PositionValue = ({ position, property, attribute }) => {
 
   const deviceReadonly = useDeviceReadonly();
 
-  const device = useSelector((state) => state.devices.items[position.deviceId]);
+  const device = useSelector((state) => state.devices.items[position?.deviceId]);
 
   const key = property || attribute;
-  const value = property ? position[property] : position.attributes[attribute];
+  const value = property ? position[property] : position?.attributes[attribute];
 
   const distanceUnit = useAttributePreference('distanceUnit');
   const altitudeUnit = useAttributePreference('altitudeUnit');
@@ -62,6 +62,7 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'obdSpeed':
         return value != null ? formatSpeed(speedToKnots(value, 'kmh'), speedUnit, t) : '';
       case 'ignition':
+      case 'ac':
         return <span><span style={{ display: 'inline-block', width: '0.875em', height: '0.875em', backgroundColor: value ? 'green' : 'gray', borderRadius: '50%', margin: '0 0.2em' }} ></span> { value ? t('positionIgnitionOn') : t('positionIgnitionOff') }</span>;
       case 'course':
         return formatCourse(value);
@@ -75,7 +76,9 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'volume':
         return value != null ? formatVolume(value, volumeUnit, t) : '';
       case 'fuelConsumption':
-        return value != null ? formatConsumption(value, t) : '';
+      case 'spentFuel':
+      case 'fuel':
+        return value != null ? formatConsumption(value, t) : `0 ${t('sharedLiterPerHourAbbreviation')}`;
       case 'coolantTemp':
         return value != null ? formatTemperature(value) : '';
       case 'alarm':

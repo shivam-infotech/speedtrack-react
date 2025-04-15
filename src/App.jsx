@@ -22,7 +22,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const App = () => {
+const App = ({ noBottomMenu = false }) => {
   const classes = useStyles();
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -75,7 +75,7 @@ const App = () => {
       <div className={classes.page}>
         <Outlet />
       </div>
-      {!desktop && (
+      {!desktop && !noBottomMenu && (
         <div className={classes.menu}>
           <BottomMenu />
         </div>

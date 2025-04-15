@@ -11,6 +11,7 @@ import { useAttributePreference, usePreference } from '../../common/util/prefere
 import usePersistedState, { savePersistedState } from '../../common/util/usePersistedState';
 import { mapImages } from './preloadImages';
 import useMapStyles from './useMapStyles';
+import "./controlStyles.css";
 
 const element = document.createElement('div');
 element.style.width = '100%';
@@ -53,7 +54,7 @@ const initMap = async () => {
   updateReadyValue(true);
 };
 
-map.addControl(new maplibregl.NavigationControl());
+// map.addControl(new maplibregl.NavigationControl());
 
 const switcher = new SwitcherControl(
   () => updateReadyValue(false),

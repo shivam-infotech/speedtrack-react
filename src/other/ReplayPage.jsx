@@ -14,12 +14,8 @@ import {
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import TuneIcon from '@mui/icons-material/Tune';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DownloadIcon from '@mui/icons-material/Download';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import FastForwardIcon from '@mui/icons-material/FastForward';
-import FastRewindIcon from '@mui/icons-material/FastRewind';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import MapView from '../map/core/MapView';
@@ -35,12 +31,14 @@ import MapGeofence from '../map/MapGeofence';
 import StatusCard from '../common/components/StatusCard';
 import MapScale from '../map/MapScale';
 import { calculateDistance, calculateDistanceFromCoords, decimateCoordinates } from '../common/util/position';
-import { FilterAlt } from '@mui/icons-material';
+import { ExpandLess, ExpandMore, FilterAlt } from '@mui/icons-material';
 import MapStoppages from '../map/MapStoppages';
 import FilteredPolylines from './FilteredSegments';
 import FilteredSegments from './FilteredSegments';
 import dayjs from 'dayjs';
-import DeviceStatusCard from '../common/components/DeviceStatusCard';
+import DeviceReplayStatusCard from '../common/components/DeviceReplayStatusCard';
+import { useAttributePreference } from '../common/util/preferences';
+import { green } from '@mui/material/colors';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -81,7 +79,7 @@ const useStyles = makeStyles((theme) => ({
   content: {
     display: 'flex',
     flexDirection: 'column',
-    padding: theme.spacing(2),
+    padding: `${theme.spacing(0.5)} ${theme.spacing(2)}`,
     [theme.breakpoints.down('md')]: {
       margin: theme.spacing(1),
     },
@@ -90,6 +88,10 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
+
+const Indicator = ({ color }) => (
+  <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: color, borderRadius: '50%', margin: '0 5px' }}></span>
+)
 
 const ReplayPage = () => {
   const t = useTranslation();
@@ -113,6 +115,7 @@ const ReplayPage = () => {
   const [summary, setSummary] = useState(undefined);
   const [multiplier, setMultiplier] = useState(1);
   const [stoppages, setStoppages] = useState([]);
+  const [statusCardMinimized, setStatusCardMinimized] = useState(false);
 
   const [multiplierAnchor, setMultiplierAnchor] = useState(null);
   const multiplierMenuExpanded = Boolean(multiplierAnchor);
@@ -131,10 +134,7 @@ const ReplayPage = () => {
     inactivity: 'marker',
   }
 
-  // const [stoppedMoreThan, setStoppedMoreThan] = useState(null);
-  // const [idleMoreThan, setIdleMoreThan] = useState(null);
-  // const [speedMoreThan, setSpeedMoreThan] = useState(null);
-  // const [inactivity, setInactivity] = useState(false);
+  const ReportColor = useAttributePreference('web.reportColor', green[500]);
 
   const openMultiplierMenu = (event) => {
     setMultiplierAnchor(event.currentTarget);
@@ -151,10 +151,6 @@ const ReplayPage = () => {
   const closeFilterMenu = () => {
     setFilterAnchor(null);
   }
-
-  const Indicator = ({color}) => (
-    <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: color, borderRadius: '50%', margin: '0 5px' }}></span>
-  )
 
   const deviceName = useSelector((state) => {
     if (selectedDeviceId) {
@@ -278,8 +274,8 @@ const ReplayPage = () => {
         <MapGeofence />
         {index < positions.length && (
           <>
-            <MapRoutePath positions={positions} />
-            <MapRoutePoints positions={positions} onClick={onPointClick} />
+            <MapRoutePath positions={positions} color={ReportColor} />
+            <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
             <MapPositions positions={[positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
             {(stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity)) && 
               <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />
@@ -346,169 +342,141 @@ const ReplayPage = () => {
             <Typography variant="h6" className={classes.title}>{t('reportReplay')}</Typography>
             {!expanded && (
               <>
-                <IconButton onClick={handleDownload}>
+                {/* <IconButton onClick={handleDownload}>
                   <DownloadIcon />
-                </IconButton>
-                <IconButton edge="end" onClick={() => setExpanded(true)}>
-                  <TuneIcon />
-                </IconButton>
-              </>
-            )}
-          </Toolbar>
-        </Paper>
-        <Paper className={classes.content} square>
-          {!expanded ? (
-            <>
-              <Box sx={{ marginBottom: theme.spacing(2), display: 'flex', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="subtitle1">{deviceName}</Typography>
-                  <Typography variant="caption">{formatTime(positions[index].fixTime, 'seconds')}</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: theme.spacing(1) }}>
-                  <div>
-                    <IconButton aria-haspopup="true" aria-controls='multiplier-menu' aria-expanded={multiplierMenuExpanded} onClick={openMultiplierMenu} size='small' >{multiplier}x</IconButton>
-                    <Menu
+                </IconButton> */}
+                <div>
+                  <IconButton aria-haspopup="true" aria-controls='multiplier-menu' aria-expanded={multiplierMenuExpanded} size='small' onClick={openMultiplierMenu} >{multiplier}x</IconButton>
+                  <Menu
                       id="multiplier-menu"
                       anchorEl={multiplierAnchor}
                       open={multiplierMenuExpanded}
                       onClose={closeMultiplierMenu}
                       MenuListProps={{
-                        'aria-labelledby': 'multiplier-button',
+                          'aria-labelledby': 'multiplier-button',
                       }}
-                    >
-                      <MenuItem onClick={() => {setMultiplier(1); closeMultiplierMenu()}}>1x</MenuItem>
-                      <MenuItem onClick={() => {setMultiplier(2); closeMultiplierMenu()}}>2x</MenuItem>
-                      <MenuItem onClick={() => {setMultiplier(3); closeMultiplierMenu()}}>3x</MenuItem>
-                      <MenuItem onClick={() => {setMultiplier(4); closeMultiplierMenu()}}>4x</MenuItem>
-                      <MenuItem onClick={() => {setMultiplier(5); closeMultiplierMenu()}}>5x</MenuItem>
-                      <MenuItem onClick={() => {setMultiplier(6); closeMultiplierMenu()}}>6x</MenuItem>
-                    </Menu>
-                  </div>
-                  <IconButton onClick={openFilterMenu} size='small' >
-                    <Badge color="info" variant="dot" invisible={Object.values(filters).every(f => f === null)}>
-                      <FilterAlt />
-                    </Badge>
-                  </IconButton>
-                  <Menu
-                    id="filter-menu"
-                    anchorEl={filterAnchor}
-                    open={filterMenuExpanded}
-                    onClose={closeFilterMenu}
-                    MenuListProps={{
-                      'aria-labelledby': 'filter-button',
-                    }}
                   >
-                    <MenuItem>
+                      <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu() }}>1x</MenuItem>
+                      <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu() }}>2x</MenuItem>
+                      <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu() }}>3x</MenuItem>
+                      <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu() }}>4x</MenuItem>
+                      <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu() }}>5x</MenuItem>
+                      <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu() }}>6x</MenuItem>
+                  </Menu>
+              </div>
+              <IconButton onClick={openFilterMenu} >
+                  <Badge color="info" variant="dot" fontSize="small" invisible={Object.values(filters).every(f => f === null)}>
+                      <FilterAlt fontSize='small' />
+                  </Badge>
+              </IconButton>
+              <Menu
+                  id="filter-menu"
+                  anchorEl={filterAnchor}
+                  open={filterMenuExpanded}
+                  onClose={closeFilterMenu}
+                  MenuListProps={{
+                      'aria-labelledby': 'filter-button',
+                  }}
+              >
+                  <MenuItem>
                       <label style={{ flex: 1 }}>
-                        <Checkbox
-                          checked={filters.stoppedMoreThan !== null}
-                          onChange={(e) => setFilters({ ...filters, stoppedMoreThan: e.target.checked ? 1 : null })}
-                        />
-                        Stopped more than
-                        <Indicator color="#e33124" />
+                          <Checkbox
+                              checked={filters.stoppedMoreThan !== null}
+                              onChange={(e) => setFilters({ ...filters, stoppedMoreThan: e.target.checked ? 1 : null })}
+                          />
+                          Stopped more than
+                          <Indicator color="#e33124" />
                       </label>
                       <Select
-                        size='small'
-                        value={filters.stoppedMoreThan || ''}
-                        onChange={(e) => setFilters({ ...filters, stoppedMoreThan: e.target.value })}
-                        disabled={filters.stoppedMoreThan === null}
-                        sx={{ ml: 1 }}
+                          size='small'
+                          value={filters.stoppedMoreThan || ''}
+                          onChange={(e) => setFilters({ ...filters, stoppedMoreThan: e.target.value })}
+                          disabled={filters.stoppedMoreThan === null}
+                          sx={{ ml: 1 }}
                       >
-                        <MenuItem value={1}>1 min</MenuItem>
-                        <MenuItem value={2}>2 min</MenuItem>
-                        <MenuItem value={5}>5 min</MenuItem>
-                        <MenuItem value={10}>10 min</MenuItem>
-                        <MenuItem value={15}>15 min</MenuItem>
-                        <MenuItem value={30}>30 min</MenuItem>
+                          <MenuItem value={1}>1 min</MenuItem>
+                          <MenuItem value={2}>2 min</MenuItem>
+                          <MenuItem value={5}>5 min</MenuItem>
+                          <MenuItem value={10}>10 min</MenuItem>
+                          <MenuItem value={15}>15 min</MenuItem>
+                          <MenuItem value={30}>30 min</MenuItem>
                       </Select>
-                    </MenuItem>
-                    <MenuItem>
+                  </MenuItem>
+                  <MenuItem>
                       <label style={{ flex: 1 }}>
-                        <Checkbox
-                          checked={filters.idleMoreThan !== null}
-                          onChange={(e) => setFilters({ ...filters, idleMoreThan: e.target.checked ? 1 : null })}
-                        />
-                        Idle more than
-                        <Indicator color="#FFC107" />
+                          <Checkbox
+                              checked={filters.idleMoreThan !== null}
+                              onChange={(e) => setFilters({ ...filters, idleMoreThan: e.target.checked ? 1 : null })}
+                          />
+                          Idle more than
+                          <Indicator color="#FFC107" />
                       </label>
                       <Select
-                        size='small'
-                        value={filters.idleMoreThan || ''}
-                        onChange={(e) => setFilters({ ...filters, idleMoreThan: e.target.value })}
-                        disabled={filters.idleMoreThan === null}
-                        sx={{ ml: 1 }}
+                          size='small'
+                          value={filters.idleMoreThan || ''}
+                          onChange={(e) => setFilters({ ...filters, idleMoreThan: e.target.value })}
+                          disabled={filters.idleMoreThan === null}
+                          sx={{ ml: 1 }}
                       >
-                        <MenuItem value={1}>1 min</MenuItem>
-                        <MenuItem value={2}>2 min</MenuItem>
-                        <MenuItem value={5}>5 min</MenuItem>
-                        <MenuItem value={10}>10 min</MenuItem>
-                        <MenuItem value={15}>15 min</MenuItem>
-                        <MenuItem value={30}>30 min</MenuItem>
+                          <MenuItem value={1}>1 min</MenuItem>
+                          <MenuItem value={2}>2 min</MenuItem>
+                          <MenuItem value={5}>5 min</MenuItem>
+                          <MenuItem value={10}>10 min</MenuItem>
+                          <MenuItem value={15}>15 min</MenuItem>
+                          <MenuItem value={30}>30 min</MenuItem>
                       </Select>
-                    </MenuItem>
-                    <MenuItem>
+                  </MenuItem>
+                  <MenuItem>
                       <label style={{ flex: 1 }}>
-                        <Checkbox
-                          checked={filters.speedMoreThan !== null}
-                          onChange={(e) => setFilters({ ...filters, speedMoreThan: e.target.checked ? 0 : null })}
-                        />
-                        Speed more than
-                        <Indicator color="#c70fff" />
+                          <Checkbox
+                              checked={filters.speedMoreThan !== null}
+                              onChange={(e) => setFilters({ ...filters, speedMoreThan: e.target.checked ? 0 : null })}
+                          />
+                          Speed more than
+                          <Indicator color="#c70fff" />
                       </label>
                       <TextField
-                        type="number"
-                        value={filters.speedMoreThan || ''}
-                        onChange={(e) => setFilters({ ...filters, speedMoreThan: e.target.value })}
-                        disabled={filters.speedMoreThan === null}
-                        sx={{ ml: 1, width: '100px' }}
+                          type="number"
+                          value={filters.speedMoreThan || ''}
+                          onChange={(e) => setFilters({ ...filters, speedMoreThan: e.target.value })}
+                          disabled={filters.speedMoreThan === null}
+                          sx={{ ml: 1, width: '100px' }}
                       />
-                    </MenuItem>
-                    <MenuItem>
+                  </MenuItem>
+                  <MenuItem>
                       <label>
-                        <Checkbox
-                          checked={filters.inactivity}
-                          onChange={(e) => setFilters({ ...filters, inactivity: e.target.checked })}
-                        />
-                        Inactivity
-                        <Indicator color="#2950ff" />
+                          <Checkbox
+                              checked={filters.inactivity}
+                              onChange={(e) => setFilters({ ...filters, inactivity: e.target.checked })}
+                          />
+                          Inactivity
+                          <Indicator color="#2950ff" />
                       </label>
-                    </MenuItem>
-                  </Menu>
-                </Box>
-              </Box>
-              
-              <Stack direction="row" spacing={0} sx={{ alignItems: 'center' }}>
-                <Slider
-                  size='small'
-                  max={positions.length - 1}
-                  step={null}
-                  marks={positions.map((_, index) => ({ value: index }))}
-                  value={index}
-                  onChange={(_, index) => setIndex(index)}
-                />
-                <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
-                  <FastRewindIcon />
-                </IconButton>
-                <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
-                  {playing ? <PauseIcon /> : <PlayArrowIcon /> }
-                </IconButton>
-                <IconButton onClick={() => setIndex((index) => index + 1)} disabled={playing || index >= positions.length - 1}>
-                  <FastForwardIcon />
-                </IconButton>
-              </Stack>
-            </>
-          ) : (
-            <ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} />
-          )}
+                  </MenuItem>
+              </Menu>
+              </>
+            )}
+            <IconButton edge="end" onClick={() => setExpanded(!expanded)}>
+              <CalendarTodayIcon fontSize='small' />
+            </IconButton>
+          </Toolbar>
         </Paper>
+          { expanded && <Paper className={classes.content} square><ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} /></Paper> }
       </div>
       {(showCard && positions.length > 0 && summary) &&(
         <>
-          <DeviceStatusCard
+          <DeviceReplayStatusCard
             deviceId={selectedDeviceId}
-            position={positions[index]}
-            onClose={() => setShowCard(false)}
-            currentDistance={calculateDistanceFromCoords(positions.slice(0, index))}
+            positions={positions}
+
+            index={index}
+            playing={playing}
+            setPlaying={setPlaying}
+            setIndex={setIndex}
+            closeIcon={statusCardMinimized ? <ExpandLess /> : <ExpandMore />}
+            minimize={statusCardMinimized}
+
+            onClose={() => setStatusCardMinimized(!statusCardMinimized)}
             disableActions
             summary={summary}
           />

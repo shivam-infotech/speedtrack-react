@@ -1,8 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import MainMap from "./MainMap";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import makeStyles from '@mui/styles/makeStyles';
-import { Icon, IconButton, Paper, Toolbar, Typography, useTheme } from "@mui/material";
+import { Box, Icon, IconButton, Paper, Toolbar, Typography, useTheme } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useTranslation } from "../common/components/LocalizationProvider";
 import StatusCard from "../common/components/StatusCard";
@@ -12,6 +12,9 @@ import MainToolbar from "./MainToolbar";
 import usePersistedState from '../common/util/usePersistedState';
 import useFilter from "./useFilter";
 import DeviceStatusCard from "../common/components/DeviceStatusCard";
+import { ExpandMore, MoreVert } from "@mui/icons-material";
+import MapControlLinks from "../map/extras/MapControlLinks";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -48,8 +51,13 @@ const useStyles = makeStyles((theme) => ({
     },
     hideFilterMapContainer: {
         [theme.breakpoints.down('md')]: {
-            marginTop: theme.spacing('56px'), // Height of the toolbar
+            marginTop: theme.spacing('0px'), // Height of the toolbar
         },
+    },
+    floatingNavContainer: {
+        position: 'absolute',
+        top: theme.spacing(1),
+        left: theme.spacing(1),
     }
 }));
 
@@ -62,6 +70,7 @@ export default function LiveMap() {
     const { items: summaries } = useSelector((state) => state.summary);
     const devices = useSelector(state => state.devices.items)
     const dispatch = useDispatch();
+    const [statusCardMinimized, setStatusCardMinimized] = useState(false);
 
     // Add necessary state variables for MainToolbar
     const [keyword, setKeyword] = useState('');
@@ -83,32 +92,54 @@ export default function LiveMap() {
         setFilteredPositions(Object.values(filteredDevices).map((device) => positions[device.id]).filter(Boolean))
     }, [positions, filteredDevices])
 
+    useEffect(() => {
+        if(params.has('deviceId') && selectedDeviceId === null){
+            console.log(Number(params.has('deviceId')));
+            dispatch(devicesActions.selectId(Number(params.get('deviceId'))))
+        }
+    }, [])
+
+    const mapLinks = useMemo(() => (selectedDeviceId || params.has('deviceId')) && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} />, [selectedDeviceId, params])
+
     return (
         <div className={styles.root}>
             <div className={styles.sidebar}>
-                <Paper elevation={3} square>
-                    <MainToolbar
-                        filteredDevices={filteredDevices}
-                        devicesOpen={devicesOpen}
-                        setDevicesOpen={setDevicesOpen}
-                        hideDevicesOpen={true}
-                        onLeftTop={
-                            <IconButton edge="start" size="small" onClick={() => navigate(-1)} >
-                                <ArrowBackIcon fontSize="small" />
-                            </IconButton>
-                        }
-                        keyword={keyword}
-                        setKeyword={setKeyword}
-                        filter={filter}
-                        setFilter={setFilter}
-                        filterSort={filterSort}
-                        setFilterSort={setFilterSort}
-                        filterMap={filterMap}
-                        setFilterMap={setFilterMap}
-                        selectedDeviceId={selectedDeviceId}
-                        hidefilters={params.has('deviceId')}
-                    />
-                </Paper>
+                { params.has('deviceId') ? <Box className={styles.floatingNavContainer}>
+                        <IconButton onClick={() => navigate(-1)} sx={{ backgroundColor: theme.palette.background.default }} >
+                            <ArrowBackIcon />
+                        </IconButton>
+                    </Box> : (<Paper elevation={3} square>
+                        <MainToolbar
+                            pageTitle={<Box sx={{ flex: 1, display: "flex", alignItems: 'center' }}>
+                                <Typography variant="h6">Live Map</Typography>
+                            </Box>}
+                            // filteredDevices={filteredDevices}
+                            devicesOpen={devicesOpen}
+                            setDevicesOpen={setDevicesOpen}
+                            hideDevicesOpen={true}
+                            onLeftTop={
+                                <IconButton edge="start" size="small" onClick={() => navigate(-1)} >
+                                    <ArrowBackIcon fontSize="small" />
+                                </IconButton>
+                            }
+                            keyword={keyword}
+                            setKeyword={setKeyword}
+                            filter={filter}
+                            setFilter={setFilter}
+                            filterSort={filterSort}
+                            setFilterSort={setFilterSort}
+                            filterMap={filterMap}
+                            setFilterMap={setFilterMap}
+                            selectedDeviceId={selectedDeviceId}nMap
+                            filteredPositions={filteredPositions}
+                            selectedPosition={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
+                            hideControls={true}
+                            onEventsClick={() => {}}
+                            filteredDevices={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(devices).filter(fd => fd.id == params.get('deviceId')) :  filteredDevices}
+                            hidefilters={params.has('deviceId')}
+                        />
+                    </Paper>
+                )}
             </div>
             <div className={`${styles.mapContainer} ${params.has('deviceId') ? styles.hideFilterMapContainer : ''}`}>                
                 <MainMap
@@ -118,12 +149,15 @@ export default function LiveMap() {
                     onEventsClick={() => {}}
                     filteredDevices={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(devices).filter(fd => fd.id == params.get('deviceId')) :  filteredDevices}
                 />
+                {mapLinks}
             </div>
             {selectedDeviceId && <DeviceStatusCard
                 deviceId={selectedDeviceId}
                 position={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(positions).find(position => selectedDeviceId && position.deviceId === selectedDeviceId ) : filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
-                // onClose={() => dispatch(devicesActions.selectId(null))}
+                onClose={params.has('deviceId') ? (() => setStatusCardMinimized(!statusCardMinimized)) : (() => dispatch(devicesActions.selectId(null)))}
                 desktopPadding={theme.dimensions.drawerWidthDesktop}
+                minimize={statusCardMinimized}
+                closeIcon={params.has('deviceId') && <ExpandMore />}
                 summary={summaries[selectedDeviceId] || {}}
             />}
         </div>

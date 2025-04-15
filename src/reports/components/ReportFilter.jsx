@@ -104,7 +104,7 @@ const ReportFilter = ({
           />
         </div>
       )}
-      {includeGroups && (
+      {(includeGroups && Object.values(groups)?.length > 0) && (
         <div className={classes.filterItem}>
           <SelectField
             label={t('settingsGroups')}

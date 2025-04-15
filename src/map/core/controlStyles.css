@@ -1,0 +1,40 @@
+:root{
+    --control-bg: #fcfcfc;
+    --control-text: #1f1f1f;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root{
+        --control-bg: #1f1f1f;
+        --control-text: #fcfcfc;
+    }
+}
+
+details.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show, details.maplibregl-ctrl-attrib.maplibregl-compact{
+    display: none !important;
+}
+
+.maplibregl-ctrl-top-right{
+    right: 8px;
+    top: 8px;
+    /* box-shadow: 0 0 0 2px rgba(0,0,0,.1);  */
+}
+
+.maplibregl-ctrl-top-right > .maplibregl-ctrl:first-child {
+    border-radius: 8px 8px 0px 0px;
+    padding-top: 8px;
+}
+
+.maplibregl-ctrl-top-right > .maplibregl-ctrl:last-child {
+    padding-bottom: 8px;
+    border-radius: 0px 0px 8px 8px;
+}
+
+.maplibregl-ctrl-top-right .maplibregl-ctrl, .maplibregl-ctrl-top-right > .maplibregl-ctrl-group{
+    margin: 0;
+    padding: 4px 8px;
+    box-shadow: none;
+    border-radius: 0;
+    background-color: var(--control-bg);
+    color: var(--control-text);
+}

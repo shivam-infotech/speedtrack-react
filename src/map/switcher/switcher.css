@@ -2,6 +2,10 @@
   display: none;
 }
 
+.maplibregl-ctrl-group{
+  position: relative;
+}
+
 .maplibregl-ctrl-group .maplibregl-style-list button {
   background: none;
   border: none;

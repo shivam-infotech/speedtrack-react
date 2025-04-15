@@ -2,6 +2,10 @@ import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
+import BackHandIcon from '@mui/icons-material/BackHand';
+import LeakRemoveIcon from '@mui/icons-material/LeakRemove';
 
 import {
   altitudeFromMeters,
@@ -122,7 +126,21 @@ export const formatVolume = (value, unit, t) => `${volumeFromLiters(value, unit)
 export const formatNumericHours = (value, t) => {
   const hours = Math.floor(value / 3600000);
   const minutes = Math.floor((value % 3600000) / 60000);
-  return `${hours} ${t('sharedHourAbbreviation')} ${minutes} ${t('sharedMinuteAbbreviation')}`;
+  const seconds = Math.floor((value % 60000) / 1000);
+
+  const parts = [];
+  
+  if (hours > 0) {
+    parts.push(`${hours} ${t('sharedHourAbbreviation')}`);
+  }
+  if (minutes > 0 || hours > 0) {
+    parts.push(`${minutes} ${t('sharedMinuteAbbreviation')}`);
+  }
+  if (seconds > 0 || (minutes === 0 && hours === 0)) {
+    parts.push(`${seconds} ${t('sharedSecondAbbreviation')}`);
+  }
+
+  return parts.join(' ');
 };
 
 export const formatCoordinate = (key, value, unit) => {

@@ -88,6 +88,7 @@ export class SwitcherControl {
     this.controlContainer = document.createElement('div');
     this.controlContainer.classList.add('maplibregl-ctrl');
     this.controlContainer.classList.add('maplibregl-ctrl-group');
+    this.controlContainer.classList.add('maplibregl-control-bar-elm');
     this.mapStyleContainer = document.createElement('div');
     this.styleButton = document.createElement('button');
     this.styleButton.type = 'button';

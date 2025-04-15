@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Route, Routes, useLocation, useNavigate,
 } from 'react-router-dom';
@@ -62,10 +62,13 @@ import { generateLoginToken } from './common/components/NativeInterface';
 import { useLocalization } from './common/components/LocalizationProvider';
 import LiveMap from './main/LiveMap';
 
+const NoBottomMenuRoutes = ['/live', '/position/:id', '/network/:positionId', '/event/:id', '/replay', '/geofences', '/emulator'];
+
 const Navigation = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { setLanguage } = useLocalization();
+  const [noBottomMenu, setNoBottomMenu] = useState(false);
 
   const [redirectsHandled, setRedirectsHandled] = useState(false);
 
@@ -80,7 +83,7 @@ const Navigation = () => {
       const token = query.get('token');
       await fetch(`/api/session?token=${encodeURIComponent(token)}`);
       navigate(pathname);
-    } else if (query.get('deviceId')) {
+    } else if (query.get('deviceId') && !pathname.startsWith('/live')) {
       const deviceId = query.get('deviceId');
       const response = await fetch(`/api/devices?uniqueId=${deviceId}`);
       if (response.ok) {
@@ -105,7 +108,14 @@ const Navigation = () => {
     } else {
       setRedirectsHandled(true);
     }
+
   }, [query]);
+
+  useEffect(() => {
+    if (NoBottomMenuRoutes.includes(pathname) && pathname !== '/' && pathname !== '') {
+      setNoBottomMenu(true);
+    }else{ setNoBottomMenu(false) }
+  }, [pathname]);
 
   if (!redirectsHandled) {
     return (<Loader />);
@@ -116,7 +126,7 @@ const Navigation = () => {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/change-server" element={<ChangeServerPage />} />
-      <Route path="/" element={<App />}>
+      <Route path="/" element={<App noBottomMenu={noBottomMenu} />}>
         <Route index element={<MainPage />} />
         <Route path='/live' element={<LiveMap />} />
 
