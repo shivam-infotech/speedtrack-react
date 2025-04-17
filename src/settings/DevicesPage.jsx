@@ -259,7 +259,11 @@ const DevicesPage = () => {
           </Table>
         )
       ) : (
-        <TableShimmer columns={manager ? 8 : 7} endAction />
+        <Table className={classes.table}>
+          <TableBody>
+            <TableShimmer columns={manager ? 8 : 7} endAction />
+          </TableBody>
+        </Table>
       )}
 
       <CollectionFab editPath="/settings/device" />

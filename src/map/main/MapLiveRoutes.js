@@ -5,51 +5,40 @@ import { map } from '../core/MapView';
 import { useAttributePreference } from '../../common/util/preferences';
 
 const MapLiveRoutes = ({ filteredDevices, animationDuration = 1000 }) => {
-  const id = useId();
   const theme = useTheme();
   const type = useAttributePreference('mapLiveRoutes', 'none');
 
   const devices = useSelector((state) => state.devices.items);
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
   const history = useSelector((state) => state.session.history);
-  const [geoJson, setGeoJson] = useState({});
 
   const animRefs = useRef({});
   const previousCoords = useRef({});
+  const layerIds = useRef({});
 
   useEffect(() => {
     if (type !== 'none') {
-      map.addSource(id, {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [],
-          },
-        },
+      // Clean up previous layers and sources when type changes
+      Object.values(layerIds.current).forEach(layerId => {
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId);
+        }
+        if (map.getSource(layerId)) {
+          map.removeSource(layerId);
+        }
       });
-      map.addLayer({
-        source: id,
-        id,
-        type: 'line',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 4,
-        },
-      });
+      layerIds.current = {};
 
       return () => {
-        if (map.getLayer(id)) {
-          map.removeLayer(id);
-        }
-        if (map.getSource(id)) {
-          map.removeSource(id);
-        }
+        Object.values(layerIds.current).forEach(layerId => {
+          if (map.getLayer(layerId)) {
+            map.removeLayer(layerId);
+          }
+          if (map.getSource(layerId)) {
+            map.removeSource(layerId);
+          }
+        });
+        layerIds.current = {};
       };
     }
     return () => {};
@@ -60,7 +49,41 @@ const MapLiveRoutes = ({ filteredDevices, animationDuration = 1000 }) => {
       cancelAnimationFrame(animRefs.current[deviceId]);
     }
 
-    // Get previous coordinates or initialize if first time
+    // Create a unique source and layer for this device if it doesn't exist
+    if (!layerIds.current[deviceId]) {
+      const layerId = `route-${deviceId}`;
+      layerIds.current[deviceId] = layerId;
+
+      map.addSource(layerId, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [],
+          },
+          properties: {
+            color: devices[deviceId]?.attributes['web.reportColor'] || theme.palette.success.main,
+          },
+        },
+      });
+
+      map.addLayer({
+        source: layerId,
+        id: layerId,
+        type: 'line',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 4,
+        },
+      });
+    }
+
+    const layerId = layerIds.current[deviceId];
     const prevCoords = previousCoords.current[deviceId] || 
       (deviceHistory.length > 1 ? deviceHistory.slice(0, -1) : []);
 
@@ -77,25 +100,22 @@ const MapLiveRoutes = ({ filteredDevices, animationDuration = 1000 }) => {
       },
       properties: {
         color: devices[deviceId]?.attributes['web.reportColor'] || theme.palette.success.main,
-        deviceId: deviceId
       },
     };
 
-    const newJson = { ...geoJsonTemplate };
-
     const updateJsonCoords = (coords) => {
-      // Keep all previous coordinates, replace only the last one with animated position
-      newJson.geometry.coordinates = [...prevCoords, startCoord, coords];
-      
-      const data = { ...geoJson, [deviceId]: newJson };
-      const source = map.getSource(id);
+      const newJson = {
+        ...geoJsonTemplate,
+        geometry: {
+          ...geoJsonTemplate.geometry,
+          coordinates: [...prevCoords, startCoord, coords],
+        },
+      };
+
+      const source = map.getSource(layerId);
       if (source) {
-        source.setData({
-          type: 'FeatureCollection',
-          features: Object.values(data),
-        });
+        source.setData(newJson);
       }
-      setGeoJson(data);
     };
 
     const animateLine = (startTime) => (timestamp) => {

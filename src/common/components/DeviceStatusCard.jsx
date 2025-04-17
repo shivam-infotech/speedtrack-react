@@ -42,6 +42,7 @@ import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Speedometer from "./Speedometer";
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import useGlobalSpeech from '../util/useGlobalSpeech';
 
 const useStyles = makeStyles((theme) => ({
     root: ({ desktopPadding }) => ({
@@ -85,7 +86,8 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(1),
         maxHeight: theme.dimensions.cardContentMaxHeight,
         overflow: 'auto',
-        paddingBottom: `${theme.spacing(1)} !important`
+        paddingBottom: `0 !important`,
+        paddingTop: `0 !important`,
     },
     icon: {
         width: '20px',
@@ -167,10 +169,10 @@ const FieldItem = ({ label, value, icon }) => (
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
             {icon}
         </Box>
-        <Typography variant="subtitle2" fontWeight={500} sx={{ textAlign: 'center' }}>
+        <Typography variant="subtitle2" fontWeight={500} lineHeight={1.2} sx={{ textAlign: 'center' }}>
             {value || 'N/A'}
         </Typography>
-        <Typography variant="caption" color="textSecondary" sx={{
+        <Typography variant="caption" color="textSecondary" lineHeight={1} sx={{
             textAlign: 'center',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -213,7 +215,8 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
     const [removing, setRemoving] = useState(false);
     const shareDisabled = useSelector((state) => state.session.server.attributes.disableShare);
     const user = useSelector((state) => state.session.user);
-    const { start, stop, speechStatus } = useSpeech({ pitch: 1, rate: 0.8, volume: 1, lang: "hi-IN", voiceURI: "Google हिन्दी", autoPlay: false, text: position?.address || 'No Available address' });
+    // const { start, stop, speechStatus } = useSpeech({ pitch: 1, rate: 0.8, volume: 1, lang: "hi-IN", voiceURI: "Google हिन्दी", autoPlay: false, text: position?.address || 'No Available address' });
+    const start = useGlobalSpeech(position?.address || 'No Available address');
 
     const handleRemove = useCatch(async (removed) => {
         if (removed) {
@@ -464,8 +467,8 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                         <Typography variant="body2" sx={{ flex: 1 }}>
                             <PositionValue position={position} property="address" attribute="address" />
                         </Typography>
-                        <IconButton size='small' onClick={(e) => {e.stopPropagation(); speechStatus === 'stopped' ? start() : stop()}}>
-                            {speechStatus === 'stopped' ? <VolumeUpIcon /> : <VolumeOffIcon />}
+                        <IconButton size='small' onClick={(e) => {e.stopPropagation(); start();}}>
+                            <VolumeUpIcon />
                         </IconButton>
                     </Box>
                 </>

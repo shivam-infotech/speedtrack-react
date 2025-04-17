@@ -113,6 +113,7 @@ const BottomMenu = () => {
       <BottomNavigation value={currentSelection()} onChange={handleSelection} showLabels>
         <BottomNavigationAction
           label={t('mapTitle')}
+          sx={{ px: 1, minWidth: 'revert' }}
           icon={(
             <Badge color="error" variant="dot" overlap="circular" invisible={socket !== false}>
               <MapIcon />
@@ -121,25 +122,25 @@ const BottomMenu = () => {
           value="map"
         />
         {!disableReports && (
-          <BottomNavigationAction label={t('reportTitle')} icon={<DescriptionIcon />} value="reports" />
+          <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('reportTitle')} icon={<DescriptionIcon />} value="reports" />
         )}
-        {!readonly && <BottomNavigationAction label={t('deviceTitle')} icon={<SmartphoneIcon />} value="devices" /> }
-        {!readonly && <BottomNavigationAction label={t('settingsUsers')} icon={<PeopleIcon />} value="users" /> }
-        <BottomNavigationAction label={t('settingsTitle')} icon={<SettingsIcon />} value="settings" />
+        {!readonly && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('deviceTitle')} icon={<SmartphoneIcon />} value="devices" /> }
+        {!readonly && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('settingsUsers')} icon={<PeopleIcon />} value="users" /> }
+        <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('settingsTitle')} icon={<SettingsIcon />} value="settings" />
         {/* {readonly ? (
           <BottomNavigationAction label={t('loginLogout')} icon={<ExitToAppIcon />} value="logout" />
         ) : (
           <BottomNavigationAction label={t('settingsUser')} icon={<PersonIcon />} value="account" />
         )} */}
       </BottomNavigation>
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+      {/* <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
         <MenuItem onClick={handleAccount}>
           <Typography color="textPrimary">{t('settingsUser')}</Typography>
         </MenuItem>
         <MenuItem onClick={handleLogout}>
           <Typography color="error">{t('loginLogout')}</Typography>
         </MenuItem>
-      </Menu>
+      </Menu> */}
     </Paper>
   );
 };

@@ -52,6 +52,7 @@ import redcar from '../resources/images/Red car.svg';
 
 import { statusIcon, BatteryLevelIcon, GSMSignalIcon, ACIcon, SatelliteSignalIcon, ChargingIcon, ParkingIcon, FuelIcon, IgnitionIcon } from '../common/components/PostionalHelpers';
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
+import useGlobalSpeech from '../common/util/useGlobalSpeech';
 
 dayjs.extend(relativeTime);
 
@@ -205,7 +206,8 @@ const DeviceCard = ({ data, index, style, onClick }) => {
   const deviceSecondary = useAttributePreference('deviceSecondary', '');
   const summary = useSelector((state) => state.summary.items[item.id]);
 
-  const { start, stop, speechStatus } = useSpeech({ pitch: 1, rate: 0.8, volume: 1, lang: "hi-IN", voiceURI: "Google हिन्दी", autoPlay: false, text: position?.address || 'No Available address' });
+  // const { start, stop, speechStatus } = useSpeech({ pitch: 1, rate: 0.8, volume: 1, lang: "hi-IN", voiceURI: "Google हिन्दी", autoPlay: false, text: position?.address || 'No Available address' });
+  const start = useGlobalSpeech(position?.address || 'No Available address');
 
   const handleMenuOpen = (event) => {
     event.stopPropagation();
@@ -441,11 +443,19 @@ const DeviceCard = ({ data, index, style, onClick }) => {
               <span className={classes.placeholder}>No position data available</span>
             )}
           </Typography>
-          <IconButton size='small' onClick={(e) => {e.stopPropagation(); speechStatus === 'stopped' ? start() : stop()}}>
-            {speechStatus === 'stopped' ? <VolumeUpIcon /> : <VolumeOffIcon />}
+          <IconButton size='small' onClick={(e) => {e.stopPropagation(); start()}}>
+            <VolumeUpIcon />
           </IconButton>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', overflowX: 'scroll', gap: 2 }}>
+        <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-around', 
+            overflowX: 'scroll', 
+            gap: 2,
+            "&::-webkit-scrollbar": {
+              display: 'none'
+            }
+          }}>
           {IgnitionIcon(position?.attributes?.ignition || undefined)}
           {ChargingIcon(position?.attributes?.charge || undefined)}
           {/* <ElectricalServicesIcon fontSize='small' color={position?.attributes?.charge ? 'success' : 'error'} /> */}

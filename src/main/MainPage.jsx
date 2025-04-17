@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
       left: 0,
       top: 0,
       height: `calc(100% - ${theme.spacing(3)})`,
-      width: theme.dimensions.drawerWidthDesktop,
+      maxWidth: theme.dimensions.drawerWidthDesktop,
       margin: theme.spacing(1.5),
       zIndex: 3,
     },
@@ -165,7 +165,7 @@ const LiveMap = () => {
           setFilterMap={setFilterMap}
         />
       </Paper>
-      <div className={classes.contentMap} style={{ padding: theme.spacing(2), height: "20rem", marginBottom: theme.spacing(2) }}>
+      <div className={classes.contentMap} style={{ padding: `${theme.spacing(1)} ${theme.spacing(2)}`, aspectRatio: 1, marginBottom: theme.spacing(1) }}>
         <Box className={classes.sectionHeader}>
           <Typography varient="body2" fontWeight="bold">Live Map</Typography>
           <Typography
