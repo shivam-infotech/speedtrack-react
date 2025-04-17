@@ -4,6 +4,8 @@
     "dashboardTypeLiveMap": "Live Map",
     "dashboardTypeDescription": "This take affect in mobile or devices smaller than tables",
     "SharedQuickActions": "Quick Actions",
+    "sharedReset": "Reset",
+    "sharedApply": "Apply",
     "sharedLoading": "Loading...",
     "sharedHide": "Hide",
     "sharedSave": "Save",
@@ -120,14 +122,6 @@
     "calendarDaily": "Daily",
     "calendarWeekly": "Weekly",
     "calendarMonthly": "Monthly",
-    "calendarDays": "Days",
-    "calendarSunday": "Sunday",
-    "calendarMonday": "Monday",
-    "calendarTuesday": "Tuesday",
-    "calendarWednesday": "Wednesday",
-    "calendarThursday": "Thursday",
-    "calendarFriday": "Friday",
-    "calendarSaturday": "Saturday",
     "attributeShowGeofences": "Show Geofences",
     "attributeSpeedLimit": "Speed Limit",
     "attributeFuelDropThreshold": "Fuel Drop Threshold",
@@ -624,6 +618,10 @@
     "reportStartOdometer": "Odometer Start",
     "reportEndOdometer": "Odometer End",
     "reportTimeType": "Time",
+    "reportStoppedMoreThan": "Stopped more than",
+    "reportIdleMoreThan": "Idle more than",
+    "reportSpeedMoreThan": "Speed more than",
+    "reportInactivity": "Inactivity",
     "statisticsTitle": "Statistics",
     "statisticsCaptureTime": "Capture Time",
     "statisticsActiveUsers": "Active Users",
@@ -663,5 +661,31 @@
     "conditionGreat": "Great",
     "deviceParking": "Parking",
     "deviceParkingParked": "Parked",
-    "deviceParkingNotParked": "Not-Parked"
+    "deviceParkingNotParked": "Not-Parked",
+
+    "calendarNotSelected": "Not Selected",
+    "calendarFrom": "From",
+    "calendarTo": "To",
+
+    "calendarDays": "Days",
+    "calendarSunday": "Sunday",
+    "calendarSundayShort": "Su",
+
+    "calendarMonday": "Monday",
+    "calendarMondayShort": "Mo",
+
+    "calendarTuesday": "Tuesday",
+    "calendarTuesdayShort": "Tu",
+
+    "calendarWednesday": "Wednesday",
+    "calendarWednesdayShort": "We",
+
+    "calendarThursday": "Thursday",
+    "calendarThursdayShort": "Th",
+
+    "calendarFriday": "Friday",
+    "calendarFridayShort": "Fr",
+
+    "calendarSaturday": "Saturday",
+    "calendarSaturdayShort": "Sa"
 }

@@ -12,6 +12,7 @@ export default (server, darkMode) => {
 
   return ({
   mode: darkMode ? 'dark' : 'light',
+  greys: {...grey},
   background: {
     default: darkMode ? grey[900] : grey[50],
   },

@@ -10,7 +10,10 @@ import {
   Checkbox,
   Select,
   TextField,
-  Badge
+  Badge,
+  Popover,
+  Button,
+  Divider
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -89,6 +92,136 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const FilterMarkingColors = {
+  stoppedMoreThan: '#e33124',
+  idleMoreThan: '#FFC107',
+  speedMoreThan: '#c70fff',
+  inactivity: '#2950ff',
+}
+
+
+const PlaybackFilters = ({ filterAnchor, filterMenuExpanded, closeFilterMenu, filters, setFilters }) => {
+  const [localFilters, setLocalFilters] = useState(filters);
+  const t = useTranslation();
+  // Sync local state when props.filters change (e.g., on open)
+  useEffect(() => {
+    if (filterMenuExpanded) {
+      setLocalFilters(filters);
+    }
+  }, [filterMenuExpanded, filters]);
+
+  const handleApply = () => {
+    setFilters(localFilters);
+    closeFilterMenu();
+  };
+
+  const handleReset = () => {
+    const resetState = {
+      stoppedMoreThan: null,
+      idleMoreThan: null,
+      speedMoreThan: null,
+      inactivity: false,
+    };
+    setLocalFilters(resetState);
+  };
+
+  return (
+    <Popover
+      id="filter-popover"
+      anchorEl={filterAnchor}
+      open={filterMenuExpanded}
+      onClose={closeFilterMenu}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'left',
+      }}
+    >
+      <Box sx={{ p: 1, minWidth: 280 }}>
+        <MenuItem>
+          <label style={{ flex: 1 }}>
+            <Checkbox
+              checked={localFilters.stoppedMoreThan !== null}
+              onChange={(e) => setLocalFilters({ ...localFilters, stoppedMoreThan: e.target.checked ? 1 : null })}
+            />
+            {t('reportStoppedMoreThan')}
+            <Indicator color={FilterMarkingColors.stoppedMoreThan} />
+          </label>
+          <Select
+            size='small'
+            value={localFilters.stoppedMoreThan || ''}
+            onChange={(e) => setLocalFilters({ ...localFilters, stoppedMoreThan: e.target.value })}
+            disabled={localFilters.stoppedMoreThan === null}
+            sx={{ ml: 1 }}
+          >
+            {[1, 2, 5, 10, 15, 30].map(val => (
+              <MenuItem key={val} value={val}>{val} min</MenuItem>
+            ))}
+          </Select>
+        </MenuItem>
+
+        <MenuItem>
+          <label style={{ flex: 1 }}>
+            <Checkbox
+              checked={localFilters.idleMoreThan !== null}
+              onChange={(e) => setLocalFilters({ ...localFilters, idleMoreThan: e.target.checked ? 1 : null })}
+            />
+            {t('reportIdleMoreThan')}
+            <Indicator color={FilterMarkingColors.idleMoreThan} />
+          </label>
+          <Select
+            size='small'
+            value={localFilters.idleMoreThan || ''}
+            onChange={(e) => setLocalFilters({ ...localFilters, idleMoreThan: e.target.value })}
+            disabled={localFilters.idleMoreThan === null}
+            sx={{ ml: 1 }}
+          >
+            {[1, 2, 5, 10, 15, 30].map(val => (
+              <MenuItem key={val} value={val}>{val} min</MenuItem>
+            ))}
+          </Select>
+        </MenuItem>
+
+        <MenuItem>
+          <label style={{ flex: 1 }}>
+            <Checkbox
+              checked={localFilters.speedMoreThan !== null}
+              onChange={(e) => setLocalFilters({ ...localFilters, speedMoreThan: e.target.checked ? 0 : null })}
+            />
+            {t('reportSpeedMoreThan')}
+            <Indicator color={FilterMarkingColors.speedMoreThan} />
+          </label>
+          <TextField
+            type="number"
+            size="small"
+            value={localFilters.speedMoreThan ?? ''}
+            onChange={(e) => setLocalFilters({ ...localFilters, speedMoreThan: parseFloat(e.target.value) || 0 })}
+            disabled={localFilters.speedMoreThan === null}
+            sx={{ ml: 1, width: '100px' }}
+          />
+        </MenuItem>
+
+        <MenuItem>
+          <label>
+            <Checkbox
+              checked={localFilters.inactivity}
+              onChange={(e) => setLocalFilters({ ...localFilters, inactivity: e.target.checked })}
+            />
+            {t('reportInactivity')}
+            <Indicator color={FilterMarkingColors.inactivity} />
+          </label>
+        </MenuItem>
+        <Divider my={1} />
+        <Box display="flex" gap={2} justifyContent="flex-end" mt={2} px={1}>
+          <Button variant="outlined" onClick={handleReset}>{t('sharedReset')}</Button>
+          <Button variant="contained" onClick={handleApply}>{t('sharedApply')}</Button>
+        </Box>
+      </Box>
+    </Popover>
+  );
+};
+
+
+
 const Indicator = ({ color }) => (
   <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: color, borderRadius: '50%', margin: '0 5px' }}></span>
 )
@@ -127,6 +260,7 @@ const ReplayPage = () => {
     speedMoreThan: null,
     inactivity: null
   });
+
   const filterRenderType = {
     stoppedMoreThan: 'marker',
     idleMoreThan: 'marker',
@@ -135,14 +269,6 @@ const ReplayPage = () => {
   }
 
   const ReportColor = useAttributePreference('web.reportColor', green[500]);
-
-  const openMultiplierMenu = (event) => {
-    setMultiplierAnchor(event.currentTarget);
-  }
-
-  const closeMultiplierMenu = () => {
-    setMultiplierAnchor(null);
-  }
 
   const openFilterMenu = (event) => {
     setFilterAnchor(event.currentTarget);
@@ -198,18 +324,18 @@ const ReplayPage = () => {
     let currentStoppage = [];
     let startPosition = positions[0];
     let endPosition = positions[positions.length - 1];
-    
+
     const stoppages = [];
     for (let i = 0; i < positions.length; i++) {
       const position = positions[i];
-      if(calculateDistance(startPosition.latitude, startPosition.longitude, position.latitude, position.longitude) < 10 && calculateDistance(position.latitude, position.longitude, endPosition.latitude, endPosition.longitude) < 10) continue;
+      if (calculateDistance(startPosition.latitude, startPosition.longitude, position.latitude, position.longitude) < 10 && calculateDistance(position.latitude, position.longitude, endPosition.latitude, endPosition.longitude) < 10) continue;
       if (position.attributes.ignition === false) { currentStoppage.push(position); }
-      else if(position.attributes.ignition === true && currentStoppage.length > 1){
+      else if (position.attributes.ignition === true && currentStoppage.length > 1) {
         stoppages.push(currentStoppage);
         currentStoppage = [];
       }
     }
-    if(currentStoppage.length > 0) {
+    if (currentStoppage.length > 0) {
       stoppages.push(currentStoppage);
     }
     return stoppages;
@@ -277,24 +403,24 @@ const ReplayPage = () => {
             <MapRoutePath positions={positions} color={ReportColor} />
             <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
             <MapPositions positions={[positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
-            {(stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity)) && 
+            {(stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity)) &&
               <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />
             }
-            { filters.stoppedMoreThan &&  <FilteredSegments
-                positions={rawPositions}
-                isValidPosition={(current, previous) => current.attributes.ignition === false}
-                isValidSegment={(segment) => {
-                  const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
-                  return duration >= filters.stoppedMoreThan;
-                }}
-                renderType="marker"
-                color="#e33124"
-                activityType="Stoppage"
-                device={devices[selectedDeviceId]}
-              /> }
-            { filters.idleMoreThan && <FilteredSegments
+            {filters.stoppedMoreThan && <FilteredSegments
               positions={rawPositions}
-              isValidPosition={(current, previous) => 
+              isValidPosition={(current, previous) => current.attributes.ignition === false}
+              isValidSegment={(segment) => {
+                const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
+                return duration >= filters.stoppedMoreThan;
+              }}
+              renderType={filterRenderType.stoppedMoreThan}
+              color={FilterMarkingColors.stoppedMoreThan}
+              activityType="Stoppage"
+              device={devices[selectedDeviceId]}
+            />}
+            {filters.idleMoreThan && <FilteredSegments
+              positions={rawPositions}
+              isValidPosition={(current, previous) =>
                 current.attributes.activity === 'idle'
               }
               isValidSegment={(segment) => {
@@ -302,20 +428,20 @@ const ReplayPage = () => {
                 return duration >= filters.idleMoreThan;
               }}
               activityType="Idle"
-              renderType="marker"
-              color="#FFC107"
+              renderType={filterRenderType.idleMoreThan}
+              color={FilterMarkingColors.idleMoreThan}
               device={devices[selectedDeviceId]}
-            /> }
-            { filters.speedMoreThan && <FilteredSegments
-                positions={rawPositions}
-                isValidPosition={(current, previous) => current.speed > filters.speedMoreThan}
-                isValidSegment={(segment) => segment.length > 0}
-                renderType="line"
-                color="#c70fff"
-                activityType="Speed"
-                device={devices[selectedDeviceId]}
-              /> }
-            { filters.inactivity && <FilteredSegments
+            />}
+            {filters.speedMoreThan && <FilteredSegments
+              positions={rawPositions}
+              isValidPosition={(current, previous) => current.speed > filters.speedMoreThan}
+              isValidSegment={(segment) => segment.length > 0}
+              renderType={filterRenderType.speedMoreThan}
+              color={FilterMarkingColors.speedMoreThan}
+              activityType="Speed"
+              device={devices[selectedDeviceId]}
+            />}
+            {filters.inactivity && <FilteredSegments
               positions={rawPositions}
               isValidPosition={(current, previous) => {
                 if (!previous) return false;
@@ -323,11 +449,11 @@ const ReplayPage = () => {
                 return timeDifference > 1;
               }}
               isValidSegment={(segment) => segment.length > 0}
-              renderType="marker"
-              color="#2950ff"
+              renderType={filterRenderType.inactivity}
+              color={FilterMarkingColors.inactivity}
               activityType="Inactivity"
               device={devices[selectedDeviceId]}
-            /> }
+            />}
           </>
         )}
       </MapView>
@@ -345,115 +471,19 @@ const ReplayPage = () => {
                 {/* <IconButton onClick={handleDownload}>
                   <DownloadIcon />
                 </IconButton> */}
-                <div>
-                  <IconButton aria-haspopup="true" aria-controls='multiplier-menu' aria-expanded={multiplierMenuExpanded} size='small' onClick={openMultiplierMenu} >{multiplier}x</IconButton>
-                  <Menu
-                      id="multiplier-menu"
-                      anchorEl={multiplierAnchor}
-                      open={multiplierMenuExpanded}
-                      onClose={closeMultiplierMenu}
-                      MenuListProps={{
-                          'aria-labelledby': 'multiplier-button',
-                      }}
-                  >
-                      <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu() }}>1x</MenuItem>
-                      <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu() }}>2x</MenuItem>
-                      <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu() }}>3x</MenuItem>
-                      <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu() }}>4x</MenuItem>
-                      <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu() }}>5x</MenuItem>
-                      <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu() }}>6x</MenuItem>
-                  </Menu>
-              </div>
-              <IconButton onClick={openFilterMenu} >
+                
+                <IconButton onClick={openFilterMenu} >
                   <Badge color="info" variant="dot" fontSize="small" invisible={Object.values(filters).every(f => f === null)}>
-                      <FilterAlt fontSize='small' />
+                    <FilterAlt fontSize='small' />
                   </Badge>
-              </IconButton>
-              <Menu
-                  id="filter-menu"
-                  anchorEl={filterAnchor}
-                  open={filterMenuExpanded}
-                  onClose={closeFilterMenu}
-                  MenuListProps={{
-                      'aria-labelledby': 'filter-button',
-                  }}
-              >
-                  <MenuItem>
-                      <label style={{ flex: 1 }}>
-                          <Checkbox
-                              checked={filters.stoppedMoreThan !== null}
-                              onChange={(e) => setFilters({ ...filters, stoppedMoreThan: e.target.checked ? 1 : null })}
-                          />
-                          Stopped more than
-                          <Indicator color="#e33124" />
-                      </label>
-                      <Select
-                          size='small'
-                          value={filters.stoppedMoreThan || ''}
-                          onChange={(e) => setFilters({ ...filters, stoppedMoreThan: e.target.value })}
-                          disabled={filters.stoppedMoreThan === null}
-                          sx={{ ml: 1 }}
-                      >
-                          <MenuItem value={1}>1 min</MenuItem>
-                          <MenuItem value={2}>2 min</MenuItem>
-                          <MenuItem value={5}>5 min</MenuItem>
-                          <MenuItem value={10}>10 min</MenuItem>
-                          <MenuItem value={15}>15 min</MenuItem>
-                          <MenuItem value={30}>30 min</MenuItem>
-                      </Select>
-                  </MenuItem>
-                  <MenuItem>
-                      <label style={{ flex: 1 }}>
-                          <Checkbox
-                              checked={filters.idleMoreThan !== null}
-                              onChange={(e) => setFilters({ ...filters, idleMoreThan: e.target.checked ? 1 : null })}
-                          />
-                          Idle more than
-                          <Indicator color="#FFC107" />
-                      </label>
-                      <Select
-                          size='small'
-                          value={filters.idleMoreThan || ''}
-                          onChange={(e) => setFilters({ ...filters, idleMoreThan: e.target.value })}
-                          disabled={filters.idleMoreThan === null}
-                          sx={{ ml: 1 }}
-                      >
-                          <MenuItem value={1}>1 min</MenuItem>
-                          <MenuItem value={2}>2 min</MenuItem>
-                          <MenuItem value={5}>5 min</MenuItem>
-                          <MenuItem value={10}>10 min</MenuItem>
-                          <MenuItem value={15}>15 min</MenuItem>
-                          <MenuItem value={30}>30 min</MenuItem>
-                      </Select>
-                  </MenuItem>
-                  <MenuItem>
-                      <label style={{ flex: 1 }}>
-                          <Checkbox
-                              checked={filters.speedMoreThan !== null}
-                              onChange={(e) => setFilters({ ...filters, speedMoreThan: e.target.checked ? 0 : null })}
-                          />
-                          Speed more than
-                          <Indicator color="#c70fff" />
-                      </label>
-                      <TextField
-                          type="number"
-                          value={filters.speedMoreThan || ''}
-                          onChange={(e) => setFilters({ ...filters, speedMoreThan: e.target.value })}
-                          disabled={filters.speedMoreThan === null}
-                          sx={{ ml: 1, width: '100px' }}
-                      />
-                  </MenuItem>
-                  <MenuItem>
-                      <label>
-                          <Checkbox
-                              checked={filters.inactivity}
-                              onChange={(e) => setFilters({ ...filters, inactivity: e.target.checked })}
-                          />
-                          Inactivity
-                          <Indicator color="#2950ff" />
-                      </label>
-                  </MenuItem>
-              </Menu>
+                </IconButton>
+                <PlaybackFilters 
+                  filterAnchor={filterAnchor} 
+                  filterMenuExpanded={filterMenuExpanded} 
+                  closeFilterMenu={closeFilterMenu} 
+                  filters={filters} 
+                  setFilters={setFilters} 
+                />
               </>
             )}
             <IconButton edge="end" onClick={() => setExpanded(!expanded)}>
@@ -461,9 +491,9 @@ const ReplayPage = () => {
             </IconButton>
           </Toolbar>
         </Paper>
-          { expanded && <Paper className={classes.content} square><ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} /></Paper> }
+        {expanded && <Paper className={classes.content} square><ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} /></Paper>}
       </div>
-      {(showCard && positions.length > 0 && summary) &&(
+      {(showCard && positions.length > 0 && summary) && (
         <>
           <DeviceReplayStatusCard
             deviceId={selectedDeviceId}
@@ -475,6 +505,8 @@ const ReplayPage = () => {
             setIndex={setIndex}
             closeIcon={statusCardMinimized ? <ExpandLess /> : <ExpandMore />}
             minimize={statusCardMinimized}
+            multiplier={multiplier}
+            setMultiplier={setMultiplier}
 
             onClose={() => setStatusCardMinimized(!statusCardMinimized)}
             disableActions

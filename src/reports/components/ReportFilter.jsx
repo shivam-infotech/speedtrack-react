@@ -10,6 +10,8 @@ import { devicesActions, reportsActions } from '../../store';
 import SplitButton from '../../common/components/SplitButton';
 import SelectField from '../../common/components/SelectField';
 import { useRestriction } from '../../common/util/permissions';
+import DateRangePicker from '../../common/components/DateRangePicker';
+
 
 const ReportFilter = ({
   children, handleSubmit, handleSchedule, showOnly, ignoreDevice, multiDevice, includeGroups, loading,
@@ -36,6 +38,15 @@ const ReportFilter = ({
 
   const scheduleDisabled = button === 'schedule' && (!description || !calendarId);
   const disabled = (!ignoreDevice && !deviceId && !deviceIds.length && !groupIds.length) || scheduleDisabled || loading;
+
+  const [customRangeDialogOpen, setCustomRangeDialogOpen] = useState(false);
+  const [tempFromDate, setTempFromDate] = useState(dayjs(from));
+  const [tempToDate, setTempToDate] = useState(dayjs(to));
+
+  const handleRangeApply = () => {
+    dispatch(reportsActions.updateFrom(tempFromDate.toISOString()));
+    dispatch(reportsActions.updateTo(tempToDate.toISOString()));
+  };
 
   const handleClick = (type) => {
     if (type === 'schedule') {
@@ -132,7 +143,7 @@ const ReportFilter = ({
               </Select>
             </FormControl>
           </div>
-          {period === 'custom' && (
+          {/* {period === 'custom' && (
             <div className={classes.filterItem}>
               <TextField
                 label={t('reportFrom')}
@@ -153,7 +164,25 @@ const ReportFilter = ({
                 fullWidth
               />
             </div>
-          )}
+          )} */}
+          {period === 'custom' && <div className={classes.filterItem}>
+            <TextField
+              label={t('reportCustom')}
+              fullWidth
+              value={`${dayjs(from).format('YYYY-MM-DD')} - ${dayjs(to).format('YYYY-MM-DD')}`}
+              onClick={() => setCustomRangeDialogOpen(true)}
+              InputProps={{ readOnly: true }}
+            />
+            <DateRangePicker
+              open={customRangeDialogOpen}
+              onClose={() => setCustomRangeDialogOpen(false)}
+              fromDate={tempFromDate}
+              toDate={tempToDate}
+              setFromDate={setTempFromDate}
+              setToDate={setTempToDate}
+              onApply={handleRangeApply}
+            />
+          </div>}
         </>
       ) : (
         <>

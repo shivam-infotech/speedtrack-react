@@ -16,7 +16,10 @@ import {
     Slider,
     Accordion,
     AccordionDetails,
-    AccordionSummary
+    AccordionSummary,
+    styled,
+    Menu,
+    MenuItem
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import FmdGoodIcon from '@mui/icons-material/FmdGood';
@@ -43,8 +46,13 @@ import FastRewindIcon from '@mui/icons-material/FastRewind';
 import { calculateDistanceFromCoords } from '../util/position';
 import EngineIcon from '../../resources/images/data/engine.svg?react';
 import Speedometer from './Speedometer';
-import { statusIcon } from './PostionalHelpers';
+import { ACIcon, BatteryLevelIcon, ChargingIcon, ChargingStatus, GSMConditionStatus, GSMSignalIcon, IgnitionIcon, MotionIcon, ParkingIcon, ParkingStatus, SatelliteConditionStatus, SatelliteSignalIcon, statusIcon } from './PostionalHelpers';
 import CloseIcon from '@mui/icons-material/Close';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import ExploreIcon from '@mui/icons-material/Explore';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+import carHead from "../../resources/images/car-head.gif";
+
 
 const useStyles = makeStyles((theme) => ({
     root: ({ desktopPadding }) => ({
@@ -146,7 +154,7 @@ const CompactFieldChip = ({ label, value, icon }) => {
             {icon}
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, marginLeft: 0.5 }}>
-            <Typography variant="caption" color={"textSecondary"} sx={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%'}} >
+            <Typography variant="caption" color={"textSecondary"} sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }} >
                 {label}
             </Typography>
             <Typography variant="body2" lineHeight={1} fontWeight={500}>
@@ -167,10 +175,10 @@ const FieldItem = ({ label, value, icon }) => (
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
             {icon}
         </Box>
-        <Typography variant="subtitle2" fontWeight={500} sx={{ textAlign: 'center' }}>
+        <Typography variant="subtitle2" fontWeight={500} lineHeight={1.2} sx={{ textAlign: 'center' }}>
             {value || 'N/A'}
         </Typography>
-        <Typography variant="caption" color="textSecondary" sx={{
+        <Typography variant="caption" color="textSecondary" lineHeight={1} sx={{
             textAlign: 'center',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -183,7 +191,37 @@ const FieldItem = ({ label, value, icon }) => (
 );
 
 
-const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false, playing, setPlaying, setIndex }) => {
+// Create a styled slider with custom thumb
+const CarSlider = styled(Slider)(({ theme }) => ({
+    '& .MuiSlider-thumb': {
+        width: 60,  // Adjust based on your GIF dimensions
+        height: 40,
+        backgroundColor: 'transparent',
+        backgroundImage: `url(${carHead})`, // Your GIF URL
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        transition: 'left 0.1s ease-out',
+        '&:hover, &.Mui-focusVisible, &.Mui-active': {
+            boxShadow: 'none',
+        },
+        '&::before': {
+            boxShadow: 'none',
+        }
+    },
+    '& .MuiSlider-track': {
+        height: 4,
+    },
+    '& .MuiSlider-rail': {
+        height: 4,
+    },
+}));
+
+// Usage in your component
+
+
+
+const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false, playing, setPlaying, setIndex, multiplier, setMultiplier }) => {
     const classes = useStyles({ desktopPadding });
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -198,6 +236,16 @@ const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPa
     const user = useSelector((state) => state.session.user);
     const [position, setPosition] = useState(null);
     const [secondaryExpanded, setSecondaryExpanded] = useState(false);
+    const [multiplierAnchor, setMultiplierAnchor] = useState(null);
+    const multiplierMenuExpanded = Boolean(multiplierAnchor);
+
+    const openMultiplierMenu = (event) => {
+        setMultiplierAnchor(event.currentTarget);
+    }
+
+    const closeMultiplierMenu = () => {
+        setMultiplierAnchor(null);
+    }
 
     useEffect(() => {
         setPosition(positions[index])
@@ -228,7 +276,21 @@ const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPa
         { key: 'ignitionOff', label: `${t('positionIgnition')} ${t('positionIgnitionOff')}`, icon: <EngineIcon width={24} height={24} />, value: formatNumericHours(summary?.stoppedHours, t) },
         { key: 'ignitionOn', label: `${t('positionIgnition')} ${t('positionIgnitionOn')}`, icon: <EngineIcon width={24} height={24} />, value: formatNumericHours(summary?.runningHours + summary?.idleHours, t) },
         { key: 'totalDistance', label: t('deviceTotalDistance'), icon: <RouteIcon fontSize="small" />, value: <PositionValue position={position} attribute={'totalDistance'} /> },
+    ];
 
+    const sensorFields = [
+        { key: 'ignition', label: t('positionIgnition'), icon: IgnitionIcon(position?.attributes?.ignition || undefined), value: <PositionValue position={position} attribute={'ignition'} /> },
+        { key: 'charging', label: '', icon: ChargingIcon(position?.attributes?.charge || undefined), value: t(ChargingStatus(position?.attributes?.charge || undefined)) },
+        { key: 'batteryLevel', label: t('positionBattery'), icon: BatteryLevelIcon(position?.attributes?.batteryLevel || undefined), value: position ? <PositionValue position={position} attribute={'batteryLevel'} /> : 'N/A' },
+        { key: 'immobilizer', label: t('sharedImmobilizer'), icon: <LockOpenIcon fontSize='small' color='success' />, value: 'N/A' },
+        { key: 'parking', label: t('deviceParking'), icon: ParkingIcon(position), value: t(ParkingStatus(position)) },
+        { key: 'rssi', label: t('positionGsm'), icon: GSMSignalIcon(position?.attributes?.rssi || undefined), value: position && position?.attributes?.rssi ? t(GSMConditionStatus(position?.attributes?.rssi)) : 'N/A' },
+        { key: 'motion', label: t('positionMotion'), icon: MotionIcon(position?.attributes?.motion || undefined), value: position ? <PositionValue position={position} attribute={'motion'} /> : t('sharedNo') },
+        { key: 'sat', label: t('positionGps'), icon: SatelliteSignalIcon(position?.attributes?.sat || undefined), value: position && position?.attributes?.sat ? t(SatelliteConditionStatus(position?.attributes?.sat)) : 'N/A' },
+        { key: 'ac', label: t('attributeAc'), icon: ACIcon(position?.attributes?.ac || undefined), value: <PositionValue position={position} attribute={'ac'} /> },
+        // { key: 'radioType', label: t('positionRadioType'), icon: <NetworkCell />, value: position ? position?.network?.radioType?.ucfirst() : 'N/A' },
+        { key: 'course', label: t('positionCourse'), icon: <ExploreIcon />, value: position ? position?.course : '0' },
+        { key: 'accuracy', label: t('positionAccuracy'), icon: <MyLocationIcon />, value: position ? position?.accuracy : '0' }
     ];
 
     const handleRemove = useCatch(async (removed) => {
@@ -273,10 +335,10 @@ const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPa
     const card = <Card className={classes.card} elevation={3}>
         <Box
             className="drag-handle"
-            sx={{ padding: theme.spacing(1), display: 'flex',  }}
+            sx={{ padding: theme.spacing(1), display: 'flex', }}
         >
             <img src={device3dIcons.car[position ? getDeviceStatusColor(position) : 'neutral']} width={"56px"} />
-            <Box sx={{ flex: 1, marginLeft: 1, display: 'flex', flexDirection: 'column',  }}>
+            <Box sx={{ flex: 1, marginLeft: 1, display: 'flex', flexDirection: 'column', }}>
                 <Typography fontWeight={"600"} lineHeight={1.2}>{device?.name}</Typography>
                 <Typography color={"neutral"} variant={'caption'} fontWeight={"400"}>{position?.fixTime ? formatTime(position.fixTime) : 'N/A'}</Typography>
                 <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -287,48 +349,93 @@ const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPa
             <Box>
                 <Speedometer speed={position?.speed || 0} />
             </Box>
-            { onClose ? <IconButton size="small" onClick={onClose}>
+            {onClose ? <IconButton size="small" onClick={onClose}>
                 {closeIcon || <CloseIcon fontSize='small' />}
-            </IconButton> : <></> }
+            </IconButton> : <></>}
         </Box>
         <Divider />
         {position && <>
             <CardContent className={classes.content}>
-                {!minimize && <Box mb={2}>
-                    <Grid container spacing={1}>
-                        {primaryFields.map((field) => (
-                            <Grid item xs={4} key={field.key}>
-                                <CompactFieldChip
-                                    label={field.label}
-                                    value={field.value}
-                                    icon={field.icon}
-                                />
+                {!minimize &&
+                    <>
+                        <Box>
+                            <Grid container spacing={1}>
+                                {primaryFields.map((field) => (
+                                    <Grid item xs={4} key={field.key}>
+                                        <CompactFieldChip
+                                            label={field.label}
+                                            value={field.value}
+                                            icon={field.icon}
+                                        />
+                                    </Grid>
+                                ))}
                             </Grid>
-                        ))}
-                    </Grid>
-                </Box>}
-                <Stack direction="row" spacing={0} sx={{ alignItems: 'center', padding: `0px ${theme.spacing(1)}` }}>
-                    <Slider
-                        size='small'
-                        max={positions.length - 1}
-                        step={null}
-                        marks={positions.map((_, index) => ({ value: index }))}
-                        value={index}
-                        sx={{ marginLeft: theme.spacing(1) }}
-                        onChange={(_, index) => setIndex(index)}
-                    />
-                    <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
-                        <FastRewindIcon />
-                    </IconButton>
-                    <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
-                        {playing ? <PauseIcon /> : <PlayArrowIcon />}
-                    </IconButton>
-                    <IconButton onClick={() => setIndex((index) => index + 1)} disabled={playing || index >= positions.length - 1}>
-                        <FastForwardIcon />
-                    </IconButton>
-                </Stack>
+                            {position?.address ? (
+                                <>
+                                    {/* <Divider sx={{ my: 1 }} /> */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+                                        <FmdGoodIcon fontSize="small" color="primary" />
+                                        <Typography variant="body2" sx={{ flex: 1 }}>
+                                            <PositionValue position={position} property="address" attribute="address" />
+                                        </Typography>
 
-                <Accordion elevation={0} expanded={!minimize && secondaryExpanded } onChange={() => setSecondaryExpanded(!secondaryExpanded)} >
+                                    </Box>
+                                </>
+                            ) : <Typography variant='caption' color="secondary">No address found</Typography>}
+                            <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+                            <Stack direction="row" spacing={0} sx={{ alignItems: 'center', padding: `0px ${theme.spacing(1)}` }}>
+                                <CarSlider
+                                    max={positions.length - 1}
+                                    value={index}
+                                    sx={{ mx: theme.spacing(1) }}
+                                    onChange={(_, index) => setIndex(index)}
+                                />
+                                {/* <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
+                                    <FastRewindIcon />
+                                </IconButton> */}
+                                <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
+                                    {playing ? <PauseIcon /> : <PlayArrowIcon />}
+                                </IconButton>
+                                <div>
+                                    <IconButton aria-haspopup="true" aria-controls='multiplier-menu' aria-expanded={multiplierMenuExpanded} size='small' onClick={openMultiplierMenu} >{multiplier}x</IconButton>
+                                    <Menu
+                                        id="multiplier-menu"
+                                        anchorEl={multiplierAnchor}
+                                        open={multiplierMenuExpanded}
+                                        onClose={closeMultiplierMenu}
+                                        MenuListProps={{
+                                            'aria-labelledby': 'multiplier-button',
+                                        }}
+                                    >
+                                        <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu() }}>1x</MenuItem>
+                                        <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu() }}>2x</MenuItem>
+                                        <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu() }}>3x</MenuItem>
+                                        <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu() }}>4x</MenuItem>
+                                        <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu() }}>5x</MenuItem>
+                                        <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu() }}>6x</MenuItem>
+                                    </Menu>
+                                </div>
+                                {/* <IconButton onClick={() => setIndex((index) => index + 1)} disabled={playing || index >= positions.length - 1}>
+                                    <FastForwardIcon />
+                                </IconButton> */}
+                            </Stack>
+                            <Box>
+                                <Box sx={{ display: 'flex', overflowX: 'auto' }}>
+                                    {sensorFields.map((field) => (
+                                        <Box sx={{ minWidth: "5rem" }} key={field.key}>
+                                            <FieldItem
+                                                label={field.label}
+                                                value={field.value}
+                                                icon={field.icon}
+                                            />
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Box>
+                        </Box>
+                    </>
+                }
+                {/* <Accordion elevation={0} expanded={!minimize && secondaryExpanded} onChange={() => setSecondaryExpanded(!secondaryExpanded)} >
                     <AccordionSummary expandIcon={!minimize && <ExpandMore />} >
                         {position?.address ? (
                             <>
@@ -338,7 +445,7 @@ const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPa
                                     <Typography variant="body2" sx={{ flex: 1 }}>
                                         <PositionValue position={position} property="address" attribute="address" />
                                     </Typography>
-                                    
+
                                 </Box>
                             </>
                         ) : <Typography variant='caption' color="secondary">No address found</Typography>}
@@ -356,7 +463,7 @@ const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPa
                             ))}
                         </Grid>
                     </AccordionDetails>}
-                </Accordion>
+                </Accordion> */}
             </CardContent>
         </>}
     </Card>
