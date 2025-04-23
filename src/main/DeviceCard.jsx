@@ -53,6 +53,7 @@ import redcar from '../resources/images/Red car.svg';
 import { statusIcon, BatteryLevelIcon, GSMSignalIcon, ACIcon, SatelliteSignalIcon, ChargingIcon, ParkingIcon, FuelIcon, IgnitionIcon } from '../common/components/PostionalHelpers';
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
 import useGlobalSpeech from '../common/util/useGlobalSpeech';
+import PlaybackDurationDialog from '../common/components/PlaybackDurationDialog';
 
 dayjs.extend(relativeTime);
 
@@ -155,7 +156,7 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 0,
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(0.25),
+    // gap: theme.spacing(0.25),
   },
   addressText: {
     maxWidth: '100%',
@@ -205,6 +206,7 @@ const DeviceCard = ({ data, index, style, onClick }) => {
   const devicePrimary = useAttributePreference('devicePrimary', 'name');
   const deviceSecondary = useAttributePreference('deviceSecondary', '');
   const summary = useSelector((state) => state.summary.items[item.id]);
+  const [playbackDurationOpen, setPlaybackDurationOpen] = useState(false);
 
   // const { start, stop, speechStatus } = useSpeech({ pitch: 1, rate: 0.8, volume: 1, lang: "hi-IN", voiceURI: "Google हिन्दी", autoPlay: false, text: position?.address || 'No Available address' });
   const start = useGlobalSpeech(position?.address || 'No Available address');
@@ -259,6 +261,7 @@ const DeviceCard = ({ data, index, style, onClick }) => {
   };
   
   return (
+    <>
     <Card
       className={`${classes.card} ${selectedDeviceId === item.id ? classes.selectedCard : ''}`}
       onClick={() => {
@@ -270,26 +273,11 @@ const DeviceCard = ({ data, index, style, onClick }) => {
       <CardContent className={classes.compactContent}>
         <Box className={classes.headerBox}>
           <ListItemAvatar sx={{ minWidth: 40, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            {/* <Avatar
-              sx={{
-                backgroundColor: position ? (theme.palette[getDeviceStatusColor(position)]?.main || theme.palette.error?.main) : theme.palette.grey[300],
-                position: 'relative',
-                width: 32,
-                height: 32,
-              }}
-            >
-              <img className={classes.icon} src={mapIcons[mapIconKey(item.category)]} alt="" />
-            </Avatar> */}
-            {/* <Avatar sx={{ width: 48, height: 48 }} > */}
                <img src={device3dIcons.car[position ? getDeviceStatusColor(position) : 'neutral']} width={"56px"} />
-            {/* </Avatar> */}
-            {/* <div
-              className={`${classes.statusIndicator} ${item.status === 'online' ? classes.onlineStatus : classes.offlineStatus}`}
-            /> */}
           </ListItemAvatar>
 
           <Box className={classes.deviceInfo}>
-            <Typography variant="body2" noWrap>
+            <Typography variant="body1" noWrap color={theme.palette.primary.main} fontWeight={800}>
               {item[devicePrimary] || <Skeleton variant="text" width={120} />}
             </Typography>
             <Typography variant="caption"
@@ -331,7 +319,8 @@ const DeviceCard = ({ data, index, style, onClick }) => {
           >
             <MenuItem onClick={(e) => {
               e.stopPropagation();
-              handleMenuAction('playback');
+              // handleMenuAction('playback');
+              setPlaybackDurationOpen(true);
             }} disabled={!position}>
               <PlayArrowIcon sx={{ mr: 1 }} /> {t('reportReplay')}
             </MenuItem>
@@ -370,8 +359,8 @@ const DeviceCard = ({ data, index, style, onClick }) => {
           <div className={classes.statItem}>
               <SpeedIcon color="primary" fontSize="small" />
               <div className={classes.statText}>
-                <Typography variant="caption">Speed</Typography>
-                <Typography variant="body2" noWrap>
+                <Typography variant="caption" color="textSecondary" >Speed</Typography>
+                <Typography variant="body1" noWrap fontWeight={600} >
                   {position ? <PositionValue position={position} property={'speed'} /> : '0 km/h'}
                 </Typography>
               </div>
@@ -379,8 +368,8 @@ const DeviceCard = ({ data, index, style, onClick }) => {
           <div className={classes.statItem}>
             <RouteIcon color="primary" fontSize="small" />
             <div className={classes.statText}>
-              <Typography variant="caption">Distance</Typography>
-              <Typography variant="body2" noWrap>
+              <Typography variant="caption" color="textSecondary" >Distance</Typography>
+              <Typography variant="body1" noWrap fontWeight={600} >
                 {summary ? <PositionValue position={summary} property={'distance'} /> : '0 km'}
               </Typography>
             </div>
@@ -471,6 +460,8 @@ const DeviceCard = ({ data, index, style, onClick }) => {
         </Box>
       </CardContent>
     </Card>
+    <PlaybackDurationDialog deviceId={item.id} onClose={() => setPlaybackDurationOpen(false)} open={playbackDurationOpen} />
+    </>
   );
 };
 

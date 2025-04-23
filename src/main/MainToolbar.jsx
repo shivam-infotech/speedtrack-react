@@ -149,7 +149,7 @@ const MainToolbar = ({
     {
       status: 'running',
       title: t('deviceStatusRunning'),
-      color: 'secondary',
+      color: 'success',
     },
     {
       status: 'idle',

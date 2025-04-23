@@ -9,7 +9,7 @@ import PageLayout from '../../common/components/PageLayout';
 import useSettingsStyles from '../common/useSettingsStyles';
 
 const EditItemView = ({
-  children, endpoint, item, setItem, defaultItem, validate, onItemSaved, menu, breadcrumbs,
+  children, endpoint, item, setItem, whenItemsLoaded, defaultItem, validate, onItemSaved, menu, breadcrumbs,
 }) => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
@@ -22,7 +22,9 @@ const EditItemView = ({
       if (id) {
         const response = await fetch(`/api/${endpoint}/${id}`);
         if (response.ok) {
-          setItem(await response.json());
+          const res = await response.json()
+          setItem(res);
+          whenItemsLoaded?.(res);
         } else {
           throw Error(await response.text());
         }

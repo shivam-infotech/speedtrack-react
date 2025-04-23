@@ -83,7 +83,7 @@ const Navigation = () => {
       const token = query.get('token');
       await fetch(`/api/session?token=${encodeURIComponent(token)}`);
       navigate(pathname);
-    } else if (query.get('deviceId') && !pathname.startsWith('/live')) {
+    } else if (query.get('deviceId') && (!pathname.startsWith('/live') && !pathname.startsWith('/replay'))) {
       const deviceId = query.get('deviceId');
       const response = await fetch(`/api/devices?uniqueId=${deviceId}`);
       if (response.ok) {

@@ -15,6 +15,7 @@ import DeviceStatusCard from "../common/components/DeviceStatusCard";
 import { ExpandMore, MoreVert } from "@mui/icons-material";
 import MapControlLinks from "../map/extras/MapControlLinks";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { useAnimation } from "../AnimationContext";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -65,12 +66,12 @@ export default function LiveMap() {
     const t = useTranslation()
     const styles = useStyles();
     const theme = useTheme();
-    const positions = useSelector((state) => state.session.positions);
+    const {positions} = useAnimation();
     const selectedDeviceId = useSelector((state) => state.devices.selectedId);
     const { items: summaries } = useSelector((state) => state.summary);
     const devices = useSelector(state => state.devices.items)
     const dispatch = useDispatch();
-    const [statusCardMinimized, setStatusCardMinimized] = useState(false);
+    const [statusCardMinimized, setStatusCardMinimized] = useState(true);
 
     // Add necessary state variables for MainToolbar
     const [keyword, setKeyword] = useState('');
@@ -94,7 +95,6 @@ export default function LiveMap() {
 
     useEffect(() => {
         if(params.has('deviceId') && selectedDeviceId === null){
-            console.log(Number(params.has('deviceId')));
             dispatch(devicesActions.selectId(Number(params.get('deviceId'))))
         }
     }, [])
@@ -148,6 +148,7 @@ export default function LiveMap() {
                     hideControls={true}
                     onEventsClick={() => {}}
                     filteredDevices={ params.has('deviceId') && Object.values(devices).map(fd => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(devices).filter(fd => fd.id == params.get('deviceId')) :  filteredDevices}
+                    animationDuration={4000}
                 />
                 {mapLinks}
             </div>

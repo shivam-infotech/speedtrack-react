@@ -77,11 +77,19 @@ const DevicePage = () => {
     if(!protocols.length) fetchProtocols();
   })
 
+  useEffect(() => {
+    if(item?.model != null && protocols.length > 0) {
+      let proto = protocols.find(p => p.device === item.model);
+      if(proto) setProtocol(proto.id);
+    }
+  }, [item, protocols])
+
   return (
     <EditItemView
       endpoint="devices"
       item={item}
       setItem={setItem}
+      // whenItemsLoaded={(res) => { console.log(res, protocols); res?.model != null && setProtocol(protocols.find(p => p.device === res.model)) }}
       validate={validate}
       menu={<SettingsMenu />}
       breadcrumbs={['settingsTitle', 'sharedDevice']}
@@ -112,11 +120,11 @@ const DevicePage = () => {
                 onChange={(event) => setItem({ ...item, phone: event.target.value })}
                 label={`${t('sharedPhone')} / ${t('ShareSimNumber')}`}
               />
-              <TextField
+              {/* <TextField
                 value={item.model || ''}
                 onChange={(event) => setItem({ ...item, model: event.target.value })}
                 label={t('deviceModel')}
-              />
+              /> */}
               <SelectField
                 value={item.category || 'default'}
                 onChange={(event) => setItem({ ...item, category: event.target.value })}
@@ -126,21 +134,12 @@ const DevicePage = () => {
                 })).sort((a, b) => a.name.localeCompare(b.name))}
                 label={t('deviceCategory')}
               />
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography varient="subtitle1" >
-                  {t('deviceConnectTitle')}
-                </Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.details}>
               <FormControl>
                 <SelectField
                   value={protocol}
-                  onChange={(event) => setProtocol(Number(event.target.value))}
+                  onChange={(event) => {setItem({ ...item, model: protocols.find(p => p.id === event.target.value).device }); setProtocol(Number(event.target.value))}}
                   data={protocols.map(p => ({id: p.id, name: p.device}))}
-                  label={t('positionProtocol')}
+                  label={t('deviceModel')}
                 />
                 <Typography variant='caption' >{t('deviceConnectHelp')}</Typography>
               </FormControl>

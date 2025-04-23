@@ -1,19 +1,16 @@
-import { useId, useCallback, useEffect, useState, useRef } from 'react';
+import { useId, useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/styles';
 import { map } from './core/MapView';
-import { formatTime, getDeviceStatusColor, getStatusColor } from '../common/util/formatter';
+import { formatTime, getDeviceStatusColor } from '../common/util/formatter';
 import { mapIconKey } from './core/preloadImages';
 import { useAttributePreference } from '../common/util/preferences';
 import { useCatchCallback } from '../reactHelper';
 import { findFonts } from './core/mapUtil';
-import usePersistedState from '../common/util/usePersistedState';
 
-const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField, animationDuration = 1000, filteredDevices = undefined }) => {
+const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField, filteredDevices = undefined }) => {
     const id = useId();
-    const [animatedPositions, setAnimatedPositions] = useState([]);
-    const animationFrameId = useRef(null);
     const clusters = `${id}-clusters`;
     const selected = `${id}-selected`;
 
@@ -195,53 +192,11 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
         };
     }, [mapCluster, clusters, onMarkerClick, onClusterClick]);
 
-    const animatePositions = (startTime, targetPositions) => {
-        const duration = animationDuration;
-        const progress = Math.min((Date.now() - startTime) / duration, 1);
-
-        const newPositions = targetPositions.map((targetPosition) => {
-            const currentPosition = animatedPositions.find(p => p.deviceId === targetPosition.deviceId) || targetPosition;
-
-            const deltaLon = targetPosition.longitude - currentPosition.longitude;
-            const deltaLat = targetPosition.latitude - currentPosition.latitude;
-
-            const newLon = currentPosition.longitude + deltaLon * progress;
-            const newLat = currentPosition.latitude + deltaLat * progress;
-
-            const rotation = Math.atan2(deltaLon, deltaLat) * (180 / Math.PI);
-
-            return {
-                ...targetPosition,
-                longitude: newLon,
-                latitude: newLat,
-                rotation: rotation,
-            };
-        });
-
-        setAnimatedPositions(newPositions);
-
-        if (progress < 1) {
-            animationFrameId.current = requestAnimationFrame(() => animatePositions(startTime, targetPositions));
-        }
-    };
-
-    useEffect(() => {
-        if (positions.length > 0) {
-            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
-            const startTime = Date.now();
-            animationFrameId.current = requestAnimationFrame(() => animatePositions(startTime, positions));
-        }
-
-        return () => {
-            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
-        };
-    }, [positions]);
-
     useEffect(() => {
         [id, selected].forEach((source) => {
             map.getSource(source)?.setData({
                 type: 'FeatureCollection',
-                features: animatedPositions.filter((it) => devices.hasOwnProperty(it.deviceId))
+                features: positions.filter((it) => devices.hasOwnProperty(it.deviceId))
                     .filter((d) => filteredDevices ? filteredDevices.map(fd => fd?.id).includes(d.deviceId): true)
                     .filter((it) => (source === id ? it.deviceId !== selectedDeviceId : it.deviceId === selectedDeviceId))
                     .map((position) => ({
@@ -254,7 +209,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
                     })),
             });
         });
-    }, [mapCluster, clusters, onMarkerClick, onClusterClick, devices, animatedPositions, selectedPosition, filteredDevices]);
+    }, [mapCluster, clusters, onMarkerClick, onClusterClick, devices, positions, selectedPosition, filteredDevices]);
 
     return null;
 };

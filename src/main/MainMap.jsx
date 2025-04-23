@@ -18,8 +18,9 @@ import MapGeocoder from '../map/geocoder/MapGeocoder';
 import MapScale from '../map/MapScale';
 import MapNotification from '../map/notification/MapNotification';
 import useFeatures from '../common/util/useFeatures';
+import { AnimationContext } from '@mui/x-charts/internals';
 
-const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices, onMarkerClick }) => {
+const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices, onMarkerClick, animationDuration = 1000 }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -30,7 +31,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
   const features = useFeatures();
 
   const markerClick = useCallback((_, deviceId) => {
-    if(onMarkerClick) onMarkerClick(deviceId)
+    if (onMarkerClick) onMarkerClick(deviceId)
     else dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
 
@@ -48,7 +49,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
           filteredDevices={filteredDevices}
           showStatus
         />
-        <MapDefaultCamera />
+        <MapDefaultCamera animationDuration={animationDuration} />
         <MapSelectedDevice />
         <PoiMap />
       </MapView>

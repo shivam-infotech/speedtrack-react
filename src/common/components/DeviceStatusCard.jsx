@@ -293,119 +293,6 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
         { key: 'accuracy', label: t('positionAccuracy'), icon: <MyLocationIcon />, value: position ? position?.accuracy : '0' }
     ];
 
-    // const renderTabContent = () => {
-    //     switch (activeTab) {
-    //         case 0: // Live
-    //             return (
-    //                 <Box className={classes.tabPanel}>
-    //                     <Grid container spacing={1}>
-    //                         {primaryFields.map((field) => (
-    //                             <Grid item xs={4} key={field.key}>
-    //                                 <CompactFieldChip
-    //                                     label={field.label}
-    //                                     value={field.value}
-    //                                     icon={field.icon}
-    //                                 />
-    //                             </Grid>
-    //                         ))}
-    //                     </Grid>
-    //                 </Box>
-    //             );
-    //         case 1: // Summary
-    //             return (
-    //                 <Box className={classes.tabPanel}>
-    //                     <Grid container spacing={1}>
-    //                         {secondaryFields.map((field) => (
-    //                             <Grid item xs={4} key={field.key}>
-    //                                 <FieldItem
-    //                                     label={field.label}
-    //                                     value={field.value}
-    //                                     icon={field.icon}
-    //                                 />
-    //                             </Grid>
-    //                         ))}
-    //                     </Grid>
-    //                 </Box>
-    //             );
-    //         case 2: // Sensors
-    //             return (
-    //                 <Box className={classes.tabPanel}>
-    //                     <Grid container spacing={1} sx={{}}>
-    //                         {sensorFields.map((field) => (
-    //                             <Grid item xs={3} key={field.key}>
-    //                                 <FieldItem
-    //                                     label={field.label}
-    //                                     value={field.value}
-    //                                     icon={field.icon}
-    //                                 />
-    //                             </Grid>
-    //                         ))}
-    //                     </Grid>
-    //                 </Box>
-    //             );
-    //         case 3: // Actions
-    //             return (
-    //                 <Box>
-    //                     <Box className={classes.actionBar}>
-    //                     <ActionCell
-    //                         disabled={disableActions || !position}
-    //                         icon={<img src="https://img.icons8.com/?size=24&id=TRmqgRNqawWG&format=png&color=000000" alt='playback' />}
-    //                         title="Playback"
-    //                         onClick={() => navigate('/replay')}
-    //                     />
-    //                     <ActionCell
-    //                         disabled={disableActions}
-    //                         icon={<img src="https://img.icons8.com/?size=24&id=l8E0YrmpRviZ&format=png&color=000000" alt='Send Command' />}
-    //                         title="Command"
-    //                         onClick={() => navigate(`/settings/device/${deviceId}/command`)}
-    //                     />
-    //                     <ActionCell
-    //                         disabled={disableActions || deviceReadonly}
-    //                         icon={<img src="https://img.icons8.com/?size=24&id=k3b9tZlgPuSx&format=png&color=000000" alt='edit' />}
-    //                         title="Edit"
-    //                         onClick={() => navigate(`/settings/device/${deviceId}`)}
-    //                     />
-    //                     <ActionCell
-    //                         icon={<img src="https://img.icons8.com/?size=24&id=2SIo2zPe4UCg&format=png&color=000000" alt='Delete' />}
-    //                         title="Delete"
-    //                         disabled={disableActions || deviceReadonly}
-    //                         onClick={() => setRemoving(true)}
-    //                     />
-    //                     {position && <>
-    //                         <ActionCell
-    //                             icon={<img src="https://img.icons8.com/?size=24&id=qu4g39w3ZV2g&format=png&color=000000" alt='Create Geofence' />}
-    //                             title="Geofence"
-    //                             onClick={handleGeofence}
-    //                         />
-    //                         <ActionCell
-    //                             icon={<img src="https://img.icons8.com/?size=24&id=UQLRNCOpeqCj&format=png&color=000000" alt='Google maps' />}
-    //                             title="Google map"
-    //                             href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}
-    //                         />
-    //                         <ActionCell
-    //                             icon={<img src="https://img.icons8.com/?size=24&id=TFZJw4av6Pp8&format=png&color=000000" alt='Apple maps' />}
-    //                             title="Apple map"
-    //                             href={`http://maps.apple.com/?ll=${position.latitude},${position.longitude}`}
-    //                         />
-    //                         <ActionCell
-    //                             icon={<img src="https://img.icons8.com/?size=24&id=2Q3zNlrb6FWU&format=png&color=000000" alt='Street view' />}
-    //                             title="Street view"
-    //                             href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${position.latitude}%2C${position.longitude}&heading=${position.course}`}
-    //                         />
-    //                         {!shareDisabled && !user.temporary && <ActionCell
-    //                             icon={<img src="https://img.icons8.com/?size=24&id=upt8G88JNc8V&format=png&color=000000" alt='Share Device' />}
-    //                             title="Share"
-    //                             onClick={() => navigate(`/settings/device/${deviceId}/share`)}
-    //                         />}
-    //                     </>}
-    //                 </Box>
-    //                 </Box>
-    //             );
-    //         default:
-    //             return null;
-    //     }
-    // };
-
     const card = (<Card className={classes.card} elevation={3}>
         <Box
             className="drag-handle"
@@ -422,7 +309,6 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Speedometer speed={position?.speed || 0} />
-                {/* <Gauge width={100} height={64} value={60} startAngle={-90} endAngle={90} text={({value}) => `${value} ${t('sharedKmh')}`}/> */}
             </Box>
             { onClose ? <IconButton size="small" onClick={onClose}>
                 {closeIcon || <CloseIcon fontSize='small' />}
@@ -442,6 +328,19 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                     </Grid>
                 ))}
             </Grid>
+            {position?.address && (
+                <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <FmdGoodIcon fontSize="small" color="primary" />
+                        <Typography variant="body2" sx={{ flex: 1 }}>
+                            <PositionValue position={position} property="address" attribute="address" />
+                        </Typography>
+                        <IconButton size='small' onClick={(e) => {e.stopPropagation(); start();}}>
+                            <VolumeUpIcon />
+                        </IconButton>
+                    </Box>
+                </>
+            )}
             <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
             <Box>
                 <Box sx={{ display: 'flex', overflowX: 'auto' }}>
@@ -458,23 +357,6 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
             </Box>
         </CardContent>
     </> }
-    { position && (
-        <CardActions sx={{ display: 'revert', }}>
-            {position?.address && (
-                <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FmdGoodIcon fontSize="small" color="primary" />
-                        <Typography variant="body2" sx={{ flex: 1 }}>
-                            <PositionValue position={position} property="address" attribute="address" />
-                        </Typography>
-                        <IconButton size='small' onClick={(e) => {e.stopPropagation(); start();}}>
-                            <VolumeUpIcon />
-                        </IconButton>
-                    </Box>
-                </>
-            )}
-        </CardActions>
-    ) }
     </Card>);
 
     return (
@@ -495,3 +377,4 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
 };
 
 export default DeviceStatusCard;
+  

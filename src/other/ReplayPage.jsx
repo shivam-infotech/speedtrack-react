@@ -19,7 +19,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DownloadIcon from '@mui/icons-material/Download';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import MapView from '../map/core/MapView';
 import MapRoutePath from '../map/MapRoutePath';
@@ -249,6 +249,7 @@ const ReplayPage = () => {
   const [multiplier, setMultiplier] = useState(1);
   const [stoppages, setStoppages] = useState([]);
   const [statusCardMinimized, setStatusCardMinimized] = useState(false);
+  const [params] = useSearchParams();
 
   const [multiplierAnchor, setMultiplierAnchor] = useState(null);
   const multiplierMenuExpanded = Boolean(multiplierAnchor);
@@ -382,6 +383,12 @@ const ReplayPage = () => {
       setLoading(false);
     }
   });
+
+  useEffect(() => {
+    if(params.has('deviceId') && params.has('from') && params.has('to')){
+      handleSubmit({ deviceId: params.get('deviceId'), from: params.get('from'), to: params.get('to') });
+    }
+  }, [params])
 
   useEffect(() => {
     if (rawPositions.length > 0) {

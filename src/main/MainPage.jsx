@@ -22,6 +22,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import MapControlLinks from '../map/extras/MapControlLinks';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccountModal from '../common/components/AccountModal';
+import { useAnimation } from '../AnimationContext';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -97,7 +98,8 @@ const LiveMap = () => {
     }
   }, [isSmallDevice, dashboardType, selectedDeviceId, dispatch]);
 
-  const positions = useSelector((state) => state.session.positions);
+  // const positions = useSelector((state) => state.session.positions);
+  const {positions} = useAnimation();
   const [filteredPositions, setFilteredPositions] = useState([]);
   const selectedPosition = filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId);
   const [filteredDevices, setFilteredDevices] = useState([]);
@@ -121,12 +123,6 @@ const LiveMap = () => {
       setDevicesOpen(false);
     }
   }, [desktop, mapOnSelect, selectedDeviceId]);
-
-  // useEffect(() => {
-  //   if (dashboardType === 'compact' && (selectedDeviceId != undefined && selectedDeviceId != null) && isSmallDevice) {
-  //     navigate('/live');
-  //   }
-  // }, [selectedDeviceId, dashboardType, isSmallDevice])
 
   useEffect(() => {
     if (isSmallDevice && !desktop) {
@@ -183,6 +179,7 @@ const LiveMap = () => {
             onEventsClick={onEventsClick}
             filteredDevices={filterMap ? filteredDevices : undefined}
             hideControls={true}
+            animationDuration={7000}
             onMarkerClick={(deviceId) => { }}
           />
           { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> }
@@ -229,6 +226,7 @@ const LiveMap = () => {
           selectedPosition={selectedPosition}
           onEventsClick={onEventsClick}
           filteredDevices={filterMap ? filteredDevices : undefined}
+          animationDuration={7000}
         />
       )}
       <div className={classes.sidebar}>
@@ -266,6 +264,7 @@ const LiveMap = () => {
                 selectedPosition={selectedPosition}
                 onEventsClick={onEventsClick}
                 filteredDevices={filterMap ? filteredDevices : undefined}
+                animationDuration={7000}
               />
               { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> }
             </div>

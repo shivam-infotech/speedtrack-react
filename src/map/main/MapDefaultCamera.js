@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { usePreference } from '../../common/util/preferences';
 import { map } from '../core/MapView';
 
-const MapDefaultCamera = () => {
+const MapDefaultCamera = ({ animationDuration = 1000 }) => {
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
   const positions = useSelector((state) => state.session.positions);
 
@@ -30,7 +30,7 @@ const MapDefaultCamera = () => {
           const bounds = coordinates.reduce((bounds, item) => bounds.extend(item), new maplibregl.LngLatBounds(coordinates[0], coordinates[1]));
           const canvas = map.getCanvas();
           map.fitBounds(bounds, {
-            duration: 0,
+            duration: 1000,
             padding: Math.min(canvas.width, canvas.height) * 0.1,
           });
           setInitialized(true);
@@ -39,6 +39,7 @@ const MapDefaultCamera = () => {
           map.jumpTo({
             center: individual,
             zoom: Math.max(map.getZoom(), 10),
+            // duration: animationDuration,
           });
           setInitialized(true);
         }
