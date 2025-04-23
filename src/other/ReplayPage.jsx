@@ -1,5 +1,6 @@
 import React, {
   useState, useEffect, useRef, useCallback,
+  useMemo,
 } from 'react';
 import {
   Box,
@@ -33,7 +34,7 @@ import MapCamera from '../map/MapCamera';
 import MapGeofence from '../map/MapGeofence';
 import StatusCard from '../common/components/StatusCard';
 import MapScale from '../map/MapScale';
-import { calculateDistance, calculateDistanceFromCoords, decimateCoordinates } from '../common/util/position';
+import { calculateDistance, calculateDistanceFromCoords, decimateCoordinates, useInterpolatedPosition } from '../common/util/position';
 import { ExpandLess, ExpandMore, FilterAlt } from '@mui/icons-material';
 import MapStoppages from '../map/MapStoppages';
 import FilteredPolylines from './FilteredSegments';
@@ -250,6 +251,7 @@ const ReplayPage = () => {
   const [stoppages, setStoppages] = useState([]);
   const [statusCardMinimized, setStatusCardMinimized] = useState(false);
   const [params] = useSearchParams();
+  const duration = 1000;
 
   const [multiplierAnchor, setMultiplierAnchor] = useState(null);
   const multiplierMenuExpanded = Boolean(multiplierAnchor);
@@ -296,7 +298,7 @@ const ReplayPage = () => {
     if (playing && positions.length > 0) {
       timerRef.current = setInterval(() => {
         setIndex((index) => index + 1);
-      }, 1000 / multiplier);
+      }, duration / multiplier);
     } else {
       clearInterval(timerRef.current);
     }
@@ -401,6 +403,8 @@ const ReplayPage = () => {
     window.location.assign(`/api/positions/kml?${query.toString()}`);
   };
 
+  const animatedPositions = useInterpolatedPosition(positions[index], positions[index + 1], duration / multiplier);
+
   return (
     <div className={classes.root}>
       <MapView>
@@ -409,7 +413,7 @@ const ReplayPage = () => {
           <>
             <MapRoutePath positions={positions} color={ReportColor} />
             <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
-            <MapPositions positions={[positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
+            <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
             {(stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity)) &&
               <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />
             }

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useAnimationEase from "./common/util/useAnimationEase";
+import { calculateBearing } from "./common/util/position";
 
 const AnimationContext = createContext(null);
 export const useAnimation = () => useContext(AnimationContext);
@@ -71,7 +72,9 @@ export const AnimationProvider = ({ children, animationDuration = 1000 }) => {
 
           const latitude = from.latitude + (to.latitude - from.latitude) * eased;
           const longitude = from.longitude + (to.longitude - from.longitude) * eased;
-          const rotation = Math.atan2(to.longitude - from.longitude, to.latitude - from.latitude) * (180 / Math.PI);
+          // const rotation = Math.atan2(to.longitude - from.longitude, to.latitude - from.latitude) * (180 / Math.PI);
+          // Computing heading just because original have noise
+          const rotation = calculateBearing(from.latitude, from.longitude, to.latitude, to.longitude) || Math.atan2(to.longitude - from.longitude, to.latitude - from.latitude) * (180 / Math.PI); 
 
           newPositions[deviceId] = {
             ...to,

@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from "react";
+import useAnimationEase from "./useAnimationEase";
+
 export const parseCoordinate = (coordinate) => {
     return parseFloat(coordinate.toFixed(6));
 }
@@ -29,8 +32,8 @@ export const decimateCoordinates = (data, minDistance = 10) => {
     for (let i = 1; i < data.length; i++) {
         const currentPoint = data[i];
 
-        let { latitude: prevLat, longitude:prevLng } = lastPoint;
-        let { latitude: currLat, longitude:currLng } = currentPoint;
+        let { latitude: prevLat, longitude: prevLng } = lastPoint;
+        let { latitude: currLat, longitude: currLng } = currentPoint;
 
         // parseCoordinates
         prevLat = parseCoordinate(prevLat);
@@ -62,7 +65,7 @@ export const decimateCoordinates = (data, minDistance = 10) => {
 
 export const calculateDistanceFromCoords = (coords) => {
     return coords.reduce((prev, coord, i) => {
-        if(coords[i - 1] === undefined) return prev;
+        if (coords[i - 1] === undefined) return prev;
         const lastCoord = coords[i - 1] || [];
 
         const longitude = parseCoordinate(Number(coord.longitude));
@@ -98,4 +101,48 @@ export function calculateBearing(lat1, lon1, lat2, lon2) {
     bearing = (bearing + 360) % 360; // Normalize to 0-360
 
     return bearing;
+}
+
+
+export function useInterpolatedPosition(start, end, duration = 1000, easingFn = 'easeInOutQuad') {
+    const [animatedPosition, setAnimatedPosition] = useState(start);
+    const animationRef = useRef(null);
+    const startTimeRef = useRef(null);
+    const ease = useAnimationEase(easingFn);
+
+    useEffect(() => {
+        if (!start || !end || start === end || duration === 0) {
+            setAnimatedPosition(end);
+            return;
+        }
+
+        startTimeRef.current = performance.now();
+
+        const animate = (now) => {
+            const elapsed = now - startTimeRef.current;
+            const t = Math.min(elapsed / duration, 1);
+            const progress = ease ? ease(t) : t;
+
+            const latitude = start.latitude + (end.latitude - start.latitude) * progress;
+            const longitude = start.longitude + (end.longitude - start.longitude) * progress;
+            const rotation = calculateBearing(start.latitude, start.longitude, end.latitude, end.longitude);
+
+            setAnimatedPosition({
+                ...start,
+                latitude,
+                longitude,
+                course: rotation
+            });
+
+            if (t < 1) {
+                animationRef.current = requestAnimationFrame(animate);
+            }
+        };
+
+        animationRef.current = requestAnimationFrame(animate);
+
+        return () => cancelAnimationFrame(animationRef.current);
+    }, [start, end, duration, ease]);
+
+    return animatedPosition;
 }
