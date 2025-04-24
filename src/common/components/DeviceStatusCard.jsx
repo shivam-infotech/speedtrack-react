@@ -22,23 +22,19 @@ import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import BackHandIcon from '@mui/icons-material/BackHand';
 import ExploreIcon from '@mui/icons-material/Explore';
-import {LocalGasStation, NetworkCell } from '@mui/icons-material';
+import {LocalGasStation } from '@mui/icons-material';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
-
 import { useTranslation } from './LocalizationProvider';
 import RemoveDialog from './RemoveDialog';
 import PositionValue from './PositionValue';
 import CloseIcon from '@mui/icons-material/Close';
-import { useDeviceReadonly } from '../util/permissions';
 import { devicesActions } from '../../store';
 import { useCatch, useCatchCallback } from '../../reactHelper';
 import { device3dIcons } from '../../map/core/preloadImages';
 import { formatNumericHours, formatTime, getDeviceStatusColor } from '../util/formatter';
 import EngineIcon from '../../resources/images/data/engine.svg?react';
 import { ACIcon, BatteryLevelIcon, ChargingIcon, ChargingStatus, GSMConditionStatus, GSMSignalIcon, IgnitionIcon, MotionIcon, ParkingIcon, ParkingStatus, SatelliteConditionStatus, SatelliteSignalIcon, statusIcon } from './PostionalHelpers';
-import { useSpeech } from 'react-text-to-speech';
-import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Speedometer from "./Speedometer";
 import LockOpenIcon from '@mui/icons-material/LockOpen';
@@ -51,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
         zIndex: 2,
         right: '0',
         [theme.breakpoints.up('md')]: {
-            left: `calc(50% + ${desktopPadding} / 2)`,
+            left: `calc(77% + ${desktopPadding} / 2)`,
             bottom: theme.spacing(3),
             width: theme.dimensions.popupMaxWidth
         },

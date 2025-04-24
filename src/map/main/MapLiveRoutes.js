@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/styles';
 import { map } from '../core/MapView';
 import { useAttributePreference } from '../../common/util/preferences';
-import { useAnimation } from '../../AnimationContext';
+import { useAnimatedPositions } from '../../AnimationContext';
 
 const MapLiveRoutes = ({ filteredDevices }) => {
   const id = useId();
@@ -13,7 +13,7 @@ const MapLiveRoutes = ({ filteredDevices }) => {
   const devices = useSelector((state) => state.devices.items);
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
   // const history = useSelector((state) => state.session.history);
-  const { history } = useAnimation();
+  const { animHistory: history } = useAnimatedPositions();
 
   const deviceIds = useMemo(() => Object.values(devices)
     .map((device) => device.id)

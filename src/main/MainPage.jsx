@@ -22,7 +22,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import MapControlLinks from '../map/extras/MapControlLinks';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccountModal from '../common/components/AccountModal';
-import { useAnimation } from '../AnimationContext';
+import { useAnimatedPositions } from '../AnimationContext';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -98,8 +98,7 @@ const LiveMap = () => {
     }
   }, [isSmallDevice, dashboardType, selectedDeviceId, dispatch]);
 
-  // const positions = useSelector((state) => state.session.positions);
-  const {positions} = useAnimation();
+  const positions = useSelector((state) => state.session.positions);
   const [filteredPositions, setFilteredPositions] = useState([]);
   const selectedPosition = filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId);
   const [filteredDevices, setFilteredDevices] = useState([]);

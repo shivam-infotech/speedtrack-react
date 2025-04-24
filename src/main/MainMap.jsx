@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,7 +18,7 @@ import MapGeocoder from '../map/geocoder/MapGeocoder';
 import MapScale from '../map/MapScale';
 import MapNotification from '../map/notification/MapNotification';
 import useFeatures from '../common/util/useFeatures';
-import { AnimationContext } from '@mui/x-charts/internals';
+import { useAnimatedPositions } from '../AnimationContext';
 
 const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices, onMarkerClick, animationDuration = 1000 }) => {
   const theme = useTheme();
@@ -29,11 +29,17 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
   const eventsAvailable = useSelector((state) => !!state.events.items.length);
 
   const features = useFeatures();
+  const {animPositions: positions} = useAnimatedPositions();
 
   const markerClick = useCallback((_, deviceId) => {
     if (onMarkerClick) onMarkerClick(deviceId)
     else dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
+
+  const deviceIds = useMemo(() => filteredDevices.map(fd => fd.id), [filteredDevices])
+  const animatedPositions = useMemo(() => {
+    return Object.values(positions).filter(p => deviceIds.includes(p.deviceId));
+  }, [positions]);
 
   return (
     <>
@@ -43,7 +49,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
         <MapAccuracy positions={filteredPositions} />
         <MapLiveRoutes filteredDevices={filteredDevices} />
         <MapPositions
-          positions={filteredPositions}
+          positions={animatedPositions}
           onClick={markerClick}
           selectedPosition={selectedPosition}
           filteredDevices={filteredDevices}

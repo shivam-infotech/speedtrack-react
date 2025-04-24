@@ -15,7 +15,6 @@ import DeviceStatusCard from "../common/components/DeviceStatusCard";
 import { ExpandMore, MoreVert } from "@mui/icons-material";
 import MapControlLinks from "../map/extras/MapControlLinks";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { useAnimation } from "../AnimationContext";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -66,7 +65,7 @@ export default function LiveMap() {
     const t = useTranslation()
     const styles = useStyles();
     const theme = useTheme();
-    const {positions} = useAnimation();
+    const positions = useSelector(state => state.session.positions);
     const selectedDeviceId = useSelector((state) => state.devices.selectedId);
     const { items: summaries } = useSelector((state) => state.summary);
     const devices = useSelector(state => state.devices.items)

@@ -11,7 +11,7 @@ import { sessionActions } from './store';
 import UpdateController from './UpdateController';
 import TermsDialog from './common/components/TermsDialog';
 import Loader from './common/components/Loader';
-import { AnimationProvider } from "./AnimationContext";
+import { AnimationController } from "./AnimationContext";
 
 const useStyles = makeStyles(() => ({
   page: {
@@ -73,11 +73,10 @@ const App = ({ noBottomMenu = false }) => {
       <SocketController />
       <CachingController />
       <UpdateController />
-      <AnimationProvider animationDuration={4000}>
+      <AnimationController animationDuration={3000} />
       <div className={classes.page}>
         <Outlet />
       </div>
-      </AnimationProvider>
       {!desktop && !noBottomMenu && (
         <div className={classes.menu}>
           <BottomMenu />
