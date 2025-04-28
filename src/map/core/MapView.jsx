@@ -12,6 +12,7 @@ import usePersistedState, { savePersistedState } from '../../common/util/usePers
 import { mapImages } from './preloadImages';
 import useMapStyles from './useMapStyles';
 import "./controlStyles.css";
+import MapSkeleton from '../MapSkeleton';
 
 const element = document.createElement('div');
 element.style.width = '100%';
@@ -121,7 +122,11 @@ const MapView = ({ children }) => {
 
   return (
     <div style={{ width: '100%', height: '100%' }} ref={containerEl}>
-      {mapReady && children}
+      {!mapReady ?
+        // <div style={{ width: "100%", height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <MapSkeleton />
+        // </div>
+      : children}
     </div>
   );
 };

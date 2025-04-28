@@ -22,11 +22,12 @@ import PersonIcon from '@mui/icons-material/Person';
 import MapControlLinks from '../map/extras/MapControlLinks';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccountModal from '../common/components/AccountModal';
-import { useAnimatedPositions } from '../AnimationContext';
+import { useTranslation } from '../common/components/LocalizationProvider';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     height: '100%',
+    background: theme.palette.background.default
   },
   sidebar: {
     pointerEvents: 'none',
@@ -66,6 +67,7 @@ const useStyles = makeStyles((theme) => ({
     pointerEvents: 'auto',
     gridArea: '1 / 1',
     zIndex: 4,
+    background: 'none'
   },
   sectionHeader: {
     display: 'flex',
@@ -80,6 +82,7 @@ const LiveMap = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const hasClearedDevice = useRef(false);
+  const t = useTranslation();
 
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'));
@@ -137,7 +140,7 @@ const LiveMap = () => {
         <MainToolbar
           pageTitle={
             <Box onClick={() => setAccountPopupOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: theme.spacing(0.5), justifyContent: 'center' }}>
-              <Typography fontSize={"0.6rem"} color={"neutral"} >Welcome</Typography>
+              <Typography fontSize={"0.6rem"} color={"neutral"} >{t('sharedWelcome')}</Typography>
               <Typography fontSize={"1rem"} lineHeight={1} color={"primary"} >{user.name}</Typography>
             </Box>
           }
@@ -161,17 +164,17 @@ const LiveMap = () => {
         />
       </Paper>
       <div className={classes.contentMap} style={{ padding: `${theme.spacing(1)} ${theme.spacing(2)}`, aspectRatio: 1, marginBottom: theme.spacing(1) }}>
-        <Box className={classes.sectionHeader}>
-          <Typography varient="body2" fontWeight="bold">Live Map</Typography>
+        <Box className={classes.sectionHeader} sx={{ marginBottom: 0.5, marginTop: 0.5 }}>
+          <Typography varient="body2" fontWeight="bold">{t('dashboardTypeLiveMap')}</Typography>
           <Typography
             variant='body3'
             sx={{ cursor: 'pointer' }}
             onClick={() => navigate('/live')}
           >
-            See All
+            {t('sharedSeeAll')}
           </Typography>
         </Box>
-        <Box sx={{ borderRadius: "8px", height: "100%", width: "100%", overflow: 'hidden' }}>
+        <Box sx={{ borderRadius: "8px", height: "100%", width: "100%", overflow: 'hidden' }} onClick={() => navigate('/live')} >
           <MainMap
             filteredPositions={filteredPositions}
             selectedPosition={selectedPosition}
@@ -186,8 +189,8 @@ const LiveMap = () => {
       </div>
       <Paper square className={classes.contentList}>
         <Box className={classes.sectionHeader} sx={{ padding: `0 ${theme.spacing(2)}` }}>
-          <Typography varient="body2" fontWeight="bold">Recent Devices</Typography>
-          {/* <Typography variant='body3'>See All</Typography> */}
+          <Typography varient="body2" fontWeight="bold">{t('sharedRecentDevices')}</Typography>
+          {/* <Typography variant='body3'>{t('sharedSeeAll')}</Typography> */}
         </Box>
         {filteredDevices.map((_, index) => (
           <DeviceCard

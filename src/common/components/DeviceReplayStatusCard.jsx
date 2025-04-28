@@ -356,85 +356,82 @@ const DeviceReplayStatusCard = ({ deviceId, positions, onClose, index, desktopPa
         <Divider />
         {position && <>
             <CardContent className={classes.content}>
-                {!minimize &&
-                    <>
-                        <Box>
-                            <Grid container spacing={1}>
-                                {primaryFields.map((field) => (
-                                    <Grid item xs={4} key={field.key}>
-                                        <CompactFieldChip
-                                            label={field.label}
-                                            value={field.value}
-                                            icon={field.icon}
-                                        />
-                                    </Grid>
-                                ))}
-                            </Grid>
-                            {position?.address ? (
-                                <>
-                                    {/* <Divider sx={{ my: 1 }} /> */}
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
-                                        <FmdGoodIcon fontSize="small" color="primary" />
-                                        <Typography variant="body2" sx={{ flex: 1 }}>
-                                            <PositionValue position={position} property="address" attribute="address" />
-                                        </Typography>
-
-                                    </Box>
-                                </>
-                            ) : <Typography variant='caption' color="secondary">No address found</Typography>}
-                            <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
-                            <Stack direction="row" spacing={0} sx={{ alignItems: 'center', padding: `0px ${theme.spacing(1)}` }}>
-                                <CarSlider
-                                    max={positions.length - 1}
-                                    value={index}
-                                    sx={{ mx: theme.spacing(1) }}
-                                    onChange={(_, index) => setIndex(index)}
+                <Box>
+                    { !minimize && <Grid container spacing={1}>
+                        {primaryFields.map((field) => (
+                            <Grid item xs={4} key={field.key}>
+                                <CompactFieldChip
+                                    label={field.label}
+                                    value={field.value}
+                                    icon={field.icon}
                                 />
-                                {/* <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
+                            </Grid>
+                        ))}
+                    </Grid> }
+                    {position?.address ? (
+                        <>
+                            {/* <Divider sx={{ my: 1 }} /> */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+                                <FmdGoodIcon fontSize="small" color="primary" />
+                                <Typography variant="body2" sx={{ flex: 1 }}>
+                                    <PositionValue position={position} property="address" attribute="address" />
+                                </Typography>
+
+                            </Box>
+                        </>
+                    ) : <Typography variant='caption' color="secondary">No address found</Typography>}
+                    <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+                    <Stack direction="row" spacing={0} sx={{ alignItems: 'center', padding: `0px ${theme.spacing(1)}` }}>
+                        <CarSlider
+                            max={positions.length - 1}
+                            value={index}
+                            sx={{ mx: theme.spacing(1.5) }}
+                            onChange={(_, index) => setIndex(index)}
+                        />
+                        {/* <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
                                     <FastRewindIcon />
                                 </IconButton> */}
-                                <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
-                                    {playing ? <PauseIcon /> : <PlayArrowIcon />}
-                                </IconButton>
-                                <div>
-                                    <IconButton aria-haspopup="true" aria-controls='multiplier-menu' aria-expanded={multiplierMenuExpanded} size='small' onClick={openMultiplierMenu} >{multiplier}x</IconButton>
-                                    <Menu
-                                        id="multiplier-menu"
-                                        anchorEl={multiplierAnchor}
-                                        open={multiplierMenuExpanded}
-                                        onClose={closeMultiplierMenu}
-                                        MenuListProps={{
-                                            'aria-labelledby': 'multiplier-button',
-                                        }}
-                                    >
-                                        <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu() }}>1x</MenuItem>
-                                        <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu() }}>2x</MenuItem>
-                                        <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu() }}>3x</MenuItem>
-                                        <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu() }}>4x</MenuItem>
-                                        <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu() }}>5x</MenuItem>
-                                        <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu() }}>6x</MenuItem>
-                                    </Menu>
-                                </div>
-                                {/* <IconButton onClick={() => setIndex((index) => index + 1)} disabled={playing || index >= positions.length - 1}>
+                        <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
+                            {playing ? <PauseIcon /> : <PlayArrowIcon />}
+                        </IconButton>
+                        <div>
+                            <IconButton aria-haspopup="true" aria-controls='multiplier-menu' aria-expanded={multiplierMenuExpanded} size='small' onClick={openMultiplierMenu} >{multiplier}x</IconButton>
+                            <Menu
+                                id="multiplier-menu"
+                                anchorEl={multiplierAnchor}
+                                open={multiplierMenuExpanded}
+                                onClose={closeMultiplierMenu}
+                                MenuListProps={{
+                                    'aria-labelledby': 'multiplier-button',
+                                }}
+                            >
+                                <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu() }}>1x</MenuItem>
+                                <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu() }}>2x</MenuItem>
+                                <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu() }}>3x</MenuItem>
+                                <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu() }}>4x</MenuItem>
+                                <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu() }}>5x</MenuItem>
+                                <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu() }}>6x</MenuItem>
+                            </Menu>
+                        </div>
+                        {/* <IconButton onClick={() => setIndex((index) => index + 1)} disabled={playing || index >= positions.length - 1}>
                                     <FastForwardIcon />
                                 </IconButton> */}
-                            </Stack>
-                            <Box>
-                                <Box sx={{ display: 'flex', overflowX: 'auto' }}>
-                                    {sensorFields.map((field) => (
-                                        <Box sx={{ minWidth: "5rem" }} key={field.key}>
-                                            <FieldItem
-                                                label={field.label}
-                                                value={field.value}
-                                                icon={field.icon}
-                                            />
-                                        </Box>
-                                    ))}
+                    </Stack>
+                    {!minimize && <Box>
+                        <Box sx={{ display: 'flex', overflowX: 'auto' }}>
+                            {sensorFields.map((field) => (
+                                <Box sx={{ minWidth: "5rem" }} key={field.key}>
+                                    <FieldItem
+                                        label={field.label}
+                                        value={field.value}
+                                        icon={field.icon}
+                                    />
                                 </Box>
-                            </Box>
+                            ))}
                         </Box>
-                    </>
-                }
+                    </Box>}
+                </Box>
+
                 {/* <Accordion elevation={0} expanded={!minimize && secondaryExpanded} onChange={() => setSecondaryExpanded(!secondaryExpanded)} >
                     <AccordionSummary expandIcon={!minimize && <ExpandMore />} >
                         {position?.address ? (

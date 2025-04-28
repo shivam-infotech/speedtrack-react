@@ -36,9 +36,10 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
     else dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
 
-  const deviceIds = useMemo(() => filteredDevices.map(fd => fd.id), [filteredDevices])
+  const deviceIds = useMemo(() => filteredDevices?.map(fd => fd.id), [filteredDevices] || []);
+
   const animatedPositions = useMemo(() => {
-    return Object.values(positions).filter(p => deviceIds.includes(p.deviceId));
+    return Object.values(positions).filter(p => deviceIds?.includes(p.deviceId) || true);
   }, [positions]);
 
   return (

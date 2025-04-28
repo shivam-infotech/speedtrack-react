@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import useAnimationEase from "./useAnimationEase";
+import { distanceFromMeters } from "./converter";
 
 export const parseCoordinate = (coordinate) => {
     return parseFloat(coordinate.toFixed(6));

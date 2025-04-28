@@ -2,8 +2,7 @@ import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { create } from "zustand";
 import useAnimationEase from "./common/util/useAnimationEase";
-import { calculateBearing, calculateDistance } from "./common/util/position";
-import { distanceFromMeters } from "./common/util/converter";
+import { calculateBearing } from "./common/util/position";
 
 export const useAnimatedPositions = create((set, get) => ({
   animPositions: {},
@@ -13,7 +12,7 @@ export const useAnimatedPositions = create((set, get) => ({
   resetHistory: () => set({ animHistory: {} })
 }));
 
-export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }) => {
+export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) => {
   const positions = useSelector((state) => state.session.positions);
   const easing = useAnimationEase("linear");
 
@@ -45,8 +44,8 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
 
     if (!isAnimating.current) {
       isAnimating.current = true;
-
-      if (isUnfocused.current) skipToLatest();
+      
+      if(isUnfocused.current) skipToLatest();
       else ProcessQueue();
     }
   }, [positions]);
@@ -60,45 +59,34 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
       for (const [deviceId, queue] of Object.entries(animationQueueRef.current)) {
         if (queue.length > 0) {
           const [from, to] = queue[0];
+          const adjustedDuration = adjustedDurationRef.current;
+          const elapsed = performance.now() - from._startTime;
+          const progress = Math.min(Math.max(elapsed / adjustedDuration, 0), 1);
+          let eased = easing(progress);
 
-          // if the both coordinates are same and just attributes are changed, then skip the frames and directly put the coordinates
-          if (from.longitude === to.longitude && from.latitude === to.latitude && from.rotation === to.rotation) {
-            newPositions[deviceId] = to;
-            if (!newHistory[deviceId]) newHistory[deviceId] = [];
-            newHistory[deviceId].push([to.longitude, to.latitude]);
+          const latitude = from.latitude + (to.latitude - from.latitude) * eased;
+          const longitude = from.longitude + (to.longitude - from.longitude) * eased;
+          const rotation = calculateBearing(from.latitude, from.longitude, to.latitude, to.longitude);
+
+          newPositions[deviceId] = {
+            ...to,
+            latitude,
+            longitude,
+            rotation,
+          };
+
+          if (!newHistory[deviceId]) newHistory[deviceId] = [];
+          newHistory[deviceId].push([longitude, latitude]);
+
+          if (progress < 1) {
+            if(isUnfocused.current) return skipToLatest();
+            hasWork = true;
           } else {
-            const adjustedDuration = adjustedDurationRef.current;
-            const distance = to?.attributes?.distance;
-            const animSpeed = distance / adjustedDuration;
-
-            const elapsed = performance.now() - from._startTime;
-            const progress = Math.min(elapsed / adjustedDuration, 1);
-            const eased = easing(progress);
-
-            const latitude = from.latitude + (to.latitude - from.latitude) * eased;
-            const longitude = from.longitude + (to.longitude - from.longitude) * eased;
-            const rotation = calculateBearing(from.latitude, from.longitude, to.latitude, to.longitude);
-
-            newPositions[deviceId] = {
-              ...to,
-              latitude,
-              longitude,
-              rotation,
-            };
-
-            if (!newHistory[deviceId]) newHistory[deviceId] = [];
-            newHistory[deviceId].push([longitude, latitude]);
-
-            if (progress < 1) {
-              if (isUnfocused.current) return skipToLatest();
+            queue.shift();
+            if(isUnfocused.current) return skipToLatest();
+            if (queue.length > 0) {
+              queue[0][0]._startTime = performance.now();
               hasWork = true;
-            } else {
-              queue.shift();
-              if (isUnfocused.current) return skipToLatest();
-              if (queue.length > 0) {
-                queue[0][0]._startTime = performance.now();
-                hasWork = true;
-              }
             }
           }
         }
@@ -108,7 +96,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
       setHistory(newHistory);
 
       if (hasWork) {
-        if (isUnfocused.current) return skipToLatest();
+        if(isUnfocused.current) return skipToLatest();
         animatedRef.current = requestAnimationFrame(animate);
       } else {
         isAnimating.current = false;
@@ -121,7 +109,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
   };
 
   const skipToLatest = () => {
-    if (animatedRef.current) cancelAnimationFrame(animatedRef.current);
+    if(animatedRef.current) cancelAnimationFrame(animatedRef.current);
 
     const newPositions = { ...useAnimatedPositions.getState().animPositions };
     const newHistory = { ...useAnimatedPositions.getState().animHistory };
@@ -150,10 +138,12 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
 
   useEffect(() => {
     const whenBlur = (evt) => {
+      console.log("goes to blur state");
       isUnfocused.current = true;
     }
 
     const whenFocus = evt => {
+      console.log('comes back to focus state');
       isUnfocused.current = false;
     }
 
@@ -164,7 +154,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
       window.removeEventListener('blur', whenBlur);
       window.removeEventListener('focus', whenFocus);
 
-      if (animatedRef.current) {
+      if(animatedRef.current) {
         skipToLatest();
         cancelAnimationFrame(animatedRef.current);
       }

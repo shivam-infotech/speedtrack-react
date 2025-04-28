@@ -24,7 +24,7 @@ const Speedometer = ({ speed }) => {
         fontFamily: digitalFont,
       }}
     >
-      <AnimatePresence mode="wait">
+      {/* <AnimatePresence mode="wait">
         <motion.div
           key={speed}
           initial={{ opacity: 0, y: -10 }}
@@ -37,6 +37,12 @@ const Speedometer = ({ speed }) => {
           </Typography>
         </motion.div>
       </AnimatePresence>
+      <Typography variant="caption" lineHeight={1} sx={{ fontFamily: digitalFont }}>
+        {t('sharedKmh')}
+      </Typography> */}
+      <Typography variant="h5" lineHeight={1.2} sx={{ fontFamily: digitalFont }}>
+        {Math.ceil(speed)}
+      </Typography>
       <Typography variant="caption" lineHeight={1} sx={{ fontFamily: digitalFont }}>
         {t('sharedKmh')}
       </Typography>

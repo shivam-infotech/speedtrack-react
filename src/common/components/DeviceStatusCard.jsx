@@ -311,9 +311,9 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
             </IconButton> : <></> }
         </Box>
         <Divider />
-        { (position && !minimize ) && <>
+        {position  && <>
         <CardContent className={classes.content}>
-            <Grid container spacing={1}>
+            {!minimize && <Grid container spacing={1}>
                 {primaryFields.map((field) => (
                     <Grid item xs={4} key={field.key}>
                         <CompactFieldChip
@@ -323,10 +323,10 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                         />
                     </Grid>
                 ))}
-            </Grid>
+            </Grid>}
             {position?.address && (
                 <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
                         <FmdGoodIcon fontSize="small" color="primary" />
                         <Typography variant="body2" sx={{ flex: 1 }}>
                             <PositionValue position={position} property="address" attribute="address" />
@@ -337,7 +337,7 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                     </Box>
                 </>
             )}
-            <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+            {!minimize && <><Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
             <Box>
                 <Box sx={{ display: 'flex', overflowX: 'auto' }}>
                     {sensorFields.map((field) => (
@@ -350,7 +350,7 @@ const DeviceStatusCard = ({ deviceId, position, onClose, disableActions, desktop
                         </Box>
                     ))}
                 </Box>
-            </Box>
+            </Box></>}
         </CardContent>
     </> }
     </Card>);

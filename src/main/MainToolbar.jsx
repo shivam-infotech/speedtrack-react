@@ -121,11 +121,11 @@ const MainToolbar = ({
       case 'offline':
         return dvsc.filter((d) => d.status === 'offline' && positions[d.id] !== undefined).length;
       case 'running':
-        return dvsc.filter((d) => positions[d.id]?.attributes?.ignition && positions[d.id]?.speed > 5).length;
+        return dvsc.filter((d) => positions[d.id]?.attributes?.activity === 'running' || false).length;
       case 'idle':
-        return dvsc.filter((d) => positions[d.id]?.attributes?.ignition && positions[d.id]?.speed <= 5).length;
+        return dvsc.filter((d) => positions[d.id]?.attributes?.activity === 'idle' || false).length;
       case 'stopped':
-        return dvsc.filter((d) => !positions[d.id]?.attributes?.ignition && d.status === 'online').length;
+        return dvsc.filter((d) => positions[d.id]?.attributes?.ignition === false || false ).length;
       case 'expired':
         return dvsc.filter(d => d.expirationTime && dayjs(d.expirationTime).diff(dayjs()) < 0).length;
       case 'expiresoon':

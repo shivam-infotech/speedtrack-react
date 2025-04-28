@@ -15,6 +15,7 @@ import DeviceStatusCard from "../common/components/DeviceStatusCard";
 import { ExpandMore, MoreVert } from "@mui/icons-material";
 import MapControlLinks from "../map/extras/MapControlLinks";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { useAnimatedPositions } from "../AnimationContext";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -85,6 +86,7 @@ export default function LiveMap() {
     const [filteredPositions, setFilteredPositions] = useState([]);
     const navigate = useNavigate();
     const [params] = useSearchParams();
+    const { resetHistory } = useAnimatedPositions();
 
     useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
 
@@ -93,6 +95,7 @@ export default function LiveMap() {
     }, [positions, filteredDevices])
 
     useEffect(() => {
+        resetHistory();
         if(params.has('deviceId') && selectedDeviceId === null){
             dispatch(devicesActions.selectId(Number(params.get('deviceId'))))
         }

@@ -26,7 +26,7 @@ import MapView from '../map/core/MapView';
 import MapRoutePath from '../map/MapRoutePath';
 import MapRoutePoints from '../map/MapRoutePoints';
 import MapPositions from '../map/MapPositions';
-import { formatTime } from '../common/util/formatter';
+import { formatDistance, formatTime } from '../common/util/formatter';
 import ReportFilter from '../reports/components/ReportFilter';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import { useCatch } from '../reactHelper';
@@ -43,6 +43,7 @@ import dayjs from 'dayjs';
 import DeviceReplayStatusCard from '../common/components/DeviceReplayStatusCard';
 import { useAttributePreference } from '../common/util/preferences';
 import { green } from '@mui/material/colors';
+import PositionValue from '../common/components/PositionValue';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -186,7 +187,7 @@ const PlaybackFilters = ({ filterAnchor, filterMenuExpanded, closeFilterMenu, fi
           <label style={{ flex: 1 }}>
             <Checkbox
               checked={localFilters.speedMoreThan !== null}
-              onChange={(e) => setLocalFilters({ ...localFilters, speedMoreThan: e.target.checked ? 0 : null })}
+              onChange={(e) => setLocalFilters({ ...localFilters, speedMoreThan: e.target.checked ? '' : null })}
             />
             {t('reportSpeedMoreThan')}
             <Indicator color={FilterMarkingColors.speedMoreThan} />
@@ -195,7 +196,7 @@ const PlaybackFilters = ({ filterAnchor, filterMenuExpanded, closeFilterMenu, fi
             type="number"
             size="small"
             value={localFilters.speedMoreThan ?? ''}
-            onChange={(e) => setLocalFilters({ ...localFilters, speedMoreThan: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => setLocalFilters({ ...localFilters, speedMoreThan: parseFloat(e.target.value) || '' })}
             disabled={localFilters.speedMoreThan === null}
             sx={{ ml: 1, width: '100px' }}
           />
@@ -249,9 +250,10 @@ const ReplayPage = () => {
   const [summary, setSummary] = useState(undefined);
   const [multiplier, setMultiplier] = useState(1);
   const [stoppages, setStoppages] = useState([]);
-  const [statusCardMinimized, setStatusCardMinimized] = useState(false);
+  const [statusCardMinimized, setStatusCardMinimized] = useState(true);
   const [params] = useSearchParams();
   const duration = 1000;
+  const distanceUnit = useAttributePreference('distanceUnit');
 
   const [multiplierAnchor, setMultiplierAnchor] = useState(null);
   const multiplierMenuExpanded = Boolean(multiplierAnchor);
@@ -364,6 +366,7 @@ const ReplayPage = () => {
     const query = new URLSearchParams({ deviceId, from, to });
     try {
       const response = await fetch(`/api/positions?${query.toString()}`);
+      setSummary(await fetchSummary(deviceId, from, to));
       if (response.ok) {
         setIndex(0);
         const rawPosition = await response.json();
@@ -373,8 +376,6 @@ const ReplayPage = () => {
         if (positions.length) {
           setExpanded(false);
           setShowCard(true);
-          // setStoppages(findStoppages(rawPosition));
-          setSummary(await fetchSummary(deviceId, from, to));
         } else {
           throw Error(t('sharedNoData'));
         }
@@ -403,7 +404,73 @@ const ReplayPage = () => {
     window.location.assign(`/api/positions/kml?${query.toString()}`);
   };
 
-  const animatedPositions = useInterpolatedPosition(positions[index], positions[index + 1], duration / multiplier);
+  const animatedPositions = useInterpolatedPosition(positions[index], positions[index + 1], duration / multiplier, 'linear');
+
+  // using memorizarions for preventing the non-logical rendering
+  const stoppageMarkersMemo = useMemo(() => {
+    return (stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity)) &&
+      (<MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />)
+  }, [stoppages, filters]);
+
+  const filterStopMoreThanMemo = useMemo(() => {
+    return filters.stoppedMoreThan && <FilteredSegments
+    positions={rawPositions}
+    isValidPosition={(current, previous) => current.attributes.ignition === false}
+    isValidSegment={(segment) => {
+      const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
+      return duration >= filters.stoppedMoreThan;
+    }}
+    renderType={filterRenderType.stoppedMoreThan}
+    color={FilterMarkingColors.stoppedMoreThan}
+    activityType="Stoppage"
+    device={devices[selectedDeviceId]}
+  />
+  }, [filters.stoppedMoreThan]);
+
+  const filterIdleMoreThanMemo = useMemo(() => {
+    return filters.idleMoreThan && <FilteredSegments
+    positions={rawPositions}
+    isValidPosition={(current, previous) =>
+      current.attributes.activity === 'idle'
+    }
+    isValidSegment={(segment) => {
+      const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
+      return duration >= filters.idleMoreThan;
+    }}
+    activityType="Idle"
+    renderType={filterRenderType.idleMoreThan}
+    color={FilterMarkingColors.idleMoreThan}
+    device={devices[selectedDeviceId]}
+  />
+  }, [filters.idleMoreThan]);
+
+  const filterSpeedMoreThanFilterMemo = useMemo(() => {
+    return filters.speedMoreThan && <FilteredSegments
+    positions={rawPositions}
+    isValidPosition={(current, previous) => current.speed > filters.speedMoreThan}
+    isValidSegment={(segment) => segment.length > 0}
+    renderType={filterRenderType.speedMoreThan}
+    color={FilterMarkingColors.speedMoreThan}
+    activityType="Speed"
+    device={devices[selectedDeviceId]}
+  />
+  }, [filters.speedMoreThan]);
+
+  const filterInactiveMemo = useMemo(() => {
+    return filters.inactivity && <FilteredSegments
+    positions={rawPositions}
+    isValidPosition={(current, previous) => {
+      if (!previous) return false;
+      const timeDifference = dayjs(current.fixTime).diff(dayjs(previous.fixTime), 'second') / 60;
+      return timeDifference > 1;
+    }}
+    isValidSegment={(segment) => segment.length > 0}
+    renderType={filterRenderType.inactivity}
+    color={FilterMarkingColors.inactivity}
+    activityType="Inactivity"
+    device={devices[selectedDeviceId]}
+  />
+  }, [filters.inactivity]);
 
   return (
     <div className={classes.root}>
@@ -413,58 +480,12 @@ const ReplayPage = () => {
           <>
             <MapRoutePath positions={positions} color={ReportColor} />
             <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
-            <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" animationDuration={1000 / multiplier - 100} />
-            {(stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity)) &&
-              <MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />
-            }
-            {filters.stoppedMoreThan && <FilteredSegments
-              positions={rawPositions}
-              isValidPosition={(current, previous) => current.attributes.ignition === false}
-              isValidSegment={(segment) => {
-                const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
-                return duration >= filters.stoppedMoreThan;
-              }}
-              renderType={filterRenderType.stoppedMoreThan}
-              color={FilterMarkingColors.stoppedMoreThan}
-              activityType="Stoppage"
-              device={devices[selectedDeviceId]}
-            />}
-            {filters.idleMoreThan && <FilteredSegments
-              positions={rawPositions}
-              isValidPosition={(current, previous) =>
-                current.attributes.activity === 'idle'
-              }
-              isValidSegment={(segment) => {
-                const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
-                return duration >= filters.idleMoreThan;
-              }}
-              activityType="Idle"
-              renderType={filterRenderType.idleMoreThan}
-              color={FilterMarkingColors.idleMoreThan}
-              device={devices[selectedDeviceId]}
-            />}
-            {filters.speedMoreThan && <FilteredSegments
-              positions={rawPositions}
-              isValidPosition={(current, previous) => current.speed > filters.speedMoreThan}
-              isValidSegment={(segment) => segment.length > 0}
-              renderType={filterRenderType.speedMoreThan}
-              color={FilterMarkingColors.speedMoreThan}
-              activityType="Speed"
-              device={devices[selectedDeviceId]}
-            />}
-            {filters.inactivity && <FilteredSegments
-              positions={rawPositions}
-              isValidPosition={(current, previous) => {
-                if (!previous) return false;
-                const timeDifference = dayjs(current.fixTime).diff(dayjs(previous.fixTime), 'second') / 60;
-                return timeDifference > 1;
-              }}
-              isValidSegment={(segment) => segment.length > 0}
-              renderType={filterRenderType.inactivity}
-              color={FilterMarkingColors.inactivity}
-              activityType="Inactivity"
-              device={devices[selectedDeviceId]}
-            />}
+            <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
+            { stoppageMarkersMemo }
+            { filterStopMoreThanMemo }
+            { filterIdleMoreThanMemo }
+            { filterSpeedMoreThanFilterMemo }
+            { filterInactiveMemo }
           </>
         )}
       </MapView>
@@ -482,7 +503,12 @@ const ReplayPage = () => {
                 {/* <IconButton onClick={handleDownload}>
                   <DownloadIcon />
                 </IconButton> */}
-                
+                { positions && 
+                  <Box sx={{ background: theme.palette.background.default, padding: 1 }}>
+                    <Typography fontSize={"1.1rem"} lineHeight={1} textAlign={'center'} fontWeight={700} >{formatDistance(calculateDistanceFromCoords(positions), distanceUnit, t)}</Typography>
+                    <Typography fontSize={"0.6rem"} lineHeight={1} textAlign={'center'} >{ t('deviceTotalDistance') }</Typography>
+                  </Box>
+                }
                 <IconButton onClick={openFilterMenu} >
                   <Badge color="info" variant="dot" fontSize="small" invisible={Object.values(filters).every(f => f === null)}>
                     <FilterAlt fontSize='small' />

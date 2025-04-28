@@ -1,10 +1,11 @@
 import { useMemo } from "react"
 
 const useAnimationEase = (type) => useMemo(() => {
-    const animationTypes = ['easeInOutQuad', 'easeInOutQuart', 'easeInOutQuint', 'easeInOutSine', 'easeInOutExpo', 'easeInOutCirc', 'easeInOutBack'];
+    const animationTypes = ['linear','easeInOutQuad', 'easeInOutQuart', 'easeInOutQuint', 'easeInOutSine', 'easeInOutExpo', 'easeInOutCirc', 'easeInOutBack'];
     const selectedType = type && animationTypes.includes(type) ? animationTypes[animationTypes.indexOf(type)] : animationTypes[0];
 
     const animations = {
+        linear:(t) => t,
         easeInOutQuad(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; },
         easeInOutQuart(t) { return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t; },
         easeInOutQuint(t) { return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t; },
