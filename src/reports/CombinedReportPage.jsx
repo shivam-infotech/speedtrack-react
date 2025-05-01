@@ -19,49 +19,49 @@ import MapMarkers from '../map/MapMarkers';
 import MapRouteCoordinates from '../map/MapRouteCoordinates';
 import MapScale from '../map/MapScale';
 
-// import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-// import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
-// import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
-// import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
-// import SpeedIcon from '@mui/icons-material/Speed';
-// import EvStationIcon from '@mui/icons-material/EvStation';
-// import WarningIcon from '@mui/icons-material/Warning';
-// import DoorFrontIcon from '@mui/icons-material/DoorFront';
-// import CloudOffIcon from '@mui/icons-material/CloudOff';
-// import CloudQueueIcon from '@mui/icons-material/CloudQueue';
-// import RadioIcon from '@mui/icons-material/Radio';
-// import BuildIcon from '@mui/icons-material/Build';
-// import SmsIcon from '@mui/icons-material/Sms';
-// import PersonIcon from '@mui/icons-material/Person';
-// import ImageIcon from '@mui/icons-material/Image';
-// import DeviceUnknownIcon from '@mui/icons-material/DeviceUnknown';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import SpeedIcon from '@mui/icons-material/Speed';
+import EvStationIcon from '@mui/icons-material/EvStation';
+import WarningIcon from '@mui/icons-material/Warning';
+import DoorFrontIcon from '@mui/icons-material/DoorFront';
+import CloudOffIcon from '@mui/icons-material/CloudOff';
+import CloudQueueIcon from '@mui/icons-material/CloudQueue';
+import RadioIcon from '@mui/icons-material/Radio';
+import BuildIcon from '@mui/icons-material/Build';
+import SmsIcon from '@mui/icons-material/Sms';
+import PersonIcon from '@mui/icons-material/Person';
+import ImageIcon from '@mui/icons-material/Image';
+import DeviceUnknownIcon from '@mui/icons-material/DeviceUnknown';
 
-// const getEventDisplay = (type) => {
-//   const map = {
-//     deviceOnline: { icon: <CloudQueueIcon />, color: 'green' },
-//     deviceOffline: { icon: <CloudOffIcon />, color: 'gray' },
-//     deviceUnknown: { icon: <DeviceUnknownIcon />, color: 'orange' },
-//     deviceInactive: { icon: <PauseCircleOutlineIcon />, color: 'gray' },
-//     deviceMoving: { icon: <DirectionsRunIcon />, color: 'blue' },
-//     deviceStopped: { icon: <PauseCircleOutlineIcon />, color: 'red' },
-//     deviceOverspeed: { icon: <SpeedIcon />, color: 'red' },
-//     deviceFuelDrop: { icon: <EvStationIcon />, color: 'red' },
-//     deviceFuelIncrease: { icon: <EvStationIcon />, color: 'green' },
-//     queuedCommandSent: { icon: <RadioIcon />, color: 'blue' },
-//     commandResult: { icon: <RadioIcon />, color: 'blue' },
-//     geofenceEnter: { icon: <DoorFrontIcon />, color: 'blue' },
-//     geofenceExit: { icon: <DoorFrontIcon />, color: 'orange' },
-//     alarm: { icon: <WarningIcon />, color: 'red' },
-//     ignitionOn: { icon: <PowerSettingsNewIcon />, color: 'green' },
-//     ignitionOff: { icon: <PowerSettingsNewIcon />, color: 'gray' },
-//     maintenance: { icon: <BuildIcon />, color: 'orange' },
-//     textMessage: { icon: <SmsIcon />, color: 'purple' },
-//     driverChanged: { icon: <PersonIcon />, color: 'blue' },
-//     media: { icon: <ImageIcon />, color: 'purple' },
-//   };
+const getEventDisplay = (type) => {
+  const map = {
+    deviceOnline: { icon: <CloudQueueIcon />, color: 'green' },
+    deviceOffline: { icon: <CloudOffIcon />, color: 'gray' },
+    deviceUnknown: { icon: <DeviceUnknownIcon />, color: 'orange' },
+    deviceInactive: { icon: <PauseCircleOutlineIcon />, color: 'gray' },
+    deviceMoving: { icon: <DirectionsRunIcon />, color: 'blue' },
+    deviceStopped: { icon: <PauseCircleOutlineIcon />, color: 'red' },
+    deviceOverspeed: { icon: <SpeedIcon />, color: 'red' },
+    deviceFuelDrop: { icon: <EvStationIcon />, color: 'red' },
+    deviceFuelIncrease: { icon: <EvStationIcon />, color: 'green' },
+    queuedCommandSent: { icon: <RadioIcon />, color: 'blue' },
+    commandResult: { icon: <RadioIcon />, color: 'blue' },
+    geofenceEnter: { icon: <DoorFrontIcon />, color: 'blue' },
+    geofenceExit: { icon: <DoorFrontIcon />, color: 'orange' },
+    alarm: { icon: <WarningIcon />, color: 'red' },
+    ignitionOn: { icon: <PowerSettingsNewIcon />, color: 'green' },
+    ignitionOff: { icon: <PowerSettingsNewIcon />, color: 'gray' },
+    maintenance: { icon: <BuildIcon />, color: 'orange' },
+    textMessage: { icon: <SmsIcon />, color: 'purple' },
+    driverChanged: { icon: <PersonIcon />, color: 'blue' },
+    media: { icon: <ImageIcon />, color: 'purple' },
+  };
 
-//   return map[type] || { icon: <NotificationsActiveIcon />, color: 'black' };
-// };
+  return map[type] || { icon: <NotificationsActiveIcon />, color: 'black' };
+};
 
 const CombinedReportPage = () => {
   const classes = useReportStyles();
@@ -128,9 +128,9 @@ const CombinedReportPage = () => {
 
           {!loading ? (
             isMobile ? (
-              items.flatMap((item) => item.events.map((event) =>
-              // const { icon, color, label } = getEventDisplay(event.type);
-                (
+              items.flatMap((item) => item.events.map((event) => {
+                const { icon, color, label } = getEventDisplay(event.type);
+                return (
                   <Card key={event.id} sx={{ mb: 2, boxShadow: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
                     <CardContent sx={{ flex: 1, paddingLeft: 0 }}>
                       <Typography variant="subtitle1" fontWeight="bold">
@@ -141,15 +141,16 @@ const CombinedReportPage = () => {
                       </Typography>
                     </CardContent>
                     <CardContent sx={{ textAlign: 'right', minWidth: '100px' }}>
-                      {/* <Typography variant="h6" component="div" sx={{ color }}>
-                          {icon}
-                        </Typography> */}
+                      <Typography variant="h6" component="div" sx={{ color }}>
+                        {icon}
+                      </Typography>
                       <Typography variant="body2" sx={{ color, fontWeight: 500 }}>
                         {t(prefixString('event', event.type))}
                       </Typography>
                     </CardContent>
                   </Card>
-                )))
+                )
+              }))
 
             ) : (
               <Table>

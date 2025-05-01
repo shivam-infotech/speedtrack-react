@@ -113,6 +113,12 @@ import eRickshawWarning3d from '../../resources/images/icon/3d/erickshaw-warning
 import eRickshawError3d from '../../resources/images/icon/3d/erickshaw-error-3d.png';
 
 // Rickshaw
+
+import ricksawPng from '../../resources/images/icon/rickshaw.png';
+import ricksawSuccessPng from '../../resources/images/icon/rickshaw-success.png';
+import ricksawWarningPng from '../../resources/images/icon/rickshaw-warning.png';
+import ricksawErrorPng from '../../resources/images/icon/rickshaw-error.png';
+
 import ricksaw3d from '../../resources/images/icon/3d/rickshaw-neutral-3d.png';
 import ricksawSuccess3d from '../../resources/images/icon/3d/rickshaw-success-3d.png';
 import ricksawWarning3d from '../../resources/images/icon/3d/rickshaw-warning-3d.png';
@@ -185,7 +191,7 @@ export const mapIcons = {
   scooter: scooterPng,
   bicycle: bicyclePng,
   erickshaw: eRickshawPng,
-  rickshaw: ricksaw3d, // assuming this is used in icon view as well
+  rickshaw: ricksawPng,
   crane: cranePng,
   jcb: cranePng,
   buldozer: buldozerPng,
@@ -245,9 +251,9 @@ export const mapIconsVariants = {
     error: eRickshawErrorPng,
   },
   rickshaw: {
-    success: ricksawSuccess3d,
-    warning: ricksawWarning3d,
-    error: ricksawError3d,
+    success: ricksawSuccessPng,
+    warning: ricksawWarningPng,
+    error: ricksawErrorPng,
   },
   crane: {
     success: craneSuccessPng,
