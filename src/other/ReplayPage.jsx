@@ -14,7 +14,7 @@ import {
   Badge,
   Popover,
   Button,
-  Divider
+  Divider,
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -22,6 +22,9 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { ExpandLess, ExpandMore, FilterAlt } from '@mui/icons-material';
+import dayjs from 'dayjs';
+import { green } from '@mui/material/colors';
 import MapView from '../map/core/MapView';
 import MapRoutePath from '../map/MapRoutePath';
 import MapRoutePoints from '../map/MapRoutePoints';
@@ -34,15 +37,14 @@ import MapCamera from '../map/MapCamera';
 import MapGeofence from '../map/MapGeofence';
 import StatusCard from '../common/components/StatusCard';
 import MapScale from '../map/MapScale';
-import { calculateDistance, calculateDistanceFromCoords, decimateCoordinates, useInterpolatedPosition } from '../common/util/position';
-import { ExpandLess, ExpandMore, FilterAlt } from '@mui/icons-material';
+import {
+  calculateDistance, calculateDistanceFromCoords, decimateCoordinates, useInterpolatedPosition,
+} from '../common/util/position';
 import MapStoppages from '../map/MapStoppages';
 import FilteredPolylines from './FilteredSegments';
 import FilteredSegments from './FilteredSegments';
-import dayjs from 'dayjs';
 import DeviceReplayStatusCard from '../common/components/DeviceReplayStatusCard';
 import { useAttributePreference } from '../common/util/preferences';
-import { green } from '@mui/material/colors';
 import PositionValue from '../common/components/PositionValue';
 
 const useStyles = makeStyles((theme) => ({
@@ -99,8 +101,7 @@ const FilterMarkingColors = {
   idleMoreThan: '#FFC107',
   speedMoreThan: '#c70fff',
   inactivity: '#2950ff',
-}
-
+};
 
 const PlaybackFilters = ({ filterAnchor, filterMenuExpanded, closeFilterMenu, filters, setFilters }) => {
   const [localFilters, setLocalFilters] = useState(filters);
@@ -149,14 +150,18 @@ const PlaybackFilters = ({ filterAnchor, filterMenuExpanded, closeFilterMenu, fi
             <Indicator color={FilterMarkingColors.stoppedMoreThan} />
           </label>
           <Select
-            size='small'
+            size="small"
             value={localFilters.stoppedMoreThan || ''}
             onChange={(e) => setLocalFilters({ ...localFilters, stoppedMoreThan: e.target.value })}
             disabled={localFilters.stoppedMoreThan === null}
             sx={{ ml: 1 }}
           >
-            {[1, 2, 5, 10, 15, 30].map(val => (
-              <MenuItem key={val} value={val}>{val} min</MenuItem>
+            {[1, 2, 5, 10, 15, 30].map((val) => (
+              <MenuItem key={val} value={val}>
+                {val}
+                {' '}
+                min
+              </MenuItem>
             ))}
           </Select>
         </MenuItem>
@@ -171,14 +176,18 @@ const PlaybackFilters = ({ filterAnchor, filterMenuExpanded, closeFilterMenu, fi
             <Indicator color={FilterMarkingColors.idleMoreThan} />
           </label>
           <Select
-            size='small'
+            size="small"
             value={localFilters.idleMoreThan || ''}
             onChange={(e) => setLocalFilters({ ...localFilters, idleMoreThan: e.target.value })}
             disabled={localFilters.idleMoreThan === null}
             sx={{ ml: 1 }}
           >
-            {[1, 2, 5, 10, 15, 30].map(val => (
-              <MenuItem key={val} value={val}>{val} min</MenuItem>
+            {[1, 2, 5, 10, 15, 30].map((val) => (
+              <MenuItem key={val} value={val}>
+                {val}
+                {' '}
+                min
+              </MenuItem>
             ))}
           </Select>
         </MenuItem>
@@ -222,11 +231,9 @@ const PlaybackFilters = ({ filterAnchor, filterMenuExpanded, closeFilterMenu, fi
   );
 };
 
-
-
 const Indicator = ({ color }) => (
-  <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: color, borderRadius: '50%', margin: '0 5px' }}></span>
-)
+  <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: color, borderRadius: '50%', margin: '0 5px' }} />
+);
 
 const ReplayPage = () => {
   const t = useTranslation();
@@ -263,7 +270,7 @@ const ReplayPage = () => {
     stoppedMoreThan: null,
     idleMoreThan: null,
     speedMoreThan: null,
-    inactivity: null
+    inactivity: null,
   });
 
   const filterRenderType = {
@@ -271,17 +278,17 @@ const ReplayPage = () => {
     idleMoreThan: 'marker',
     speedMoreThan: 'line',
     inactivity: 'marker',
-  }
+  };
 
   const ReportColor = useAttributePreference('web.reportColor', green[500]);
 
   const openFilterMenu = (event) => {
     setFilterAnchor(event.currentTarget);
-  }
+  };
 
   const closeFilterMenu = () => {
     setFilterAnchor(null);
-  }
+  };
 
   const deviceName = useSelector((state) => {
     if (selectedDeviceId) {
@@ -327,15 +334,14 @@ const ReplayPage = () => {
   const findStoppages = (positions) => {
     // check if the ignition is off then push it into stopages
     let currentStoppage = [];
-    let startPosition = positions[0];
-    let endPosition = positions[positions.length - 1];
+    const startPosition = positions[0];
+    const endPosition = positions[positions.length - 1];
 
     const stoppages = [];
     for (let i = 0; i < positions.length; i++) {
       const position = positions[i];
       if (calculateDistance(startPosition.latitude, startPosition.longitude, position.latitude, position.longitude) < 10 && calculateDistance(position.latitude, position.longitude, endPosition.latitude, endPosition.longitude) < 10) continue;
-      if (position.attributes.ignition === false) { currentStoppage.push(position); }
-      else if (position.attributes.ignition === true && currentStoppage.length > 1) {
+      if (position.attributes.ignition === false) { currentStoppage.push(position); } else if (position.attributes.ignition === true && currentStoppage.length > 1) {
         stoppages.push(currentStoppage);
         currentStoppage = [];
       }
@@ -388,10 +394,10 @@ const ReplayPage = () => {
   });
 
   useEffect(() => {
-    if(params.has('deviceId') && params.has('from') && params.has('to')){
+    if (params.has('deviceId') && params.has('from') && params.has('to')) {
       handleSubmit({ deviceId: params.get('deviceId'), from: params.get('from'), to: params.get('to') });
     }
-  }, [params])
+  }, [params]);
 
   useEffect(() => {
     if (rawPositions.length > 0) {
@@ -407,13 +413,11 @@ const ReplayPage = () => {
   const animatedPositions = useInterpolatedPosition(positions[index], positions[index + 1], duration / multiplier, 'linear');
 
   // using memorizarions for preventing the non-logical rendering
-  const stoppageMarkersMemo = useMemo(() => {
-    return (stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity)) &&
-      (<MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />)
-  }, [stoppages, filters]);
+  const stoppageMarkersMemo = useMemo(() => (stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity))
+      && (<MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />), [stoppages, filters]);
 
-  const filterStopMoreThanMemo = useMemo(() => {
-    return filters.stoppedMoreThan && <FilteredSegments
+  const filterStopMoreThanMemo = useMemo(() => filters.stoppedMoreThan && (
+  <FilteredSegments
     positions={rawPositions}
     isValidPosition={(current, previous) => current.attributes.ignition === false}
     isValidSegment={(segment) => {
@@ -425,14 +429,12 @@ const ReplayPage = () => {
     activityType="Stoppage"
     device={devices[selectedDeviceId]}
   />
-  }, [filters.stoppedMoreThan]);
+  ), [filters.stoppedMoreThan]);
 
-  const filterIdleMoreThanMemo = useMemo(() => {
-    return filters.idleMoreThan && <FilteredSegments
+  const filterIdleMoreThanMemo = useMemo(() => filters.idleMoreThan && (
+  <FilteredSegments
     positions={rawPositions}
-    isValidPosition={(current, previous) =>
-      current.attributes.activity === 'idle'
-    }
+    isValidPosition={(current, previous) => current.attributes.activity === 'idle'}
     isValidSegment={(segment) => {
       const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
       return duration >= filters.idleMoreThan;
@@ -442,10 +444,10 @@ const ReplayPage = () => {
     color={FilterMarkingColors.idleMoreThan}
     device={devices[selectedDeviceId]}
   />
-  }, [filters.idleMoreThan]);
+  ), [filters.idleMoreThan]);
 
-  const filterSpeedMoreThanFilterMemo = useMemo(() => {
-    return filters.speedMoreThan && <FilteredSegments
+  const filterSpeedMoreThanFilterMemo = useMemo(() => filters.speedMoreThan && (
+  <FilteredSegments
     positions={rawPositions}
     isValidPosition={(current, previous) => current.speed > filters.speedMoreThan}
     isValidSegment={(segment) => segment.length > 0}
@@ -454,10 +456,10 @@ const ReplayPage = () => {
     activityType="Speed"
     device={devices[selectedDeviceId]}
   />
-  }, [filters.speedMoreThan]);
+  ), [filters.speedMoreThan]);
 
-  const filterInactiveMemo = useMemo(() => {
-    return filters.inactivity && <FilteredSegments
+  const filterInactiveMemo = useMemo(() => filters.inactivity && (
+  <FilteredSegments
     positions={rawPositions}
     isValidPosition={(current, previous) => {
       if (!previous) return false;
@@ -470,7 +472,7 @@ const ReplayPage = () => {
     activityType="Inactivity"
     device={devices[selectedDeviceId]}
   />
-  }, [filters.inactivity]);
+  ), [filters.inactivity]);
 
   return (
     <div className={classes.root}>
@@ -503,53 +505,52 @@ const ReplayPage = () => {
                 {/* <IconButton onClick={handleDownload}>
                   <DownloadIcon />
                 </IconButton> */}
-                { positions && 
+                { positions
+                  && (
                   <Box sx={{ background: theme.palette.background.default, padding: 1 }}>
-                    <Typography fontSize={"1.1rem"} lineHeight={1} textAlign={'center'} fontWeight={700} >{formatDistance(calculateDistanceFromCoords(positions), distanceUnit, t)}</Typography>
-                    <Typography fontSize={"0.6rem"} lineHeight={1} textAlign={'center'} >{ t('deviceTotalDistance') }</Typography>
+                    <Typography fontSize="1.1rem" lineHeight={1} textAlign="center" fontWeight={700}>{formatDistance(calculateDistanceFromCoords(positions), distanceUnit, t)}</Typography>
+                    <Typography fontSize="0.6rem" lineHeight={1} textAlign="center">{ t('deviceTotalDistance') }</Typography>
                   </Box>
-                }
-                <IconButton onClick={openFilterMenu} >
-                  <Badge color="info" variant="dot" fontSize="small" invisible={Object.values(filters).every(f => f === null)}>
-                    <FilterAlt fontSize='small' />
+                  )}
+                <IconButton onClick={openFilterMenu}>
+                  <Badge color="info" variant="dot" fontSize="small" invisible={Object.values(filters).every((f) => f === null)}>
+                    <FilterAlt fontSize="small" />
                   </Badge>
                 </IconButton>
-                <PlaybackFilters 
-                  filterAnchor={filterAnchor} 
-                  filterMenuExpanded={filterMenuExpanded} 
-                  closeFilterMenu={closeFilterMenu} 
-                  filters={filters} 
-                  setFilters={setFilters} 
+                <PlaybackFilters
+                  filterAnchor={filterAnchor}
+                  filterMenuExpanded={filterMenuExpanded}
+                  closeFilterMenu={closeFilterMenu}
+                  filters={filters}
+                  setFilters={setFilters}
                 />
               </>
             )}
             <IconButton edge="end" onClick={() => setExpanded(!expanded)}>
-              <CalendarTodayIcon fontSize='small' />
+              <CalendarTodayIcon fontSize="small" />
             </IconButton>
           </Toolbar>
         </Paper>
         {expanded && <Paper className={classes.content} square><ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} /></Paper>}
       </div>
       {(showCard && positions.length > 0 && summary) && (
-        <>
-          <DeviceReplayStatusCard
-            deviceId={selectedDeviceId}
-            positions={positions}
+        <DeviceReplayStatusCard
+          deviceId={selectedDeviceId}
+          positions={positions}
 
-            index={index}
-            playing={playing}
-            setPlaying={setPlaying}
-            setIndex={setIndex}
-            closeIcon={statusCardMinimized ? <ExpandLess /> : <ExpandMore />}
-            minimize={statusCardMinimized}
-            multiplier={multiplier}
-            setMultiplier={setMultiplier}
+          index={index}
+          playing={playing}
+          setPlaying={setPlaying}
+          setIndex={setIndex}
+          closeIcon={statusCardMinimized ? <ExpandLess /> : <ExpandMore />}
+          minimize={statusCardMinimized}
+          multiplier={multiplier}
+          setMultiplier={setMultiplier}
 
-            onClose={() => setStatusCardMinimized(!statusCardMinimized)}
-            disableActions
-            summary={summary}
-          />
-        </>
+          onClose={() => setStatusCardMinimized(!statusCardMinimized)}
+          disableActions
+          summary={summary}
+        />
       )}
     </div>
   );

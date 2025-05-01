@@ -7,17 +7,15 @@ import { FixedSizeList } from 'react-window';
 const LISTBOX_PADDING = 8; // px
 
 // Row renderer for react-window, adjusting for padding.
-const renderRow = ({ data, index, style }) => {
+const renderRow = ({ data, index, style }) =>
   // Clone the option element, merging the style
-  return React.cloneElement(data[index], {
+  React.cloneElement(data[index], {
     style: {
       ...style,
       top: style.top + LISTBOX_PADDING,
     },
   });
-};
-
-const ListboxComponent = forwardRef(function ListboxComponent(props, ref) {
+const ListboxComponent = forwardRef((props, ref) => {
   const { children, ...other } = props;
   // Convert children to an array of elements
   const itemData = React.Children.toArray(children);
@@ -122,16 +120,12 @@ const SelectField = ({
               {titleGetter(option)}
             </MenuItem>
           )}
-          isOptionEqualToValue={(option, value) =>
-            keyGetter(option) === value
-          }
+          isOptionEqualToValue={(option, value) => keyGetter(option) === value}
           // Match the stored value with the correct item from items.
           value={items.find((item) => keyGetter(item) === value) || null}
-          onChange={(_, newValue) =>
-            onChange({
-              target: { value: newValue ? keyGetter(newValue) : emptyValue },
-            })
-          }
+          onChange={(_, newValue) => onChange({
+            target: { value: newValue ? keyGetter(newValue) : emptyValue },
+          })}
           renderInput={(params) => <TextField {...params} label={label} />}
           ListboxComponent={ListboxComponent}
         />

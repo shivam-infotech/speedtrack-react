@@ -1,11 +1,16 @@
 import React, {
   useState, useCallback, useEffect, useRef,
 } from 'react';
-import { Box, Paper, Typography, IconButton } from '@mui/material';
+import {
+  Box, Paper, Typography, IconButton,
+} from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useDispatch, useSelector } from 'react-redux';
+import { createSearchParams, useNavigate } from 'react-router-dom';
+import PersonIcon from '@mui/icons-material/Person';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import DeviceList from './DeviceList';
 import BottomMenu from '../common/components/BottomMenu';
 import { devicesActions } from '../store';
@@ -15,19 +20,16 @@ import useFilter from './useFilter';
 import MainToolbar from './MainToolbar';
 import MainMap from './MainMap';
 import { useAttributePreference } from '../common/util/preferences';
-import { createSearchParams, useNavigate } from 'react-router-dom';
 import DeviceCard from './DeviceCard';
 import DeviceStatusCard from '../common/components/DeviceStatusCard';
-import PersonIcon from '@mui/icons-material/Person';
 import MapControlLinks from '../map/extras/MapControlLinks';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccountModal from '../common/components/AccountModal';
 import { useTranslation } from '../common/components/LocalizationProvider';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     height: '100%',
-    background: theme.palette.background.default
+    background: theme.palette.background.default,
   },
   sidebar: {
     pointerEvents: 'none',
@@ -67,13 +69,13 @@ const useStyles = makeStyles((theme) => ({
     pointerEvents: 'auto',
     gridArea: '1 / 1',
     zIndex: 4,
-    background: 'none'
+    background: 'none',
   },
   sectionHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-  }
+  },
 }));
 
 const LiveMap = () => {
@@ -90,7 +92,7 @@ const LiveMap = () => {
   const mapOnSelect = useAttributePreference('mapOnSelect', true);
   const dashboardType = useAttributePreference('dashboardType', 'live-map');
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
-  const user = useSelector(state => state.session.user);
+  const user = useSelector((state) => state.session.user);
   const [accountPopupOpen, setAccountPopupOpen] = useState(false);
 
   // Clear selected device only once when page loads in compact layout on small devices
@@ -130,7 +132,7 @@ const LiveMap = () => {
     if (isSmallDevice && !desktop) {
       setDevicesOpen(true);
     }
-  }, [isSmallDevice, desktop])
+  }, [isSmallDevice, desktop]);
 
   useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
 
@@ -138,21 +140,21 @@ const LiveMap = () => {
     <div className={classes.root}>
       <Paper square elevation={3} className={classes.header} sx={{ position: 'sticky', top: 0 }}>
         <MainToolbar
-          pageTitle={
+          pageTitle={(
             <Box onClick={() => setAccountPopupOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: theme.spacing(0.5), justifyContent: 'center' }}>
-              <Typography fontSize={"0.6rem"} color={"neutral"} >{t('sharedWelcome')}</Typography>
-              <Typography fontSize={"1rem"} lineHeight={1} color={"primary"} >{user.name}</Typography>
+              <Typography fontSize="0.6rem" color="neutral">{t('sharedWelcome')}</Typography>
+              <Typography fontSize="1rem" lineHeight={1} color="primary">{user.name}</Typography>
             </Box>
-          }
-          onLeftTop={
-            <IconButton onClick={() => setAccountPopupOpen(true)} edge="start" sx={{ backgroundColor: theme.palette.primary.contrastText }} >
-              <PersonIcon color='primary' />
+          )}
+          onLeftTop={(
+            <IconButton onClick={() => setAccountPopupOpen(true)} edge="start" sx={{ backgroundColor: theme.palette.primary.contrastText }}>
+              <PersonIcon color="primary" />
             </IconButton>
-          }
+          )}
           filteredDevices={filteredDevices}
           devicesOpen={devicesOpen}
           setDevicesOpen={setDevicesOpen}
-          hideDevicesOpen={true}
+          hideDevicesOpen
           keyword={keyword}
           setKeyword={setKeyword}
           filter={filter}
@@ -167,20 +169,20 @@ const LiveMap = () => {
         <Box className={classes.sectionHeader} sx={{ marginBottom: 0.5, marginTop: 0.5 }}>
           <Typography varient="body2" fontWeight="bold">{t('dashboardTypeLiveMap')}</Typography>
           <Typography
-            variant='body3'
+            variant="body3"
             sx={{ cursor: 'pointer' }}
             onClick={() => navigate('/live')}
           >
             {t('sharedSeeAll')}
           </Typography>
         </Box>
-        <Box sx={{ borderRadius: "8px", height: "100%", width: "100%", overflow: 'hidden' }} onClick={() => navigate('/live')} >
+        <Box sx={{ borderRadius: '8px', height: '100%', width: '100%', overflow: 'hidden' }} onClick={() => navigate('/live')}>
           <MainMap
             filteredPositions={filteredPositions}
             selectedPosition={selectedPosition}
             onEventsClick={onEventsClick}
             filteredDevices={filterMap ? filteredDevices : undefined}
-            hideControls={true}
+            hideControls
             animationDuration={7000}
             onMarkerClick={(deviceId) => { }}
           />
@@ -200,15 +202,15 @@ const LiveMap = () => {
             index={index}
             style={{ marginBottom: theme.spacing(1) }}
             onClick={() => {
-              setFilter
-              navigate({ pathname: '/live', search: createSearchParams({ deviceId: filteredDevices[index].id }).toString() }, {replace: false});
+              setFilter;
+              navigate({ pathname: '/live', search: createSearchParams({ deviceId: filteredDevices[index].id }).toString() }, { replace: false });
             }}
           />
         ))}
       </Paper>
       <EventsDrawer open={eventsOpen} onClose={() => setEventsOpen(false)} />
       {selectedDeviceId && (
-        <DeviceStatusCard 
+        <DeviceStatusCard
           deviceId={selectedDeviceId}
           position={selectedPosition}
           onClose={() => dispatch(devicesActions.selectId(null))}
@@ -234,17 +236,17 @@ const LiveMap = () => {
       <div className={classes.sidebar}>
         <Paper square elevation={3} className={classes.header} sx={{ position: 'sticky', top: 0 }}>
           <MainToolbar
-            pageTitle={
+            pageTitle={(
               <Box onClick={() => setAccountPopupOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: theme.spacing(0.5), justifyContent: 'center' }}>
-                <Typography fontSize={"0.6rem"} color={"neutral"} >Welcome</Typography>
-                <Typography fontSize={"1rem"} lineHeight={1} color={"primary"} >{user.name}</Typography>
+                <Typography fontSize="0.6rem" color="neutral">Welcome</Typography>
+                <Typography fontSize="1rem" lineHeight={1} color="primary">{user.name}</Typography>
               </Box>
-            }
-            onLeftTop={
-              <IconButton onClick={() => setAccountPopupOpen(true)} edge="start" sx={{ backgroundColor: theme.palette.primary.contrastText }} >
-                <PersonIcon color='primary' />
+            )}
+            onLeftTop={(
+              <IconButton onClick={() => setAccountPopupOpen(true)} edge="start" sx={{ backgroundColor: theme.palette.primary.contrastText }}>
+                <PersonIcon color="primary" />
               </IconButton>
-            }
+            )}
             filteredDevices={filteredDevices}
             devicesOpen={devicesOpen}
             setDevicesOpen={setDevicesOpen}
@@ -290,7 +292,7 @@ const LiveMap = () => {
         //   desktopPadding={theme.dimensions.drawerWidthDesktop}
         //   summary={summaries[selectedDeviceId] || {}}
         // />
-        <DeviceStatusCard 
+        <DeviceStatusCard
           deviceId={selectedDeviceId}
           position={selectedPosition}
           onClose={() => dispatch(devicesActions.selectId(null))}

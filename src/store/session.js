@@ -40,7 +40,7 @@ const { reducer, actions } = createSlice({
           const route = state.history[position.deviceId] || [];
           const last = route.at(-1);
           if (!last || (last[0] !== position.longitude && last[1] !== position.latitude)) {
-            state.history[position.deviceId] = ([ ...(state.history[position.deviceId] ? state.history[position.deviceId] : []) , [position.longitude, position.latitude]]);
+            state.history[position.deviceId] = ([...(state.history[position.deviceId] ? state.history[position.deviceId] : []), [position.longitude, position.latitude]]);
           }
         } else {
           state.history = {};
@@ -52,7 +52,7 @@ const { reducer, actions } = createSlice({
 
 export const updatePositionsWithSummary = (payload) => async (dispatch) => {
   dispatch(actions.updatePositions(payload));
-  payload.forEach((position) => {dispatch(updateSummaryFromPosition(position))});
+  payload.forEach((position) => { dispatch(updateSummaryFromPosition(position)); });
 };
 
 export { actions as sessionActions };

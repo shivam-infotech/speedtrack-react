@@ -1,21 +1,21 @@
-import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
-import { create } from "zustand";
-import useAnimationEase from "./common/util/useAnimationEase";
-import { calculateBearing, calculateDistance } from "./common/util/position";
-import { distanceFromMeters } from "./common/util/converter";
+import { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { create } from 'zustand';
+import useAnimationEase from './common/util/useAnimationEase';
+import { calculateBearing, calculateDistance } from './common/util/position';
+import { distanceFromMeters } from './common/util/converter';
 
 export const useAnimatedPositions = create((set, get) => ({
   animPositions: {},
   animHistory: {},
   setPositions: (positions) => set({ animPositions: positions }),
   setHistory: (history) => set({ animHistory: history }),
-  resetHistory: () => set({ animHistory: {} })
+  resetHistory: () => set({ animHistory: {} }),
 }));
 
 export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }) => {
   const positions = useSelector((state) => state.session.positions);
-  const easing = useAnimationEase("linear");
+  const easing = useAnimationEase('easeInOutQuart');
 
   const animationQueueRef = useRef({});
   const lastPositionRef = useRef({});
@@ -39,7 +39,6 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
 
         animationQueueRef.current[deviceId].push([{ ...from, _startTime: performance.now() }, to]);
         lastPositionRef.current[deviceId] = pos;
-
       }
     }
 
@@ -62,14 +61,16 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
           const [from, to] = queue[0];
 
           // if the both coordinates are same and just attributes are changed, then skip the frames and directly put the coordinates
-          if (from.longitude === to.longitude && from.latitude === to.latitude && from.rotation === to.rotation) {
+          if (from.longitude === to.longitude && from.latitude === to.latitude && from.rotation === to.rotation && to?.attributes?.distance === 0) {
             newPositions[deviceId] = to;
             if (!newHistory[deviceId]) newHistory[deviceId] = [];
             newHistory[deviceId].push([to.longitude, to.latitude]);
           } else {
-            const adjustedDuration = adjustedDurationRef.current;
-            const distance = to?.attributes?.distance;
-            const animSpeed = distance / adjustedDuration;
+            const distance = to?.attributes?.distance || calculateDistance(from.latitude, from.longitude, to.latitude, to.longitude);
+            const currentSpeed = Math.max(to?.speed || 0, 5); // to maintain the
+            const speedInmps = currentSpeed * (1000 / 3600);
+
+            const adjustedDuration = speedInmps > 0 ? (distance / speedInmps) * 600 : adjustedDurationRef.current;
 
             const elapsed = performance.now() - from._startTime;
             const progress = Math.min(elapsed / adjustedDuration, 1);
@@ -77,13 +78,22 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
 
             const latitude = from.latitude + (to.latitude - from.latitude) * eased;
             const longitude = from.longitude + (to.longitude - from.longitude) * eased;
-            const rotation = calculateBearing(from.latitude, from.longitude, to.latitude, to.longitude);
+
+            const fromRotation = newPositions[deviceId]?.course ?? from.course;
+            const toRotation = calculateBearing(from.latitude, from.longitude, to.latitude, to.longitude) ?? to.course;
+            let delta = toRotation - fromRotation;
+
+            // Normalize to shortest rotation direction
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+
+            const rotation = (fromRotation + delta * eased + 360) % 360;
 
             newPositions[deviceId] = {
               ...to,
               latitude,
               longitude,
-              rotation,
+              course: rotation,
             };
 
             if (!newHistory[deviceId]) newHistory[deviceId] = [];
@@ -146,16 +156,16 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
     isAnimating.current = false;
     animatedRef.current = null;
     animationQueueRef.current = {};
-  }
+  };
 
   useEffect(() => {
     const whenBlur = (evt) => {
       isUnfocused.current = true;
-    }
+    };
 
-    const whenFocus = evt => {
+    const whenFocus = (evt) => {
       isUnfocused.current = false;
-    }
+    };
 
     window.addEventListener('blur', whenBlur);
     window.addEventListener('focus', whenFocus);
@@ -168,8 +178,26 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
         skipToLatest();
         cancelAnimationFrame(animatedRef.current);
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    const { animPositions, animHistory } = useAnimatedPositions.getState();
+    const hasInitial = Object.keys(animPositions).length > 0 || Object.keys(animHistory).length > 0;
+
+    if (!hasInitial && Object.keys(positions).length > 0) {
+      const initialPositions = {};
+      const initialHistory = {};
+
+      for (const [deviceId, pos] of Object.entries(positions)) {
+        initialPositions[deviceId] = pos;
+        initialHistory[deviceId] = [[pos.longitude, pos.latitude]];
+      }
+
+      setPositions(initialPositions);
+      setHistory(initialHistory);
     }
-  }, [])
+  }, [positions]);
 
   return null;
 };

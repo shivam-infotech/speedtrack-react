@@ -11,7 +11,7 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
   const isOffline = (device) => {
     const position = positions[device.id];
     return position != undefined && device.status === 'offline';
-  }
+  };
 
   const isRunning = (device) => {
     const position = positions[device.id];
@@ -20,7 +20,7 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
 
   const isStopped = (device) => {
     const position = positions[device.id];
-    return position && position?.attributes?.activity ===  'stopped';
+    return position && position?.attributes?.activity === 'stopped';
   };
 
   const isIdle = (device) => {
@@ -28,22 +28,20 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
     return position && position?.attributes?.activity === 'idle';
   };
 
-  const isExpired = (device) => {
-    return device.expirationTime && dayjs(device.expirationTime).diff(dayjs()) < 0;
-  }
+  const isExpired = (device) => device.expirationTime && dayjs(device.expirationTime).diff(dayjs()) < 0;
 
   const isNoData = (device) => {
     const position = positions[device.id];
     return position === undefined && device.status === 'offline';
-  }
+  };
 
   const isExpireSoon = (device) => {
-    if(device.expirationTime){
+    if (device.expirationTime) {
       const days = dayjs(device.expirationTime).diff(dayjs(), 'days');
       return days > 0 && days < daysBeforeExpiry;
     }
     return false;
-  }
+  };
 
   useEffect(() => {
     const deviceGroups = (device) => {
@@ -57,19 +55,15 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
     };
 
     const filtered = Object.values(devices)
-      .filter((device) => 
-        !filter.statuses.length || 
-        filter.statuses.includes('offline') && isOffline(device) || 
-        filter.statuses.includes('running') && isRunning(device) ||
-        filter.statuses.includes('stopped') && isStopped(device) ||
-        filter.statuses.includes('idle') && isIdle(device) || 
-        filter.statuses.includes('expired') && isExpired(device) || 
-        filter.statuses.includes("expiresoon") && isExpireSoon(device) ||
-        filter.statuses.includes('nodata') && isNoData(device)
-      )
-      .filter((device) => {
-        return  filter.groups != "" ? deviceGroups(device).includes(filter.groups) : true;
-      })
+      .filter((device) => !filter.statuses.length
+        || filter.statuses.includes('offline') && isOffline(device)
+        || filter.statuses.includes('running') && isRunning(device)
+        || filter.statuses.includes('stopped') && isStopped(device)
+        || filter.statuses.includes('idle') && isIdle(device)
+        || filter.statuses.includes('expired') && isExpired(device)
+        || filter.statuses.includes('expiresoon') && isExpireSoon(device)
+        || filter.statuses.includes('nodata') && isNoData(device))
+      .filter((device) => (filter.groups != '' ? deviceGroups(device).includes(filter.groups) : true))
       .filter((device) => {
         const lowerCaseKeyword = keyword.toLowerCase();
         return [device.name, device.uniqueId, device.phone, device.model, device.contact].some((s) => s && s.toLowerCase().includes(lowerCaseKeyword));

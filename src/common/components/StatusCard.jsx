@@ -15,7 +15,7 @@ import {
   Box,
   Divider,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CloseIcon from '@mui/icons-material/Close';
@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
     pointerEvents: 'auto',
     width: theme.dimensions.popupMaxWidth,
     [theme.breakpoints.down('md')]: {
-      width: "100vw", 
+      width: '100vw',
       padding: theme.spacing(1),
     },
   },
@@ -58,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     paddingTop: 0,
-    paddingBottom: "0px !important",
+    paddingBottom: '0px !important',
     [theme.breakpoints.down('md')]: {
       padding: theme.spacing(1),
     },
@@ -84,18 +84,18 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'column',
     mb: 1,
     [theme.breakpoints.up('md')]: {
-      width: "33%",
+      width: '33%',
       justifyContent: 'center',
       alignItems: 'center',
     },
     [theme.breakpoints.down('md')]: {
-      width: "30%",
+      width: '30%',
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
-    }
+    },
   },
   cellHeader: {
-    fontSize: '0.25rem'
+    fontSize: '0.25rem',
   },
   cellValue: {
     fontSize: '0.25rem',
@@ -127,8 +127,8 @@ const useStyles = makeStyles((theme) => ({
     },
     [theme.breakpoints.down('sm')]: {
       left: '50%',
-      width: "100%",
-      bottom: `calc(${theme.spacing(1)} + ${theme.dimensions.bottomBarHeight}px)`
+      width: '100%',
+      bottom: `calc(${theme.spacing(1)} + ${theme.dimensions.bottomBarHeight}px)`,
     },
     transform: 'translateX(-50%)',
   }),
@@ -140,7 +140,7 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('sm')]: {
       bottom: theme.spacing(1),
       right: theme.spacing(1),
-    }
+    },
   },
 }));
 
@@ -154,10 +154,10 @@ const StatusRow = ({ name, content, fullColumn = false }) => {
         ...(fullColumn ? { flex: 1 } : {}),
       }}
     >
-      <Typography fontSize={"0.75rem"} color="textSecondary">
+      <Typography fontSize="0.75rem" color="textSecondary">
         {name}
       </Typography>
-      <Typography fontSize={"0.75rem"} fontWeight={600}>
+      <Typography fontSize="0.75rem" fontWeight={600}>
         {content}
       </Typography>
     </Box>
@@ -191,7 +191,6 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileActionMenuEl, setMobileActionMenuEL] = useState(null);
   const [removing, setRemoving] = useState(false);
-
 
   const handleRemove = useCatch(async (removed) => {
     if (removed) {
@@ -231,23 +230,24 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
     }
   }, [navigate, position]);
 
-  let card = (<Card elevation={3} className={classes.card}>
-    {deviceImage ? (
-      <CardMedia
-        className={classes.media}
-        image={`/api/media/${device.uniqueId}/${deviceImage}`}
-      >
-        { isMobile && (
+  let card = (
+    <Card elevation={3} className={classes.card}>
+      {deviceImage ? (
+        <CardMedia
+          className={classes.media}
+          image={`/api/media/${device.uniqueId}/${deviceImage}`}
+        >
+          { isMobile && (
           <>
-            <IconButton size="small" className={classes.mediaButton} onClick={e => setMobileActionMenuEL(e.currentTarget)} >
-              <MoreVertIcon fontSize='small' />
+            <IconButton size="small" className={classes.mediaButton} onClick={(e) => setMobileActionMenuEL(e.currentTarget)}>
+              <MoreVertIcon fontSize="small" />
             </IconButton>
             <Menu anchorEl={mobileActionMenuEl} open={Boolean(mobileActionMenuEl)} onClose={() => setMobileActionMenuEL(null)}>
-              <MenuItem onClick={() => navigate('/replay')} disabled={disableActions || !position} >{t('reportReplay')}</MenuItem>
-              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/command`)} disabled={disableActions} >{t('commandTitle')}</MenuItem>
-              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}`)} disabled={disableActions || deviceReadonly} >{t('sharedEdit')}</MenuItem>
-              <MenuItem onClick={() => setRemoving(true)} disabled={disableActions || deviceReadonly} >{t('sharedRemove')}</MenuItem>
-            {position && (
+              <MenuItem onClick={() => navigate('/replay')} disabled={disableActions || !position}>{t('reportReplay')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/command`)} disabled={disableActions}>{t('commandTitle')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}`)} disabled={disableActions || deviceReadonly}>{t('sharedEdit')}</MenuItem>
+              <MenuItem onClick={() => setRemoving(true)} disabled={disableActions || deviceReadonly}>{t('sharedRemove')}</MenuItem>
+              {position && (
               <>
                 <MenuItem onClick={handleGeofence}>{t('sharedCreateGeofence')}</MenuItem>
                 <MenuItem component="a" target="_blank" href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}>{t('linkGoogleMaps')}</MenuItem>
@@ -258,34 +258,34 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
                   <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/share`)}><Typography color="secondary">{t('deviceShare')}</Typography></MenuItem>
                 )}
               </>
-            )}
+              )}
             </Menu>
           </>
-        ) }
-        <IconButton
-          size="small"
-          onClick={onClose}
-          onTouchStart={onClose}
-        >
-          <CloseIcon fontSize="small" className={classes.mediaButton} />
-        </IconButton>
-      </CardMedia>
-    ) : (
-      <div className={[classes.header]}>
-        <Typography variant="body2" color="textSecondary" style={{ flex: 1 }}>
-          {device?.name}
-        </Typography>
-        { isMobile && (
+          ) }
+          <IconButton
+            size="small"
+            onClick={onClose}
+            onTouchStart={onClose}
+          >
+            <CloseIcon fontSize="small" className={classes.mediaButton} />
+          </IconButton>
+        </CardMedia>
+      ) : (
+        <div className={[classes.header]}>
+          <Typography variant="body2" color="textSecondary" style={{ flex: 1 }}>
+            {device?.name}
+          </Typography>
+          { isMobile && (
           <>
-            <IconButton size="small" onClick={e => setMobileActionMenuEL(e.currentTarget)} >
-              <MoreVertIcon fontSize='small' />
+            <IconButton size="small" onClick={(e) => setMobileActionMenuEL(e.currentTarget)}>
+              <MoreVertIcon fontSize="small" />
             </IconButton>
             <Menu anchorEl={mobileActionMenuEl} open={Boolean(mobileActionMenuEl)} onClose={() => setMobileActionMenuEL(null)}>
-              <MenuItem onClick={() => navigate('/replay')} disabled={disableActions || !position} >{t('reportReplay')}</MenuItem>
-              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/command`)} disabled={disableActions} >{t('commandTitle')}</MenuItem>
-              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}`)} disabled={disableActions || deviceReadonly} >{t('sharedEdit')}</MenuItem>
-              <MenuItem onClick={() => setRemoving(true)} disabled={disableActions || deviceReadonly} >{t('sharedRemove')}</MenuItem>
-            {position && (
+              <MenuItem onClick={() => navigate('/replay')} disabled={disableActions || !position}>{t('reportReplay')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/command`)} disabled={disableActions}>{t('commandTitle')}</MenuItem>
+              <MenuItem onClick={() => navigate(`/settings/device/${deviceId}`)} disabled={disableActions || deviceReadonly}>{t('sharedEdit')}</MenuItem>
+              <MenuItem onClick={() => setRemoving(true)} disabled={disableActions || deviceReadonly}>{t('sharedRemove')}</MenuItem>
+              {position && (
               <>
                 <MenuItem onClick={handleGeofence}>{t('sharedCreateGeofence')}</MenuItem>
                 <MenuItem component="a" target="_blank" href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}>{t('linkGoogleMaps')}</MenuItem>
@@ -296,20 +296,20 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
                   <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/share`)}><Typography color="secondary">{t('deviceShare')}</Typography></MenuItem>
                 )}
               </>
-            )}
+              )}
             </Menu>
           </>
-        ) }
-        <IconButton
-          size="small"
-          onClick={onClose}
-          onTouchStart={onClose}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </div>
-    )}
-    {position && (
+          ) }
+          <IconButton
+            size="small"
+            onClick={onClose}
+            onTouchStart={onClose}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </div>
+      )}
+      {position && (
       <CardContent className={classes.content}>
         <Box
           sx={{
@@ -317,10 +317,10 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
             flexWrap: 'wrap',
             [theme.breakpoints.down('sm')]: {
               gap: theme.spacing(0.5),
-            }
+            },
           }}
         >
-          {positionItems.split(',').filter((key) => (position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)) && key !== "address").map((key) => (
+          {positionItems.split(',').filter((key) => (position.hasOwnProperty(key) || position.attributes.hasOwnProperty(key)) && key !== 'address').map((key) => (
             <StatusRow
               key={key}
               name={positionAttributes[key]?.name || key}
@@ -336,7 +336,7 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
           ))}
         </Box>
         {summary && (
-          <Box sx={{ display: summaryExpanded ? 'block' : 'none' }} >
+          <Box sx={{ display: summaryExpanded ? 'block' : 'none' }}>
             <Divider sx={{ margin: theme.spacing(2, 0) }} />
             <Box
               sx={{
@@ -346,30 +346,32 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
                 [theme.breakpoints.down('sm')]: {
                   justifyContent: 'flex-start',
                   gap: theme.spacing(0.5),
-                }
+                },
               }}
             >
               {SummaryFields.split(',').filter((key) => summary.hasOwnProperty(key)).map((key) => (
                 <StatusRow
                   key={key}
                   name={summaryAttributes[key]?.name || key}
-                  content={
+                  content={(
                     <PositionValue
                       position={summary}
                       property={key}
                       attribute={null}
                     />
-                  }
-                />))}
+                  )}
+                />
+              ))}
             </Box>
           </Box>
         )}
-        {positionItems.split(',').includes('address') &&
+        {positionItems.split(',').includes('address')
+          && (
           <Box sx={{ mt: 1 }}>
-            <Typography fontSize={"0.75rem"} color="textSecondary" >
+            <Typography fontSize="0.75rem" color="textSecondary">
               {t('positionAddress')}
             </Typography>
-            <Typography fontSize={"0.75rem"} fontWeight={600}>
+            <Typography fontSize="0.75rem" fontWeight={600}>
               <PositionValue
                 position={position}
                 property={position.hasOwnProperty('address') ? 'address' : null}
@@ -377,82 +379,85 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
               />
             </Typography>
           </Box>
-        }
-        
-          <div className={classes.floatingInfo}>
-          <Tooltip title={t('sharedShowDetails')}>
-            <IconButton size='small' onClick={e => setSummaryExpanded(!summaryExpanded)} >
-              { summaryExpanded ? <ExpandMoreIcon fontSize='small' /> : <ExpandLessIcon fontSize="small" />}
-            </IconButton>
-          </Tooltip>
-            <Tooltip title={t('sharedShowDetails')}>
-            <IconButton size='small' onClick={e => navigate(`/position/${position.id}`)} >
-              <InfoIcon fontSize='small' />
-            </IconButton>
-          </Tooltip>
-          </div>
-      </CardContent>
-    )}
-    { !isMobile && (
-      <CardActions classes={{ root: classes.actions }} disableSpacing>
-      <Tooltip title={t('reportReplay')}>
-        <IconButton
-          size="small"
-          onClick={() => navigate('/replay')}
-          disabled={disableActions || !position}
-        >
-          <ReplayIcon fontSize='small' />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={t('commandTitle')}>
-        <IconButton
-          size="small"
-          onClick={() => navigate(`/settings/device/${deviceId}/command`)}
-          disabled={disableActions}
-        >
-          <PublishIcon fontSize='small' />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={t('sharedEdit')}>
-        <IconButton
-          size="small"
-          onClick={() => navigate(`/settings/device/${deviceId}`)}
-          disabled={disableActions || deviceReadonly}
-        >
-          <EditIcon fontSize='small' />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={t('sharedRemove')}>
-        <IconButton
-          size="small"
-          color="error"
-          onClick={() => setRemoving(true)}
-          disabled={disableActions || deviceReadonly}
-        >
-          <DeleteIcon fontSize='small' />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={t('sharedExtra')}>
-        <IconButton
-          color="secondary"
-          size="small"
-          onClick={(e) => setAnchorEl(e.currentTarget)}
-          disabled={!position}
-        >
-          <MoreVertIcon fontSize='small' />
-        </IconButton>
-      </Tooltip>
-    </CardActions>
-    ) }
-  </Card>)
+          )}
 
-  if(!isMobile) card = (
-    <Draggable
-      handle={`.${classes.media}, .${classes.header}`}
-    >
-     {card}       
-    </Draggable>
-  )
+        <div className={classes.floatingInfo}>
+          <Tooltip title={t('sharedShowDetails')}>
+            <IconButton size="small" onClick={(e) => setSummaryExpanded(!summaryExpanded)}>
+              { summaryExpanded ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('sharedShowDetails')}>
+            <IconButton size="small" onClick={(e) => navigate(`/position/${position.id}`)}>
+              <InfoIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </div>
+      </CardContent>
+      )}
+      { !isMobile && (
+      <CardActions classes={{ root: classes.actions }} disableSpacing>
+        <Tooltip title={t('reportReplay')}>
+          <IconButton
+            size="small"
+            onClick={() => navigate('/replay')}
+            disabled={disableActions || !position}
+          >
+            <ReplayIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={t('commandTitle')}>
+          <IconButton
+            size="small"
+            onClick={() => navigate(`/settings/device/${deviceId}/command`)}
+            disabled={disableActions}
+          >
+            <PublishIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={t('sharedEdit')}>
+          <IconButton
+            size="small"
+            onClick={() => navigate(`/settings/device/${deviceId}`)}
+            disabled={disableActions || deviceReadonly}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={t('sharedRemove')}>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => setRemoving(true)}
+            disabled={disableActions || deviceReadonly}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={t('sharedExtra')}>
+          <IconButton
+            color="secondary"
+            size="small"
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+            disabled={!position}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </CardActions>
+      ) }
+    </Card>
+  );
+
+  if (!isMobile) {
+    card = (
+      <Draggable
+        handle={`.${classes.media}, .${classes.header}`}
+      >
+        {card}
+      </Draggable>
+    );
+  }
 
   return (
     <>

@@ -6,6 +6,7 @@ import {
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useEffectAsync } from '../reactHelper';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import MapView from '../map/core/MapView';
@@ -16,7 +17,6 @@ import StatusCard from '../common/components/StatusCard';
 import { formatNotificationTitle } from '../common/util/formatter';
 import MapScale from '../map/MapScale';
 import DeviceStatusCard from '../common/components/DeviceStatusCard';
-import { useSelector } from 'react-redux';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -41,7 +41,7 @@ const EventPage = () => {
 
   const [event, setEvent] = useState();
   const [position, setPosition] = useState();
-  const summaries = useSelector(state => state.summary.items);
+  const summaries = useSelector((state) => state.summary.items);
   const [showCard, setShowCard] = useState(false);
 
   const formatType = (event) => formatNotificationTitle(t, {

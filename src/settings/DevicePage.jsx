@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { DropzoneArea } from 'react-mui-dropzone';
+import { Close } from '@mui/icons-material';
 import EditItemView from './components/EditItemView';
 import EditAttributesAccordion from './components/EditAttributesAccordion';
 import SelectField from '../common/components/SelectField';
@@ -28,7 +29,6 @@ import useCommonDeviceAttributes from '../common/attributes/useCommonDeviceAttri
 import { useCatch } from '../reactHelper';
 import useQuery from '../common/util/useQuery';
 import useSettingsStyles from './common/useSettingsStyles';
-import { Close } from '@mui/icons-material';
 
 const DevicePage = () => {
   const classes = useSettingsStyles();
@@ -62,27 +62,27 @@ const DevicePage = () => {
   });
 
   const fetchProtocols = useCallback(async () => {
-    try{
+    try {
       const res = await fetch('/api/protocols');
       const protos = await res.json();
       setProtocols(protos);
-    }catch(error){
-      console.error("Fail to fetch the protocols", error);
+    } catch (error) {
+      console.error('Fail to fetch the protocols', error);
     }
-  }, [])
+  }, []);
 
   const validate = () => item && item.name && item.uniqueId;
 
   useEffect(() => {
-    if(!protocols.length) fetchProtocols();
-  })
+    if (!protocols.length) fetchProtocols();
+  });
 
   useEffect(() => {
-    if(item?.model != null && protocols.length > 0) {
-      let proto = protocols.find(p => p.device === item.model);
-      if(proto) setProtocol(proto.id);
+    if (item?.model != null && protocols.length > 0) {
+      const proto = protocols.find((p) => p.device === item.model);
+      if (proto) setProtocol(proto.id);
     }
-  }, [item, protocols])
+  }, [item, protocols]);
 
   return (
     <EditItemView
@@ -137,19 +137,21 @@ const DevicePage = () => {
               <FormControl>
                 <SelectField
                   value={protocol}
-                  onChange={(event) => {setItem({ ...item, model: protocols.find(p => p.id === event.target.value).device }); setProtocol(Number(event.target.value))}}
-                  data={protocols.map(p => ({id: p.id, name: p.device}))}
+                  onChange={(event) => { setItem({ ...item, model: protocols.find((p) => p.id === event.target.value).device }); setProtocol(Number(event.target.value)); }}
+                  data={protocols.map((p) => ({ id: p.id, name: p.device }))}
                   label={t('deviceModel')}
                 />
-                <Typography variant='caption' >{t('deviceConnectHelp')}</Typography>
+                <Typography variant="caption">{t('deviceConnectHelp')}</Typography>
               </FormControl>
               { (protocols.length > 0 && (protocol !== 0 && protocol != undefined)) ? (
                 <Alert severity="info">
-                  <Typography variant="caption" gutterBottom >
+                  <Typography variant="caption" gutterBottom>
                     {t('PortConnectCaption')}
                   </Typography>
-                  <Typography variant='h6'>
-                    {import.meta.env.VITE_SERVER_IP}:{protocols[protocol].port}
+                  <Typography variant="h6">
+                    {import.meta.env.VITE_SERVER_IP}
+                    :
+                    {protocols[protocol].port}
                   </Typography>
                 </Alert>
               ) : <></> }

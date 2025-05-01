@@ -1,10 +1,12 @@
 import React, { useEffect, useId } from 'react';
+import { Popup } from 'maplibre-gl';
+import {
+  Typography, Box, Chip, useTheme,
+} from '@mui/material';
+import { createRoot } from 'react-dom/client';
 import MapRoutePath from '../map/MapRoutePath';
 import { map } from '../map/core/MapView';
-import { Popup } from 'maplibre-gl';
 import { TimeDiffInHumanReadableFormat } from '../common/util/formatter';
-import { Typography, Box, Chip, useTheme } from '@mui/material';
-import { createRoot } from 'react-dom/client';
 import MapPin from '../common/components/MapPin';
 import ShareButton from '../common/components/ShareButton';
 import PopupContent from '../common/components/MarkerPopupContent';
@@ -29,14 +31,14 @@ const createMarkerIcon = (index, color) => {
   return iconId;
 };
 
-const FilteredSegments = ({ 
-  positions, 
-  isValidPosition, 
-  isValidSegment, 
-  renderType, 
+const FilteredSegments = ({
+  positions,
+  isValidPosition,
+  isValidSegment,
+  renderType,
   color,
   device,
-  activityType
+  activityType,
 }) => {
   const componentId = useId();
   const sourceId = `${componentId}-source`;
@@ -44,14 +46,14 @@ const FilteredSegments = ({
 
   const processSegments = (positions, isValidPosition, isValidSegment) => {
     if (!positions || positions.length === 0) return [];
-    
+
     const segments = [];
     let currentSegment = [];
-    
+
     for (let i = 0; i < positions.length; i++) {
       const currentPosition = positions[i];
       const previousPosition = i > 0 ? positions[i - 1] : null;
-      
+
       if (isValidPosition(currentPosition, previousPosition)) {
         currentSegment.push(currentPosition);
       } else if (currentSegment.length > 0) {
@@ -61,12 +63,12 @@ const FilteredSegments = ({
         currentSegment = [];
       }
     }
-    
+
     // Check the last segment if it exists
     if (currentSegment.length > 0 && isValidSegment(currentSegment)) {
       segments.push(currentSegment);
     }
-    
+
     return segments;
   };
 
@@ -97,7 +99,7 @@ const FilteredSegments = ({
       // Add click event listener
       map.on('click', layerId, (e) => {
         const coordinates = e.features[0].geometry.coordinates.slice();
-        const properties = e.features[0].properties;
+        const { properties } = e.features[0];
         const segmentIndex = parseInt(properties.index) - 1;
         const segment = segments[segmentIndex];
 
@@ -105,8 +107,8 @@ const FilteredSegments = ({
           const startTime = new Date(segment[0].fixTime);
           const endTime = new Date(segment[segment.length - 1].fixTime);
           const duration = TimeDiffInHumanReadableFormat(segment[0].fixTime, segment[segment.length - 1].fixTime);
-          const address = segment[0]?.address || "Address not available";
-          const deviceName = device?.name || "Unknown Device";
+          const address = segment[0]?.address || 'Address not available';
+          const deviceName = device?.name || 'Unknown Device';
           const activityStatus = activityType;
 
           const container = document.createElement('div');
@@ -120,7 +122,7 @@ const FilteredSegments = ({
               coordinates={coordinates}
               deviceName={deviceName}
               activityStatus={activityStatus}
-            />
+            />,
           );
 
           popup = new Popup()
@@ -177,15 +179,15 @@ const FilteredSegments = ({
   return (
     <>
       {segments.map((segment, index) => (
-        <MapRoutePath 
-          key={`segment-${index}`} 
-          positions={segment} 
-          color={color} 
-          width={3} 
+        <MapRoutePath
+          key={`segment-${index}`}
+          positions={segment}
+          color={color}
+          width={3}
         />
       ))}
     </>
   );
 };
 
-export default FilteredSegments; 
+export default FilteredSegments;

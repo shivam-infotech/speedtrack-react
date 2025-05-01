@@ -66,34 +66,34 @@ export const TimeDiffInHumanReadableFormat = (date, anotherDate = null) => {
 
   const totalSeconds = dayjs(anotherDate || undefined).diff(dayjs(date), 'second');
 
-  let months = Math.floor(totalSeconds / secondsInMonth);
-  let weeks = Math.floor((totalSeconds % secondsInMonth) / secondsInWeek);
-  let days = Math.floor((totalSeconds % secondsInWeek) / secondsInDay);
-  let hours = Math.floor((totalSeconds % secondsInDay) / secondsInHour);
-  let minutes = Math.floor((totalSeconds % secondsInHour) / secondsInMinute);
-  let seconds = totalSeconds % secondsInMinute;
+  const months = Math.floor(totalSeconds / secondsInMonth);
+  const weeks = Math.floor((totalSeconds % secondsInMonth) / secondsInWeek);
+  const days = Math.floor((totalSeconds % secondsInWeek) / secondsInDay);
+  const hours = Math.floor((totalSeconds % secondsInDay) / secondsInHour);
+  const minutes = Math.floor((totalSeconds % secondsInHour) / secondsInMinute);
+  const seconds = totalSeconds % secondsInMinute;
 
-  let result = "";
+  let result = '';
   if (months > 0) {
-      result += `${months}mo `;
+    result += `${months}mo `;
   }
   if (weeks > 0 || months > 0) {
-      result += `${weeks}w `;
+    result += `${weeks}w `;
   }
   if (days > 0 || weeks > 0 || months > 0) {
-      result += `${days}d `;
+    result += `${days}d `;
   }
   if (hours > 0 || days > 0 || weeks > 0 || months > 0) {
-      result += `${hours}h `;
+    result += `${hours}h `;
   }
   if (minutes > 0 || hours > 0 || days > 0 || weeks > 0 || months > 0) {
-      result += `${minutes}m `;
+    result += `${minutes}m `;
   }
   if (seconds > 0 || minutes > 0 || hours > 0 || days > 0 || weeks > 0 || months > 0) {
-      result += `${seconds}s`;
+    result += `${seconds}s`;
   }
   return result.trim();
-}
+};
 
 export const formatStatus = (value, t) => t(prefixString('deviceStatus', value));
 
@@ -129,7 +129,7 @@ export const formatNumericHours = (value, t) => {
   const seconds = Math.floor((value % 60000) / 1000);
 
   const parts = [];
-  
+
   if (hours > 0) {
     parts.push(`${hours} ${t('sharedHourAbbreviation')}`);
   }
@@ -185,13 +185,13 @@ export const getStatusColor = (status) => {
 };
 
 export const getDeviceStatusColor = (position) => {
-  switch(position?.attributes?.activity){
+  switch (position?.attributes?.activity) {
     case 'running': return 'success';
     case 'idle': return 'warning';
     case 'stopped': return 'error';
     default: return 'error';
   }
-}
+};
 
 export const getBatteryStatus = (batteryLevel) => {
   if (batteryLevel >= 70) {

@@ -1,10 +1,11 @@
-import { blue, green, grey, yellow } from '@mui/material/colors';
+import {
+  blue, green, grey, yellow,
+} from '@mui/material/colors';
 
 const validatedColor = (color) => (/^#([0-9A-Fa-f]{3}){1,2}$/.test(color) ? color : null);
 
 export default (server, darkMode) => {
-  const getModeColor = (darkColor, lightColor, serverAttribute) =>
-    validatedColor(server?.attributes?.[serverAttribute]) || (darkMode ? darkColor : lightColor);
+  const getModeColor = (darkColor, lightColor, serverAttribute) => validatedColor(server?.attributes?.[serverAttribute]) || (darkMode ? darkColor : lightColor);
 
   return ({
     mode: darkMode ? 'dark' : 'light',
@@ -43,9 +44,9 @@ export default (server, darkMode) => {
       contrastText: darkMode ? grey[900] : grey[50],
     },
     error: {
-      main: "#e81e1e",
-      light: "#ff5c5c",
-      dark: "#b30000",
+      main: '#e81e1e',
+      light: '#ff5c5c',
+      dark: '#b30000',
       contrastText: grey[50],
     },
     warning: {

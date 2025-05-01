@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table, TableRow, TableCell, TableHead, TableBody, Switch, TableFooter, FormControlLabel,
-  Card, CardContent, Typography, Grid, Box, Divider, Stack, Avatar, Chip, useMediaQuery, useTheme
+  Card, CardContent, Typography, Grid, Box, Divider, Stack, Avatar, Chip, useMediaQuery, useTheme,
 } from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
 import LinkIcon from '@mui/icons-material/Link';
 import EmailIcon from '@mui/icons-material/Email';
-import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import BlockIcon from '@mui/icons-material/Block';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -112,7 +111,7 @@ const UsersPage = () => {
           <Grid container spacing={1}>
             {items.filter((u) => temporary || !u.temporary).filter(filterByKeyword(searchKeyword)).map((item) => {
               const hasAdditionalFields = item.phone || item.disabled || item.administrator || item.expirationTime;
-              
+
               return (
                 <Grid item xs={12} key={item.id}>
                   <Card elevation={1} sx={{ borderRadius: 2 }}>

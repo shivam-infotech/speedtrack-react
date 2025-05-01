@@ -3,9 +3,27 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
   Table, TableRow, TableCell, TableHead, TableBody, Button, TableFooter, FormControlLabel, Switch, Card, CardContent, Typography, Grid, Box, useMediaQuery, useTheme, Divider, Stack, IconButton, Tooltip, Chip,
-  Avatar
+  Avatar,
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
+import DeviceHubIcon from '@mui/icons-material/DeviceHub';
+import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
+import GroupWorkIcon from '@mui/icons-material/GroupWork';
+import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
+import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import {
+  DirectionsCar, // Car
+  LocalShipping, // Truck
+  TwoWheeler, // Bike/Motorcycle
+  DirectionsBus, // Bus
+  AirplanemodeActive, // Aircraft
+  DirectionsBoat, // Marine vessel
+  Train, // Train
+  DevicesOther, // Default
+} from '@mui/icons-material';
+import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 import { useEffectAsync } from '../reactHelper';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
@@ -19,24 +37,6 @@ import { useDeviceReadonly, useManager } from '../common/util/permissions';
 import useSettingsStyles from './common/useSettingsStyles';
 import DeviceUsersValue from './components/DeviceUsersValue';
 import usePersistedState from '../common/util/usePersistedState';
-import DeviceHubIcon from '@mui/icons-material/DeviceHub';
-import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
-import GroupWorkIcon from '@mui/icons-material/GroupWork';
-import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
-import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import {
-  DirectionsCar,    // Car
-  LocalShipping,    // Truck
-  TwoWheeler,       // Bike/Motorcycle
-  DirectionsBus,    // Bus
-  AirplanemodeActive, // Aircraft
-  DirectionsBoat,   // Marine vessel
-  Train,            // Train
-  DevicesOther      // Default
-} from '@mui/icons-material';
-import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 
 const DevicesPage = () => {
   const classes = useSettingsStyles();
@@ -97,13 +97,13 @@ const DevicesPage = () => {
 
   const getVehicleAvatar = (category) => {
     const avatarStyle = { bgcolor: 'primary.main', color: 'white', width: 40, height: 40 };
-    
+
     if (!category) {
       return <Avatar sx={avatarStyle}><DevicesOther /></Avatar>;
     }
-  
+
     const normalizedCategory = category.toLowerCase();
-    
+
     if (normalizedCategory.includes('car') || normalizedCategory.includes('sedan') || normalizedCategory.includes('suv')) {
       return <Avatar sx={avatarStyle}><DirectionsCar /></Avatar>;
     }
@@ -128,7 +128,7 @@ const DevicesPage = () => {
     if (normalizedCategory.includes('train') || normalizedCategory.includes('rail')) {
       return <Avatar sx={avatarStyle}><Train /></Avatar>;
     }
-    
+
     return <Avatar sx={avatarStyle}><DevicesOther /></Avatar>;
   };
 

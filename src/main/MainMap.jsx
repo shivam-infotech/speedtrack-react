@@ -29,18 +29,16 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
   const eventsAvailable = useSelector((state) => !!state.events.items.length);
 
   const features = useFeatures();
-  const {animPositions: positions} = useAnimatedPositions();
+  const { animPositions: positions } = useAnimatedPositions();
 
   const markerClick = useCallback((_, deviceId) => {
-    if (onMarkerClick) onMarkerClick(deviceId)
+    if (onMarkerClick) onMarkerClick(deviceId);
     else dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
 
-  const deviceIds = useMemo(() => filteredDevices?.map(fd => fd.id), [filteredDevices] || []);
+  const deviceIds = useMemo(() => filteredDevices?.map((fd) => fd.id), [filteredDevices] || []);
 
-  const animatedPositions = useMemo(() => {
-    return Object.values(positions).filter(p => deviceIds?.includes(p.deviceId) || true);
-  }, [positions]);
+  const animatedPositions = useMemo(() => Object.values(positions).filter((p) => deviceIds?.includes(p.deviceId) || true), [positions]);
 
   return (
     <>

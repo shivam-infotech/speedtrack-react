@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   useMediaQuery, Select, MenuItem, FormControl, Button, TextField, Link, Snackbar, IconButton, Tooltip, Box,
   Card, CardContent, Typography, Divider, Fade, Grid, Container,
-  InputAdornment
+  InputAdornment,
 } from '@mui/material';
 import ReactCountryFlag from 'react-country-flag';
 import makeStyles from '@mui/styles/makeStyles';
@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'hidden',
     [theme.breakpoints.down('md')]: {
       padding: theme.spacing(0),
-    }
+    },
   },
   splitContainer: {
     display: 'flex',
@@ -59,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
       maxWidth: 600,
       height: '100vh',
       minHeight: '85vh',
-      maxHeight: "auto",
+      maxHeight: 'auto',
     },
   },
   illustrationSide: {
@@ -347,7 +347,7 @@ const LoginPage = () => {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
-                    }
+                    },
                   }}
                 />
 
@@ -385,7 +385,7 @@ const LoginPage = () => {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
-                    }
+                    },
                   }}
                 />
 
@@ -402,7 +402,7 @@ const LoginPage = () => {
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
-                      }
+                      },
                     }}
                   />
                 )}
@@ -427,10 +427,10 @@ const LoginPage = () => {
                       background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
                       boxShadow: `0 4px 16px ${theme.palette.primary.main}60`,
                     },
-                    "&:disabled": {
+                    '&:disabled': {
                       background: `linear-gradient(45deg, ${theme.palette.primary.dark} 30%, ${theme.palette.primary.main} 90%)`,
                       opacity: 0.7,
-                    }
+                    },
                   }}
                 >
                   {t('loginLogin')}
@@ -484,7 +484,7 @@ const LoginPage = () => {
                               borderWidth: 2,
                               '&:hover': {
                                 borderWidth: 2,
-                              }
+                              },
                             }}
                           >
                             {t('loginOpenId')}

@@ -18,18 +18,18 @@ import CheckIcon from '@mui/icons-material/Check';
 import AddIcon from '@mui/icons-material/Add';
 import TuneIcon from '@mui/icons-material/Tune';
 import SortIcon from '@mui/icons-material/Sort';
-import { useTranslation } from '../common/components/LocalizationProvider';
-import { useDeviceReadonly } from '../common/util/permissions';
-import DeviceRow from './DeviceRow';
 import PinDropIcon from '@mui/icons-material/PinDrop';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
 import dayjs from 'dayjs';
-import { useAttributePreference } from '../common/util/preferences';
 import SearchIcon from '@mui/icons-material/Search';
 import CarRentalIcon from '@mui/icons-material/CarRental';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { Close, MoreVert } from '@mui/icons-material';
+import { useAttributePreference } from '../common/util/preferences';
+import DeviceRow from './DeviceRow';
+import { useDeviceReadonly } from '../common/util/permissions';
+import { useTranslation } from '../common/components/LocalizationProvider';
 
 const useStyles = makeStyles((theme) => ({
   toolbarContainer: {
@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
   divider: {
     height: 24,
     margin: theme.spacing(0, 1),
-  }
+  },
 }));
 
 const MainToolbar = ({
@@ -125,13 +125,13 @@ const MainToolbar = ({
       case 'idle':
         return dvsc.filter((d) => positions[d.id]?.attributes?.activity === 'idle' || false).length;
       case 'stopped':
-        return dvsc.filter((d) => positions[d.id]?.attributes?.ignition === false || false ).length;
+        return dvsc.filter((d) => positions[d.id]?.attributes?.ignition === false || false).length;
       case 'expired':
-        return dvsc.filter(d => d.expirationTime && dayjs(d.expirationTime).diff(dayjs()) < 0).length;
+        return dvsc.filter((d) => d.expirationTime && dayjs(d.expirationTime).diff(dayjs()) < 0).length;
       case 'expiresoon':
-        return dvsc.filter(d => {
+        return dvsc.filter((d) => {
           if (d.expirationTime) {
-            var days = dayjs(d.expirationTime).diff(dayjs(), "days")
+            const days = dayjs(d.expirationTime).diff(dayjs(), 'days');
             return days > 0 && days < daysBeforeExpiry;
           }
           return false;
@@ -143,7 +143,7 @@ const MainToolbar = ({
       default:
         return 0;
     }
-  }
+  };
 
   const deviceStatus = [
     {
@@ -180,15 +180,16 @@ const MainToolbar = ({
       status: 'expired',
       title: t('deviceStatusExpired'),
       color: 'analogous',
-    }
-  ]
+    },
+  ];
 
   return (
-    <Toolbar ref={toolbarRef} className={classes.toolbarContainer} >
+    <Toolbar ref={toolbarRef} className={classes.toolbarContainer}>
       <div className={classes.toolbar}>
         {onLeftTop}
         {!searchExpanded && pageTitle}
-        {searchExpanded && <OutlinedInput
+        {searchExpanded && (
+        <OutlinedInput
           ref={inputRef}
           placeholder={t('sharedSearchDevices')}
           value={keyword}
@@ -197,8 +198,8 @@ const MainToolbar = ({
           onBlur={() => setDevicesAnchorEl(null)}
           endAdornment={(
             <InputAdornment position="end">
-              <IconButton size='small' onClick={() => { setKeyword(''); setSearchExpanded(false) }} >
-                <Close fontSize='small' />
+              <IconButton size="small" onClick={() => { setKeyword(''); setSearchExpanded(false); }}>
+                <Close fontSize="small" />
               </IconButton>
             </InputAdornment>
           )}
@@ -213,7 +214,8 @@ const MainToolbar = ({
           // )}
           size="small"
           fullWidth
-        />}
+        />
+        )}
         {/* <Popover
           open={!!devicesAnchorEl && !devicesOpen}
           anchorEl={devicesAnchorEl}
@@ -301,21 +303,34 @@ const MainToolbar = ({
             </FormGroup>
           </div>
         </Popover> */}
-        {!hideDevicesOpen && <IconButton onClick={() => setDevicesOpen(!devicesOpen)}>
+        {!hideDevicesOpen && (
+        <IconButton onClick={() => setDevicesOpen(!devicesOpen)}>
           {devicesOpen ? <MapIcon /> : <ViewListIcon />}
-        </IconButton>}
-        {!searchExpanded && <IconButton onClick={() => setSearchExpanded(true)} >
+        </IconButton>
+        )}
+        {!searchExpanded && (
+        <IconButton onClick={() => setSearchExpanded(true)}>
           <SearchIcon />
-        </IconButton>}
-        <IconButton edge="end" onClick={e => setMoreOptionsAnchorEl(e.currentTarget)}>
+        </IconButton>
+        )}
+        <IconButton edge="end" onClick={(e) => setMoreOptionsAnchorEl(e.currentTarget)}>
           <MoreVert />
         </IconButton>
-        <Menu open={Boolean(moreOptionsAnchorEl)} anchorEl={moreOptionsAnchorEl}
+        <Menu
+          open={Boolean(moreOptionsAnchorEl)}
+          anchorEl={moreOptionsAnchorEl}
           onClose={() => setMoreOptionsAnchorEl(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} >
-          <MenuItem onClick={() => navigate('/settings/device')} disabled={deviceReadonly}><ListItemIcon><CarRentalIcon /></ListItemIcon><ListItemText>{t('deviceCreate')}</ListItemText></MenuItem>
-          <MenuItem onClick={() => navigate('/settings/user')} disabled={deviceReadonly}><ListItemIcon><PersonAddAltIcon /></ListItemIcon><ListItemText>{t('userCreate')}</ListItemText></MenuItem>
-          <MenuItem onClick={() => navigate('/reports/event')} >
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        >
+          <MenuItem onClick={() => navigate('/settings/device')} disabled={deviceReadonly}>
+            <ListItemIcon><CarRentalIcon /></ListItemIcon>
+            <ListItemText>{t('deviceCreate')}</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => navigate('/settings/user')} disabled={deviceReadonly}>
+            <ListItemIcon><PersonAddAltIcon /></ListItemIcon>
+            <ListItemText>{t('userCreate')}</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => navigate('/reports/event')}>
             <ListItemIcon>
               <NotificationsIcon />
             </ListItemIcon>
@@ -324,31 +339,32 @@ const MainToolbar = ({
         </Menu>
         {/* <IconButton size='small' onClick={() => navigate('/settings/device')} >
           <Tooltip open={!deviceReadonly && Object.keys(devices).length === 0} title={t('deviceRegisterFirst')} arrow>
-            
+
           </Tooltip>
         </IconButton >
         <IconButton size='small'>
           <PersonAddAltIcon fontSize='small' />
         </IconButton>
         <IconButton size='small'>
-          
+
         </IconButton> */}
       </div>
-      {!hidefilters && <div className={classes.filterContainer}>
-        <List className={classes.chipContainer} >
+      {!hidefilters && (
+      <div className={classes.filterContainer}>
+        <List className={classes.chipContainer}>
           <Chip
             key="all"
-            icon={filter.statuses === "" ? <CheckIcon /> : undefined}
-            size='small'
+            icon={filter.statuses === '' ? <CheckIcon /> : undefined}
+            size="small"
             color="info"
-            onClick={() => setFilter({ ...filter, statuses: "" })}
+            onClick={() => setFilter({ ...filter, statuses: '' })}
             label={`${checkDeviceCountForStatus('all')} ${t('deviceStatusAll')}`}
           />
-          {deviceStatus.map(ds => (
+          {deviceStatus.map((ds) => (
             <Chip
               key={ds.status}
               icon={filter.statuses.includes(ds.status) ? <CheckIcon /> : undefined}
-              size='small'
+              size="small"
               color={ds.color || undefined}
               onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes(ds.status) ? ds.status : '') })}
               label={`${checkDeviceCountForStatus(ds.status)} ${ds.title}`}
@@ -361,16 +377,17 @@ const MainToolbar = ({
         </List>
 
         <Tooltip title={t('sharedFilterMap')}>
-          <IconButton onClick={() => setFilterMap(!filterMap)} size='small' >
-            {filterMap ? <PinDropIcon fontSize='small' sx={{ color: theme.palette.primary.main }} /> : <WrongLocationIcon fontSize='small' />}
+          <IconButton onClick={() => setFilterMap(!filterMap)} size="small">
+            {filterMap ? <PinDropIcon fontSize="small" sx={{ color: theme.palette.primary.main }} /> : <WrongLocationIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
         <Tooltip title={t('sharedSortBy')}>
-          <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)} size='small'>
-            <SortIcon fontSize='small' />
+          <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)} size="small">
+            <SortIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-      </div>}
+      </div>
+      )}
       <Popover
         open={Boolean(sortAnchorEl)}
         anchorEl={sortAnchorEl}

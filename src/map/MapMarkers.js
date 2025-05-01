@@ -1,4 +1,6 @@
-import { useId, useEffect, useState, useRef } from 'react';
+import {
+  useId, useEffect, useState, useRef,
+} from 'react';
 import { useTheme } from '@mui/styles';
 import { useMediaQuery } from '@mui/material';
 import { map } from './core/MapView';

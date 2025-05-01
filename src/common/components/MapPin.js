@@ -1,8 +1,8 @@
-const MapPin = ({colors, color, text}) => {
-    const colorA = colors ? colors[0] : color || "#ff8a80";
-    const colorB = colors ? colors[1] : color || "#d32f2f";
+const MapPin = ({ colors, color, text }) => {
+  const colorA = colors ? colors[0] : color || '#ff8a80';
+  const colorB = colors ? colors[1] : color || '#d32f2f';
 
-    return `
+  return `
         <svg version="1.1" id="Icons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" xml:space="preserve" width="48px" height="48px">
             <defs>
             <linearGradient id="pinGradient" x1="0" y1="0" x2="0" y2="1">
@@ -16,6 +16,6 @@ const MapPin = ({colors, color, text}) => {
             </g>
         </svg>
     `;
-}
+};
 
 export default MapPin;

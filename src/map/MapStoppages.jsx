@@ -1,17 +1,16 @@
 import { useId, useEffect } from 'react';
-import { map } from './core/MapView';
-import StartFlag from "../resources/images/icon/start.svg";
-import FinishFlag from "../resources/images/icon/finish.svg";
 import { Popup } from 'maplibre-gl';
-import { TimeDiffInHumanReadableFormat } from '../common/util/formatter';
 import { createRoot } from 'react-dom/client';
+import { map } from './core/MapView';
+import StartFlag from '../resources/images/icon/start.svg';
+import FinishFlag from '../resources/images/icon/finish.svg';
+import { TimeDiffInHumanReadableFormat } from '../common/util/formatter';
 import MapPin from '../common/components/MapPin';
 import PopupContent from '../common/components/MarkerPopupContent';
 
-
 const stoppageIcon = (index) => {
   const iconId = `stoppage-icon-${index}`;
-  if (map.hasImage(iconId)){
+  if (map.hasImage(iconId)) {
     map.removeImage(iconId);
   }
 
@@ -30,7 +29,7 @@ const stoppageIcon = (index) => {
 
 const startEndIcons = (type) => new Promise((loaded) => {
   const iconId = `${type}-icon`;
-  if (map.hasImage(iconId)){
+  if (map.hasImage(iconId)) {
     map.removeImage(iconId);
   }
 
@@ -75,7 +74,7 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
       // Add click event listener to the map
       map.on('click', id, (e) => {
         const coordinates = e.features[0].geometry.coordinates.slice();
-        const properties = e.features[0].properties;
+        const { properties } = e.features[0];
 
         const positionGroup = positions[parseInt(properties.index) - 1];
 
@@ -84,9 +83,9 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
           const endTime = new Date(positionGroup[positionGroup.length - 1].fixTime);
           const duration = TimeDiffInHumanReadableFormat(positionGroup[0].fixTime, positionGroup[positionGroup.length - 1].fixTime);
 
-          const address = positionGroup[0]?.address || "Address not available"; // Replace with actual address
-          const deviceName = device?.name || "Unknown Device";
-          const activityStatus = "Stoppage";
+          const address = positionGroup[0]?.address || 'Address not available'; // Replace with actual address
+          const deviceName = device?.name || 'Unknown Device';
+          const activityStatus = 'Stoppage';
 
           const container = document.createElement('div');
           const root = createRoot(container);
@@ -99,7 +98,7 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
               coordinates={coordinates}
               deviceName={deviceName}
               activityStatus={activityStatus}
-            />
+            />,
           );
 
           popup = new Popup()
@@ -112,7 +111,7 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
 
     // Cleanup function (runs only on unmount)
     return () => {
-      if(popup) popup.remove();
+      if (popup) popup.remove();
       map.off('click', id);
       if (map.getLayer(id)) {
         map.removeLayer(id);
@@ -120,7 +119,6 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
       if (map.getSource(id)) {
         map.removeSource(id);
       }
-      
     };
   }, []); // Empty dependency array ensures this runs only once
 
@@ -148,7 +146,7 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
               icon: stoppageIcon(index + 1),
             },
           };
-        }).filter(f => f !== null);
+        }).filter((f) => f !== null);
       }
 
       if (startPosition) {
@@ -166,7 +164,7 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
           },
         });
       }
-      
+
       if (endPosition) {
         const endIconId = await startEndIcons('end');
         sources.push({

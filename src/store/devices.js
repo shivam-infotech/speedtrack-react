@@ -48,7 +48,7 @@ export const updateDevices = (payload) => async (dispatch, getState) => {
   dispatch(actions.update(payload));
   const { newDevices } = getState().devices;
   if (newDevices && newDevices.length > 0) {
-    newDevices.forEach((deviceId) => {dispatch(fetchSummaryForDevice(deviceId))});
+    newDevices.forEach((deviceId) => { dispatch(fetchSummaryForDevice(deviceId)); });
   }
 };
 

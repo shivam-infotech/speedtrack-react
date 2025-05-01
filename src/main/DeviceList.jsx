@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
   },
   listInner: {
     position: 'relative',
-    width: "100%",
+    width: '100%',
     margin: theme.spacing(1.5, 0),
   },
 }));
@@ -47,19 +47,19 @@ const DeviceList = ({ devices }) => {
 
   return (
     <AutoSizer className={classes.list}>
-      {({ height, width }) => {
-        return <FixedSizeList
-        width={width}
-        height={height}
-        itemCount={devices.length}
-        itemData={devices}
-        itemSize={232}
-        overscanCount={10}
-        innerRef={listInnerEl}
-      >
-        {DeviceCard}
-      </FixedSizeList>
-      }}
+      {({ height, width }) => (
+        <FixedSizeList
+          width={width}
+          height={height}
+          itemCount={devices.length}
+          itemData={devices}
+          itemSize={232}
+          overscanCount={10}
+          innerRef={listInnerEl}
+        >
+          {DeviceCard}
+        </FixedSizeList>
+      )}
     </AutoSizer>
   );
 };

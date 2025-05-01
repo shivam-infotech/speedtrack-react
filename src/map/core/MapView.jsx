@@ -11,7 +11,7 @@ import { useAttributePreference, usePreference } from '../../common/util/prefere
 import usePersistedState, { savePersistedState } from '../../common/util/usePersistedState';
 import { mapImages } from './preloadImages';
 import useMapStyles from './useMapStyles';
-import "./controlStyles.css";
+import './controlStyles.css';
 import MapSkeleton from '../MapSkeleton';
 
 const element = document.createElement('div');
@@ -122,11 +122,11 @@ const MapView = ({ children }) => {
 
   return (
     <div style={{ width: '100%', height: '100%' }} ref={containerEl}>
-      {!mapReady ?
+      {!mapReady
         // <div style={{ width: "100%", height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <MapSkeleton />
+        ? <MapSkeleton />
         // </div>
-      : children}
+        : children}
     </div>
   );
 };

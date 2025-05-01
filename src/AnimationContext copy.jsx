@@ -1,20 +1,20 @@
-import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
-import { create } from "zustand";
-import useAnimationEase from "./common/util/useAnimationEase";
-import { calculateBearing } from "./common/util/position";
+import { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { create } from 'zustand';
+import useAnimationEase from './common/util/useAnimationEase';
+import { calculateBearing } from './common/util/position';
 
 export const useAnimatedPositions = create((set, get) => ({
   animPositions: {},
   animHistory: {},
   setPositions: (positions) => set({ animPositions: positions }),
   setHistory: (history) => set({ animHistory: history }),
-  resetHistory: () => set({ animHistory: {} })
+  resetHistory: () => set({ animHistory: {} }),
 }));
 
-export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) => {
+export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }) => {
   const positions = useSelector((state) => state.session.positions);
-  const easing = useAnimationEase("linear");
+  const easing = useAnimationEase('linear');
 
   const animationQueueRef = useRef({});
   const lastPositionRef = useRef({});
@@ -38,14 +38,13 @@ export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) 
 
         animationQueueRef.current[deviceId].push([{ ...from, _startTime: performance.now() }, to]);
         lastPositionRef.current[deviceId] = pos;
-
       }
     }
 
     if (!isAnimating.current) {
       isAnimating.current = true;
-      
-      if(isUnfocused.current) skipToLatest();
+
+      if (isUnfocused.current) skipToLatest();
       else ProcessQueue();
     }
   }, [positions]);
@@ -62,7 +61,7 @@ export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) 
           const adjustedDuration = adjustedDurationRef.current;
           const elapsed = performance.now() - from._startTime;
           const progress = Math.min(Math.max(elapsed / adjustedDuration, 0), 1);
-          let eased = easing(progress);
+          const eased = easing(progress);
 
           const latitude = from.latitude + (to.latitude - from.latitude) * eased;
           const longitude = from.longitude + (to.longitude - from.longitude) * eased;
@@ -79,11 +78,11 @@ export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) 
           newHistory[deviceId].push([longitude, latitude]);
 
           if (progress < 1) {
-            if(isUnfocused.current) return skipToLatest();
+            if (isUnfocused.current) return skipToLatest();
             hasWork = true;
           } else {
             queue.shift();
-            if(isUnfocused.current) return skipToLatest();
+            if (isUnfocused.current) return skipToLatest();
             if (queue.length > 0) {
               queue[0][0]._startTime = performance.now();
               hasWork = true;
@@ -96,7 +95,7 @@ export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) 
       setHistory(newHistory);
 
       if (hasWork) {
-        if(isUnfocused.current) return skipToLatest();
+        if (isUnfocused.current) return skipToLatest();
         animatedRef.current = requestAnimationFrame(animate);
       } else {
         isAnimating.current = false;
@@ -109,7 +108,7 @@ export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) 
   };
 
   const skipToLatest = () => {
-    if(animatedRef.current) cancelAnimationFrame(animatedRef.current);
+    if (animatedRef.current) cancelAnimationFrame(animatedRef.current);
 
     const newPositions = { ...useAnimatedPositions.getState().animPositions };
     const newHistory = { ...useAnimatedPositions.getState().animHistory };
@@ -134,18 +133,18 @@ export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) 
     isAnimating.current = false;
     animatedRef.current = null;
     animationQueueRef.current = {};
-  }
+  };
 
   useEffect(() => {
     const whenBlur = (evt) => {
-      console.log("goes to blur state");
+      console.log('goes to blur state');
       isUnfocused.current = true;
-    }
+    };
 
-    const whenFocus = evt => {
+    const whenFocus = (evt) => {
       console.log('comes back to focus state');
       isUnfocused.current = false;
-    }
+    };
 
     window.addEventListener('blur', whenBlur);
     window.addEventListener('focus', whenFocus);
@@ -154,12 +153,12 @@ export const AnimationController = ({animationDuration = 1000, targetFPS = 30}) 
       window.removeEventListener('blur', whenBlur);
       window.removeEventListener('focus', whenFocus);
 
-      if(animatedRef.current) {
+      if (animatedRef.current) {
         skipToLatest();
         cancelAnimationFrame(animatedRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return null;
 };

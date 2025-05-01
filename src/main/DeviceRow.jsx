@@ -16,6 +16,8 @@ import BatteryCharging20Icon from '@mui/icons-material/BatteryCharging20';
 import ErrorIcon from '@mui/icons-material/Error';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { ReplayOutlined } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { devicesActions } from '../store';
 import {
   formatAlarm, formatBoolean, formatPercentage, formatStatus, getDeviceStatusColor, getStatusColor,
@@ -27,8 +29,6 @@ import { useAdministrator } from '../common/util/permissions';
 import EngineIcon from '../resources/images/data/engine.svg?react';
 import { useAttributePreference } from '../common/util/preferences';
 import AddressValue from '../common/components/AddressValue';
-import { ReplayOutlined } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 
 dayjs.extend(relativeTime);
 
@@ -57,14 +57,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
-
 const DeviceRow = ({ data, index, style }) => {
   const theme = useTheme();
   const classes = useStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
-  const selectedDeviceId = useSelector((state) => state.devices.selectedId);  
+  const selectedDeviceId = useSelector((state) => state.devices.selectedId);
   const navigate = useNavigate();
 
   const admin = useAdministrator();
@@ -98,37 +96,45 @@ const DeviceRow = ({ data, index, style }) => {
   };
 
   return (
-    <div style={{...style, ...(selectedDeviceId === item.id ? {backgroundColor: '#f0f0f0'} : {})}}>
+    <div style={{ ...style, ...(selectedDeviceId === item.id ? { backgroundColor: '#f0f0f0' } : {}) }}>
       <ListItemButton
         key={item.id}
         onClick={() => dispatch(devicesActions.selectId(item.id))}
         disabled={!admin && item.disabled}
       >
         <ListItemAvatar sx={{ position: 'relative' }}>
-          <Avatar sx={{ backgroundColor: theme.palette[getDeviceStatusColor(position)]?.main || theme.palette.error?.main, position: 'relative', overflow: 'auto' }} overlap="circular" >
+          <Avatar sx={{ backgroundColor: theme.palette[getDeviceStatusColor(position)]?.main || theme.palette.error?.main, position: 'relative', overflow: 'auto' }} overlap="circular">
             <img className={classes.icon} src={mapIcons[mapIconKey(item.category)]} alt="" />
           </Avatar>
           {item.status === 'online' ? (
             <Tooltip title={t('positionOnline')}>
-              <div style={{ position: 'absolute', bottom: 2, right: 16, backgroundColor: '#36db27', width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white' }} />
+              <div style={{
+                position: 'absolute', bottom: 2, right: 16, backgroundColor: '#36db27', width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white',
+              }}
+              />
             </Tooltip>
           ) : (
             <Tooltip title={t('positionOffline')}>
-              <div style={{ position: 'absolute', bottom: 2, right: 16, backgroundColor: '#b0b0b0', width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white' }} />
+              <div style={{
+                position: 'absolute', bottom: 2, right: 16, backgroundColor: '#b0b0b0', width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white',
+              }}
+              />
             </Tooltip>
           )}
         </ListItemAvatar>
         <ListItemText
-          primary={<Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap' }}>
-            <Typography fontSize={'1rem'} noWrap>
-              {item[devicePrimary]}
-            </Typography>
-            <Typography fontSize={'0.7rem'} color="textSecondary" noWrap>
-              {formattedLastUpdate()}
-            </Typography>
-          </Box>}
+          primary={(
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap' }}>
+              <Typography fontSize="1rem" noWrap>
+                {item[devicePrimary]}
+              </Typography>
+              <Typography fontSize="0.7rem" color="textSecondary" noWrap>
+                {formattedLastUpdate()}
+              </Typography>
+            </Box>
+)}
           primaryTypographyProps={{ noWrap: true }}
-          secondary={<Typography fontSize={"0.7rem"} noWrap><AddressValue latitude={position?.latitude} longitude={position?.longitude} originalAddress={position?.address} /></Typography>}
+          secondary={<Typography fontSize="0.7rem" noWrap><AddressValue latitude={position?.latitude} longitude={position?.longitude} originalAddress={position?.address} /></Typography>}
           secondaryTypographyProps={{ noWrap: true }}
         />
         {position && (
@@ -170,13 +176,11 @@ const DeviceRow = ({ data, index, style }) => {
                 </IconButton>
               </Tooltip>
             )}
-            {
-              <Tooltip title={t('reportReplay')}>
-                <IconButton size='small' onClick={() => navigate('/replay')} >
-                  <ReplayOutlined fontSize='small' />
-                </IconButton>
-              </Tooltip>
-            }
+            <Tooltip title={t('reportReplay')}>
+              <IconButton size="small" onClick={() => navigate('/replay')}>
+                <ReplayOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </>
         )}
       </ListItemButton>

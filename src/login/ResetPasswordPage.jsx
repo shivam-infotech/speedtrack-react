@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'hidden',
     [theme.breakpoints.down('md')]: {
       padding: theme.spacing(1),
-    }
+    },
   },
   splitContainer: {
     display: 'flex',
@@ -49,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
       maxWidth: 600,
       height: '100vh',
       minHeight: '85vh',
-      maxHeight: "auto",
+      maxHeight: 'auto',
     },
   },
   illustrationSide: {
@@ -181,20 +181,20 @@ const ResetPasswordPage = () => {
         <Fade in timeout={500}>
           <div className={classes.splitContainer}>
             <div className={classes.illustrationSide}>
-              <img 
-                src={ResetIllustration} 
-                alt="Reset Password Illustration" 
+              <img
+                src={ResetIllustration}
+                alt="Reset Password Illustration"
                 className={classes.illustration}
               />
             </div>
-            
+
             <div className={classes.formSide}>
               <div className={classes.logoContainer}>
                 <LogoImage className={classes.logo} color={theme.palette.primary.main} />
               </div>
 
               <div className={classes.header}>
-                <IconButton 
+                <IconButton
                   className={classes.backButton}
                   onClick={() => navigate('/login')}
                   size="small"
@@ -207,11 +207,11 @@ const ResetPasswordPage = () => {
               </div>
 
               <Typography variant="body1" className={classes.subtitle}>
-                {!token 
-                  ? t('loginResetDescription') 
+                {!token
+                  ? t('loginResetDescription')
                   : t('loginUpdateDescription')}
               </Typography>
-              
+
               <form onSubmit={handleSubmit} className={classes.form}>
                 {!token ? (
                   <TextField
@@ -234,7 +234,7 @@ const ResetPasswordPage = () => {
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
-                      }
+                      },
                     }}
                   />
                 ) : (
@@ -258,7 +258,7 @@ const ResetPasswordPage = () => {
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
-                      }
+                      },
                     }}
                   />
                 )}
@@ -280,10 +280,10 @@ const ResetPasswordPage = () => {
                       background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
                       boxShadow: `0 4px 16px ${theme.palette.primary.main}60`,
                     },
-                    "&:disabled": {
+                    '&:disabled': {
                       background: `linear-gradient(45deg, ${theme.palette.primary.dark} 30%, ${theme.palette.primary.main} 90%)`,
                       opacity: 0.7,
-                    }
+                    },
                   }}
                 >
                   {t('loginReset')}

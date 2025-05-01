@@ -16,143 +16,143 @@ import { updatePositionsWithSummary } from './store/session';
 const logoutCode = 4000;
 
 const SocketController = () => {
-	const dispatch = useDispatch();
-	const navigate = useNavigate();
-	const t = useTranslation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const t = useTranslation();
 
-	const authenticated = useSelector((state) => !!state.session.user);
-	const devices = useSelector((state) => state.devices.items);
-	const includeLogs = useSelector((state) => state.session.includeLogs);
+  const authenticated = useSelector((state) => !!state.session.user);
+  const devices = useSelector((state) => state.devices.items);
+  const includeLogs = useSelector((state) => state.session.includeLogs);
 
-	const socketRef = useRef();
+  const socketRef = useRef();
 
-	const [events, setEvents] = useState([]);
-	const [notifications, setNotifications] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
-	const soundEvents = useAttributePreference('soundEvents', '');
-	const soundAlarms = useAttributePreference('soundAlarms', 'sos');
-	const [pollingInterval, setPollingInterval] = useState(null);
+  const soundEvents = useAttributePreference('soundEvents', '');
+  const soundAlarms = useAttributePreference('soundAlarms', 'sos');
+  const [pollingInterval, setPollingInterval] = useState(null);
 
-	const features = useFeatures();
+  const features = useFeatures();
 
-	const connectSocket = () => {
-		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const socket = new WebSocket(`${protocol}//${window.location.host}/api/socket`);
-		socketRef.current = socket;
+  const connectSocket = () => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${window.location.host}/api/socket`);
+    socketRef.current = socket;
 
-		socket.onopen = () => {
-			stopPolling();
-			dispatch(sessionActions.updateSocket(true));
-		};
+    socket.onopen = () => {
+      stopPolling();
+      dispatch(sessionActions.updateSocket(true));
+    };
 
-		socket.onclose = async (event) => {
-			dispatch(sessionActions.updateSocket(false));
-			if (event.code !== logoutCode) {
-				startPolling();
-				setTimeout(() => connectSocket(), 20000);
-			}
-		};
+    socket.onclose = async (event) => {
+      dispatch(sessionActions.updateSocket(false));
+      if (event.code !== logoutCode) {
+        startPolling();
+        setTimeout(() => connectSocket(), 20000);
+      }
+    };
 
-		socket.onmessage = (event) => {
-			const data = JSON.parse(event.data);
-			if (data.devices) {
-				dispatch(updateDevices(data.devices));
-			}
-			if (data.positions) {
-				dispatch(updatePositionsWithSummary(data.positions));
-			}
-			if (data.events) {
-				if (!features.disableEvents) {
-					dispatch(eventsActions.add(data.events));
-				}
-				setEvents(data.events);
-			}
-			if (data.logs) {
-				dispatch(sessionActions.updateLogs(data.logs));
-			}
-		};
-	};
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.devices) {
+        dispatch(updateDevices(data.devices));
+      }
+      if (data.positions) {
+        dispatch(updatePositionsWithSummary(data.positions));
+      }
+      if (data.events) {
+        if (!features.disableEvents) {
+          dispatch(eventsActions.add(data.events));
+        }
+        setEvents(data.events);
+      }
+      if (data.logs) {
+        dispatch(sessionActions.updateLogs(data.logs));
+      }
+    };
+  };
 
-	const startPolling = () => {
-		stopPolling();
-		setPollingInterval(setInterval(async () => {
-			try {
-				const devicesResponse = await fetch('/api/devices');
-				if (devicesResponse.ok) {
-					dispatch(updateDevices(await devicesResponse.json()));
-				}
-				const positionsResponse = await fetch('/api/positions');
-				if (positionsResponse.ok) {
-					dispatch(updatePositionsWithSummary(await positionsResponse.json()));
-				}
-				if (devicesResponse.status === 401 || positionsResponse.status === 401) {
-					navigate('/login');
-				}
-			} catch (error) {
-				// ignore errors
-			}
-		}, 10000));
-	}
+  const startPolling = () => {
+    stopPolling();
+    setPollingInterval(setInterval(async () => {
+      try {
+        const devicesResponse = await fetch('/api/devices');
+        if (devicesResponse.ok) {
+          dispatch(updateDevices(await devicesResponse.json()));
+        }
+        const positionsResponse = await fetch('/api/positions');
+        if (positionsResponse.ok) {
+          dispatch(updatePositionsWithSummary(await positionsResponse.json()));
+        }
+        if (devicesResponse.status === 401 || positionsResponse.status === 401) {
+          navigate('/login');
+        }
+      } catch (error) {
+        // ignore errors
+      }
+    }, 10000));
+  };
 
-	const stopPolling = () => {
-		if(pollingInterval){
-			clearInterval(pollingInterval);
-			setPollingInterval(null);
-		}
-	}
+  const stopPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+  };
 
-	useEffect(() => {
-		socketRef.current?.send(JSON.stringify({ logs: includeLogs }));
-	}, [socketRef, includeLogs]);
+  useEffect(() => {
+    socketRef.current?.send(JSON.stringify({ logs: includeLogs }));
+  }, [socketRef, includeLogs]);
 
-	useEffectAsync(async () => {
-		if (authenticated) {
-			const response = await fetch('/api/devices');
-			if (response.ok) {
-				dispatch(refreshDevices(await response.json()));
-			} else {
-				throw Error(await response.text());
-			}
-			connectSocket();
-			return () => {
-				const socket = socketRef.current;
-				if (socket) {
-					socket.close(logoutCode);
-				}
-			};
-		}
-		return null;
-	}, [authenticated]);
+  useEffectAsync(async () => {
+    if (authenticated) {
+      const response = await fetch('/api/devices');
+      if (response.ok) {
+        dispatch(refreshDevices(await response.json()));
+      } else {
+        throw Error(await response.text());
+      }
+      connectSocket();
+      return () => {
+        const socket = socketRef.current;
+        if (socket) {
+          socket.close(logoutCode);
+        }
+      };
+    }
+    return null;
+  }, [authenticated]);
 
-	useEffect(() => {
-		setNotifications(events.map((event) => ({
-			id: event.id,
-			message: event.attributes.message,
-			show: true,
-		})));
-	}, [events, devices, t]);
+  useEffect(() => {
+    setNotifications(events.map((event) => ({
+      id: event.id,
+      message: event.attributes.message,
+      show: true,
+    })));
+  }, [events, devices, t]);
 
-	useEffect(() => {
-		events.forEach((event) => {
-			if (soundEvents.includes(event.type) || (event.type === 'alarm' && soundAlarms.includes(event.attributes.alarm))) {
-				new Audio(alarm).play();
-			}
-		});
-	}, [events, soundEvents, soundAlarms]);
+  useEffect(() => {
+    events.forEach((event) => {
+      if (soundEvents.includes(event.type) || (event.type === 'alarm' && soundAlarms.includes(event.attributes.alarm))) {
+        new Audio(alarm).play();
+      }
+    });
+  }, [events, soundEvents, soundAlarms]);
 
-	return (
-		<>
-			{notifications.map((notification) => (
-				<Snackbar
-					key={notification.id}
-					open={notification.show}
-					message={notification.message}
-					autoHideDuration={snackBarDurationLongMs}
-					onClose={() => setEvents(events.filter((e) => e.id !== notification.id))}
-				/>
-			))}
-		</>
-	);
+  return (
+    <>
+      {notifications.map((notification) => (
+        <Snackbar
+          key={notification.id}
+          open={notification.show}
+          message={notification.message}
+          autoHideDuration={snackBarDurationLongMs}
+          onClose={() => setEvents(events.filter((e) => e.id !== notification.id))}
+        />
+      ))}
+    </>
+  );
 };
 
 export default connect()(SocketController);

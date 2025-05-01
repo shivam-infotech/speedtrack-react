@@ -15,12 +15,14 @@ const MapLiveRoutes = ({ filteredDevices }) => {
   // const history = useSelector((state) => state.session.history);
   const { animHistory: history } = useAnimatedPositions();
 
-  const deviceIds = useMemo(() => Object.values(devices)
-    .map((device) => device.id)
-    .filter((id) => (type === 'selected' ? id === selectedDeviceId : true))
-    .filter((id) => history.hasOwnProperty(id))
-    .filter(d => filteredDevices ? filteredDevices.map(fd => fd.id).includes(d) : true)
-    , [devices, type, selectedDeviceId, filteredDevices, history]);
+  const deviceIds = useMemo(
+    () => Object.values(devices)
+      .map((device) => device.id)
+      .filter((id) => (type === 'selected' ? id === selectedDeviceId : true))
+      .filter((id) => history.hasOwnProperty(id))
+      .filter((d) => (filteredDevices ? filteredDevices.map((fd) => fd.id).includes(d) : true)),
+    [devices, type, selectedDeviceId, filteredDevices, history],
+  );
 
   // Add MapLibre source & layer
   useEffect(() => {
@@ -34,8 +36,8 @@ const MapLiveRoutes = ({ filteredDevices }) => {
             coordinates: [],
           },
           properties: {
-            color: theme.palette.success.main
-          }
+            color: theme.palette.success.main,
+          },
         },
       });
       map.addLayer({
@@ -78,7 +80,7 @@ const MapLiveRoutes = ({ filteredDevices }) => {
     }
   }, [history]);
 
-return null;
+  return null;
 };
 
 export default MapLiveRoutes;

@@ -33,8 +33,8 @@ const BottomMenu = () => {
 
   const currentSelection = () => {
     if (location.pathname === `/settings/user/${user.id}` || location.pathname.startsWith('/settings/user')) {
-      return 'users'
-    } if(location.pathname.startsWith('/settings/device')) {
+      return 'users';
+    } if (location.pathname.startsWith('/settings/device')) {
       return 'devices';
     } if (location.pathname.startsWith('/settings')) {
       return 'settings';
@@ -91,8 +91,8 @@ const BottomMenu = () => {
       case 'devices':
         navigate('/settings/devices');
         break;
-      case "users":
-        navigate("/settings/users");
+      case 'users':
+        navigate('/settings/users');
         break;
       case 'settings':
         navigate('/settings/preferences');

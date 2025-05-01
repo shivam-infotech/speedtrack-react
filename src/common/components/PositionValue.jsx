@@ -63,7 +63,13 @@ const PositionValue = ({ position, property, attribute }) => {
         return value != null ? formatSpeed(speedToKnots(value, 'kmh'), speedUnit, t) : '';
       case 'ignition':
       case 'ac':
-        return <span><span style={{ display: 'inline-block', width: '0.875em', height: '0.875em', backgroundColor: value ? 'green' : 'gray', borderRadius: '50%', margin: '0 0.2em' }} ></span> { value ? t('positionIgnitionOn') : t('positionIgnitionOff') }</span>;
+        return (
+          <span>
+            <span style={{ display: 'inline-block', width: '0.875em', height: '0.875em', backgroundColor: value ? 'green' : 'gray', borderRadius: '50%', margin: '0 0.2em' }} />
+            {' '}
+            { value ? t('positionIgnitionOn') : t('positionIgnitionOff') }
+          </span>
+        );
       case 'course':
         return formatCourse(value);
       case 'altitude':
@@ -92,14 +98,14 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'distance':
       case 'totalDistance':
         return value != null && value > 0 ? formatDistance(value, distanceUnit, t) : '0 km';
-      case "startHours":
-      case "endHours":
-      case "engineHours":
-      case "runningHours":
-      case "idleHours":
-      case "stoppedHours":
-      case "activityDurationHours":
-      case "durationHours":
+      case 'startHours':
+      case 'endHours':
+      case 'engineHours':
+      case 'runningHours':
+      case 'idleHours':
+      case 'stoppedHours':
+      case 'activityDurationHours':
+      case 'durationHours':
       case 'hours':
         return value != null ? formatNumericHours(value, t) : '0s';
       default:

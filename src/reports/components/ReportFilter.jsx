@@ -12,7 +12,6 @@ import SelectField from '../../common/components/SelectField';
 import { useRestriction } from '../../common/util/permissions';
 import DateRangePicker from '../../common/components/DateRangePicker';
 
-
 const ReportFilter = ({
   children, handleSubmit, handleSchedule, showOnly, ignoreDevice, multiDevice, includeGroups, loading,
 }) => {
@@ -135,7 +134,7 @@ const ReportFilter = ({
               <Select label={t('reportPeriod')} value={period} onChange={(e) => dispatch(reportsActions.updatePeriod(e.target.value))}>
                 <MenuItem value="today">{t('reportToday')}</MenuItem>
                 <MenuItem value="yesterday">{t('reportYesterday')}</MenuItem>
-                <MenuItem value="thisWeek">{t('reportThisWeek')}</MenuItem> 
+                <MenuItem value="thisWeek">{t('reportThisWeek')}</MenuItem>
                 <MenuItem value="previousWeek">{t('reportPreviousWeek')}</MenuItem>
                 {/* <MenuItem value="thisMonth">{t('reportThisMonth')}</MenuItem>
                 <MenuItem value="previousMonth">{t('reportPreviousMonth')}</MenuItem> */}
@@ -165,7 +164,8 @@ const ReportFilter = ({
               />
             </div>
           )} */}
-          {period === 'custom' && <div className={classes.filterItem}>
+          {period === 'custom' && (
+          <div className={classes.filterItem}>
             <TextField
               label={t('reportCustom')}
               fullWidth
@@ -182,7 +182,8 @@ const ReportFilter = ({
               setToDate={setTempToDate}
               onApply={handleRangeApply}
             />
-          </div>}
+          </div>
+          )}
         </>
       ) : (
         <>

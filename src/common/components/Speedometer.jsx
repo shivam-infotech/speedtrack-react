@@ -1,10 +1,10 @@
-import React from "react";
-import { Box, Typography, useTheme } from "@mui/material";
-import { motion, AnimatePresence } from "framer-motion";
-import { useTranslation } from "./LocalizationProvider";
+import React from 'react';
+import { Box, Typography, useTheme } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from './LocalizationProvider';
 
 // Example digital font - you can load a custom one via @font-face or link
-const digitalFont = `"Tektur", monospace`;
+const digitalFont = '"Tektur", monospace';
 
 const Speedometer = ({ speed }) => {
   const theme = useTheme();
@@ -12,12 +12,12 @@ const Speedometer = ({ speed }) => {
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: theme.palette.background.default,
-        color: "#111",
+        color: '#111',
         padding: 1.5,
         borderRadius: 2,
         // boxShadow: 3,

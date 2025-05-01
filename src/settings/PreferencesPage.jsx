@@ -238,13 +238,18 @@ const PreferencesPage = () => {
                 </FormGroup>
                 <FormGroup>
                   <Typography variant="subtitle1">
-                    {t('dashboardType')} 
+                    {t('dashboardType')}
                   </Typography>
-                  <Typography variant='caption'>({t('dashboardTypeDescription')})</Typography>
-                  <FormControlLabel label={t('dashboardTypeCompact')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'compact' : false } onChange={(e) => setAttributes({...attributes, dashboardType: 'compact'})} />} />
-                  <FormControlLabel label={t('dashboardTypeLiveMap')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'live-map' : true } onChange={(e) => setAttributes({...attributes, dashboardType: 'live-map'})} />} />
+                  <Typography variant="caption">
+                    (
+                    {t('dashboardTypeDescription')}
+                    )
+                  </Typography>
+                  <FormControlLabel label={t('dashboardTypeCompact')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'compact' : false} onChange={(e) => setAttributes({ ...attributes, dashboardType: 'compact' })} />} />
+                  <FormControlLabel label={t('dashboardTypeLiveMap')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'live-map' : true} onChange={(e) => setAttributes({ ...attributes, dashboardType: 'live-map' })} />} />
                 </FormGroup>
-              </AccordionDetails>'
+              </AccordionDetails>
+              '
             </Accordion>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -276,7 +281,7 @@ const PreferencesPage = () => {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
-                  <TextField 
+                  <TextField
                     value={}
                     label={t('settingsDefaultCreditDeduction')}
                     helperText={t('settingsDefaultCreditDeductionHelp')}

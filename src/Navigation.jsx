@@ -108,13 +108,12 @@ const Navigation = () => {
     } else {
       setRedirectsHandled(true);
     }
-
   }, [query]);
 
   useEffect(() => {
     if (NoBottomMenuRoutes.includes(pathname) && pathname !== '/' && pathname !== '') {
       setNoBottomMenu(true);
-    }else{ setNoBottomMenu(false) }
+    } else { setNoBottomMenu(false); }
   }, [pathname]);
 
   if (!redirectsHandled) {
@@ -128,7 +127,7 @@ const Navigation = () => {
       <Route path="/change-server" element={<ChangeServerPage />} />
       <Route path="/" element={<App noBottomMenu={noBottomMenu} />}>
         <Route index element={<MainPage />} />
-        <Route path='/live' element={<LiveMap />} />
+        <Route path="/live" element={<LiveMap />} />
 
         <Route path="position/:id" element={<PositionPage />} />
         <Route path="network/:positionId" element={<NetworkPage />} />

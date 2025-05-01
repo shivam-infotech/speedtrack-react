@@ -22,7 +22,7 @@ const EditItemView = ({
       if (id) {
         const response = await fetch(`/api/${endpoint}/${id}`);
         if (response.ok) {
-          const res = await response.json()
+          const res = await response.json();
           setItem(res);
           whenItemsLoaded?.(res);
         } else {

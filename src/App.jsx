@@ -11,7 +11,7 @@ import { sessionActions } from './store';
 import UpdateController from './UpdateController';
 import TermsDialog from './common/components/TermsDialog';
 import Loader from './common/components/Loader';
-import { AnimationController } from "./AnimationContext";
+import { AnimationController } from './AnimationContext';
 
 const useStyles = makeStyles(() => ({
   page: {

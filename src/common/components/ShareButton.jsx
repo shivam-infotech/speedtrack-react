@@ -1,29 +1,29 @@
 import React, { useState } from 'react';
-import { IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box } from '@mui/material';
+import {
+  IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box,
+} from '@mui/material';
 import ShareIcon from '@mui/icons-material/Share';
 import CloseIcon from '@mui/icons-material/Close';
 
-const ShareButton = ({ 
-  deviceName, 
-  activityStatus, 
-  duration, 
-  startTime, 
-  endTime, 
+const ShareButton = ({
+  deviceName,
+  activityStatus,
+  duration,
+  startTime,
+  endTime,
   location,
-  coordinates 
+  coordinates,
 }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  const formatMessage = () => {
-    return `Device: ${deviceName}
+  const formatMessage = () => `Device: ${deviceName}
 Status: ${activityStatus}
 Duration: ${duration}
 From: ${startTime.toLocaleTimeString()}
 To: ${endTime.toLocaleTimeString()}
 Location: ${location}
 Google Maps: https://www.google.com/maps?q=${coordinates[1]},${coordinates[0]}`;
-  };
 
   const handleShare = async () => {
     if (isMobile && navigator.share) {
@@ -47,21 +47,21 @@ Google Maps: https://www.google.com/maps?q=${coordinates[1]},${coordinates[0]}`;
 
   return (
     <>
-      <IconButton 
+      <IconButton
         onClick={handleShare}
         size="small"
-        sx={{ 
+        sx={{
           position: 'absolute',
           right: 8,
           top: 8,
-          color: 'primary.main'
+          color: 'primary.main',
         }}
       >
-        <ShareIcon fontSize='small' />
+        <ShareIcon fontSize="small" />
       </IconButton>
 
-      <Dialog 
-        open={openDialog} 
+      <Dialog
+        open={openDialog}
         onClose={() => setOpenDialog(false)}
         maxWidth="sm"
         fullWidth
@@ -95,4 +95,4 @@ Google Maps: https://www.google.com/maps?q=${coordinates[1]},${coordinates[0]}`;
   );
 };
 
-export default ShareButton; 
+export default ShareButton;
