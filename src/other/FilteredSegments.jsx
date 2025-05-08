@@ -1,15 +1,9 @@
 import React, { useEffect, useId } from 'react';
-import { Popup } from 'maplibre-gl';
-import {
-  Typography, Box, Chip, useTheme,
-} from '@mui/material';
-import { createRoot } from 'react-dom/client';
 import MapRoutePath from '../map/MapRoutePath';
 import { map } from '../map/core/MapView';
-import { TimeDiffInHumanReadableFormat } from '../common/util/formatter';
 import MapPin from '../common/components/MapPin';
-import ShareButton from '../common/components/ShareButton';
-import PopupContent from '../common/components/MarkerPopupContent';
+import maplibregl from 'maplibre-gl';
+
 
 const createMarkerIcon = (index, color) => {
   const iconId = `marker-icon-${index}-${color}`;
@@ -37,8 +31,8 @@ const FilteredSegments = ({
   isValidSegment,
   renderType,
   color,
-  device,
-  activityType,
+  onClick,
+  highlightSegmentIndex = null
 }) => {
   const componentId = useId();
   const sourceId = `${componentId}-source`;
@@ -74,7 +68,6 @@ const FilteredSegments = ({
 
   // Initialize source and layer
   useEffect(() => {
-    let popup;
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'geojson',
@@ -104,37 +97,13 @@ const FilteredSegments = ({
         const segment = segments[segmentIndex];
 
         if (segment) {
-          const startTime = new Date(segment[0].fixTime);
-          const endTime = new Date(segment[segment.length - 1].fixTime);
-          const duration = TimeDiffInHumanReadableFormat(segment[0].fixTime, segment[segment.length - 1].fixTime);
-          const address = segment[0]?.address || 'Address not available';
-          const deviceName = device?.name || 'Unknown Device';
-          const activityStatus = activityType;
-
-          const container = document.createElement('div');
-          const root = createRoot(container);
-          root.render(
-            <PopupContent
-              duration={duration === '' ? '0s' : duration}
-              startTime={startTime}
-              endTime={endTime}
-              address={address}
-              coordinates={coordinates}
-              deviceName={deviceName}
-              activityStatus={activityStatus}
-            />,
-          );
-
-          popup = new Popup()
-            .setLngLat(coordinates)
-            .setDOMContent(container)
-            .addTo(map);
+          onClick(segment, segmentIndex);
         }
       });
     }
 
     return () => {
-      if (popup) popup.remove();
+      // if (popup) popup.remove();
       map.off('click', layerId);
       if (map.getLayer(layerId)) {
         map.removeLayer(layerId);
@@ -172,20 +141,46 @@ const FilteredSegments = ({
     }
   }, [segments, renderType, color]);
 
+  useEffect(() => {
+    if (
+      highlightSegmentIndex !== null &&
+      highlightSegmentIndex >= 0 &&
+      highlightSegmentIndex < segments.length
+    ) {
+      const segment = segments[highlightSegmentIndex];
+
+      // Zoom to highlighted segment
+      const bounds = segment.reduce((b, p) => {
+        return b.extend([p.longitude, p.latitude]);
+      }, new maplibregl.LngLatBounds([segment[0].longitude, segment[0].latitude], [segment[0].longitude, segment[0].latitude]));
+
+      map.fitBounds(bounds, {
+        padding: 80,
+        duration: 800,
+      });
+    }
+  }, [highlightSegmentIndex, segments]);
+
+
   if (renderType === 'marker') {
     return null; // Markers are handled by the map layer
   }
 
   return (
     <>
-      {segments.map((segment, index) => (
-        <MapRoutePath
-          key={`segment-${index}`}
-          positions={segment}
-          color={color}
-          width={3}
-        />
-      ))}
+      {segments.map((segment, index) => {
+        const isHighlighted = index === highlightSegmentIndex;
+
+        return (
+          <MapRoutePath
+            key={`segment-${index}`}
+            positions={segment}
+            color={color} // red for highlight
+            width={isHighlighted ? 6 : 3} // thicker line for highlight
+            onLineClick={() => onClick(segment, index)}
+          />
+        );
+      })}
     </>
   );
 };

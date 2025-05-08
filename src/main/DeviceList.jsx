@@ -15,7 +15,7 @@ const useStyles = makeStyles((theme) => ({
   listInner: {
     position: 'relative',
     width: '100%',
-    margin: theme.spacing(1.5, 0),
+    margin: theme.spacing(0.5, 0),
   },
 }));
 
@@ -53,7 +53,7 @@ const DeviceList = ({ devices }) => {
           height={height}
           itemCount={devices.length}
           itemData={devices}
-          itemSize={232}
+          itemSize={234}
           overscanCount={10}
           innerRef={listInnerEl}
         >

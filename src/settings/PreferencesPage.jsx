@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Accordion, AccordionSummary, AccordionDetails, Typography, Container, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, FormGroup, InputAdornment, IconButton, OutlinedInput, Autocomplete, TextField, createFilterOptions, Button,
   Radio,
+  Stack,
+  Slider,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CachedIcon from '@mui/icons-material/Cached';
@@ -208,7 +210,7 @@ const PreferencesPage = () => {
                     )}
                     label={t('attributeShowGeofences')}
                   />
-                  <FormControlLabel
+                  {/* <FormControlLabel
                     control={(
                       <Checkbox
                         checked={attributes.hasOwnProperty('mapFollow') ? attributes.mapFollow : false}
@@ -216,7 +218,7 @@ const PreferencesPage = () => {
                       />
                     )}
                     label={t('deviceFollow')}
-                  />
+                  /> */}
                   <FormControlLabel
                     control={(
                       <Checkbox
@@ -236,20 +238,38 @@ const PreferencesPage = () => {
                     label={t('mapOnSelect')}
                   />
                 </FormGroup>
+                <Stack spacing={2} sx={{ px: 2, width: '100%' }}>
+                  <Typography variant="subtitle1">{t('serverZoomLevel')}</Typography>
+                  <Slider
+                    min={0}
+                    max={20}
+                    step={0.1}
+                    marks={[
+                      { value: 3, label: t('positionSat') },
+                      { value: 10, label: t('sharedCity') },
+                      { value: 15, label: t('sharedStreet') },
+                      { value: 19, label: t('sharedBuilding') },
+                    ]}
+                    value={attributes.zoom || 0}
+                    onChange={(e, newValue) => setAttributes({ ...attributes, zoom: newValue })}
+                    valueLabelDisplay="auto"
+                  />
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1">
+                  {t('dashboardType')}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
                 <FormGroup>
-                  <Typography variant="subtitle1">
-                    {t('dashboardType')}
-                  </Typography>
-                  <Typography variant="caption">
-                    (
-                    {t('dashboardTypeDescription')}
-                    )
-                  </Typography>
                   <FormControlLabel label={t('dashboardTypeCompact')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'compact' : false} onChange={(e) => setAttributes({ ...attributes, dashboardType: 'compact' })} />} />
                   <FormControlLabel label={t('dashboardTypeLiveMap')} control={<Radio checked={attributes.hasOwnProperty('dashboardType') ? attributes.dashboardType === 'live-map' : true} onChange={(e) => setAttributes({ ...attributes, dashboardType: 'live-map' })} />} />
                 </FormGroup>
+                <Typography variant="caption">({t('dashboardTypeDescription')})</Typography>
               </AccordionDetails>
-              '
             </Accordion>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>

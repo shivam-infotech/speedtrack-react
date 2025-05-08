@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { map } from './core/MapView';
 import getSpeedColor from '../common/util/colors';
 
-const MapRoutePath = ({ positions, color = null, width = 3 }) => {
+const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null }) => {
   const id = useId();
 
   const theme = useTheme();
@@ -48,7 +48,11 @@ const MapRoutePath = ({ positions, color = null, width = 3 }) => {
       },
     });
 
+    if(onLineClick) map.on('click', `${id}-line`, onLineClick)
+
     return () => {
+      if(onLineClick) map.off('click', `${id}-line`, onLineClick);
+
       if (map.getLayer(`${id}-title`)) {
         map.removeLayer(`${id}-title`);
       }
@@ -59,7 +63,7 @@ const MapRoutePath = ({ positions, color = null, width = 3 }) => {
         map.removeSource(id);
       }
     };
-  }, []);
+  }, [width, color]);
 
   useEffect(() => {
     const minSpeed = positions.map((p) => p.speed).reduce((a, b) => Math.min(a, b), Infinity);

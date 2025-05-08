@@ -61,6 +61,8 @@ import Loader from './common/components/Loader';
 import { generateLoginToken } from './common/components/NativeInterface';
 import { useLocalization } from './common/components/LocalizationProvider';
 import LiveMap from './main/LiveMap';
+import useNativePlatform from './common/util/useNativePlatform';
+
 
 const NoBottomMenuRoutes = ['/live', '/position/:id', '/network/:positionId', '/event/:id', '/replay', '/geofences', '/emulator'];
 
@@ -74,6 +76,7 @@ const Navigation = () => {
 
   const { pathname } = useLocation();
   const query = useQuery();
+  const { isNative, postNativeMessage } = useNativePlatform();
 
   useEffectAsync(async () => {
     if (query.get('locale')) {
@@ -114,7 +117,19 @@ const Navigation = () => {
     if (NoBottomMenuRoutes.includes(pathname) && pathname !== '/' && pathname !== '') {
       setNoBottomMenu(true);
     } else { setNoBottomMenu(false); }
+
+    if(isNative) postNativeMessage('navigation-change', {pathname})
   }, [pathname]);
+
+  useEffect(() => {
+    window.globalNavigate = navigate;
+    if(isNative){
+      window.globalNavigate = function(...args){
+        navigate(...args);
+        postNativeMessage('navigation-change', args);
+      }
+    }
+  }, [])
 
   if (!redirectsHandled) {
     return (<Loader />);

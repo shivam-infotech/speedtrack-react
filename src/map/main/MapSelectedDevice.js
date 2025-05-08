@@ -1,31 +1,42 @@
-import { useEffect } from 'react';
-
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+
 import dimensions from '../../common/theme/dimensions';
 import { map } from '../core/MapView';
 import { usePrevious } from '../../reactHelper';
-import { useAttributePreference } from '../../common/util/preferences';
+import { useAttributePreference, usePreference } from '../../common/util/preferences';
+import { useAnimatedPositions } from '../../AnimationContext';
 
-const MapSelectedDevice = ({ deviceId }) => {
-  const currentTime = useSelector((state) => state.devices.selectTime);
-  const currentId = useSelector((state) => state.devices.selectedId);
-  const previousTime = usePrevious(currentTime);
+const MapSelectedDevice = ({ deviceId: propDeviceId }) => {
+  // const reduxDeviceId = useSelector((state) => state.devices.selectedId);
+  const selectTime = useSelector((state) => state.devices.selectTime);
+  const previousTime = usePrevious(selectTime);
+
+  // Use propDeviceId if provided, otherwise fallback to Redux
+  const currentId = propDeviceId;
   const previousId = usePrevious(currentId);
+  const { lastAnimatedPositions: positions } = useAnimatedPositions();
 
-  const selectZoom = useAttributePreference('web.selectZoom', 10);
+  const position = positions[currentId] || null;
+
+  const defaultZoomPref = usePreference('zoom', 10);
+  const defaultZoom = useAttributePreference('zoom', defaultZoomPref);
   const mapFollow = useAttributePreference('mapFollow', false);
-
-  const position = useSelector((state) => state.session.positions[currentId]);
+  const initRef = useRef(false);
 
   useEffect(() => {
-    if ((currentId !== previousId || currentTime !== previousTime || mapFollow) && position) {
+    if ((currentId !== previousId || selectTime !== previousTime || mapFollow) && position) {
+      if(!initRef.current){
+        map.setZoom(defaultZoom);
+        initRef.current = true
+      }
       map.easeTo({
         center: [position.longitude, position.latitude],
-        zoom: Math.max(map.getZoom(), selectZoom),
+        // zoom: Math.max(map.getZoom(), defaultZoom),
         offset: [0, -dimensions.popupMapOffset / 2],
       });
     }
-  });
+  }, [currentId, previousId, selectTime, previousTime, mapFollow, position, defaultZoom]);
 
   return null;
 };

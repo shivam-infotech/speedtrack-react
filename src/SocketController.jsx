@@ -12,6 +12,7 @@ import useFeatures from './common/util/useFeatures';
 import { useAttributePreference } from './common/util/preferences';
 import { refreshDevices, updateDevices } from './store/devices';
 import { updatePositionsWithSummary } from './store/session';
+import useNativePlatform from './common/util/useNativePlatform';
 
 const logoutCode = 4000;
 
@@ -19,6 +20,7 @@ const SocketController = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const t = useTranslation();
+  const { isNative, postNativeMessage } = useNativePlatform();
 
   const authenticated = useSelector((state) => !!state.session.user);
   const devices = useSelector((state) => state.devices.items);
@@ -135,7 +137,11 @@ const SocketController = () => {
   useEffect(() => {
     events.forEach((event) => {
       if (soundEvents.includes(event.type) || (event.type === 'alarm' && soundAlarms.includes(event.attributes.alarm))) {
-        new Audio(alarm).play();
+        if(isNative) {
+          const deviceName = Object.entries(devices).find(([key, device]) => device.id === event.deviceId)?.name;
+          postNativeMessage('device-event', {title: deviceName, body: event.attributes.message})
+        }
+        else new Audio(alarm).play();
       }
     });
   }, [events, soundEvents, soundAlarms]);

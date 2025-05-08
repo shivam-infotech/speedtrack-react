@@ -25,7 +25,7 @@ root.render(
           <AppThemeProvider>
             <CssBaseline />
             <ServerProvider>
-              <BrowserRouter>
+              <BrowserRouter future={{ v7_startTransition: true }}>
                 <Navigation />
               </BrowserRouter>
               <ErrorHandler />

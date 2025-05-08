@@ -1,5 +1,6 @@
 import React, {
   useState, useCallback, useEffect, useRef,
+  useMemo,
 } from 'react';
 import {
   Box, Paper, Typography, IconButton,
@@ -25,6 +26,8 @@ import DeviceStatusCard from '../common/components/DeviceStatusCard';
 import MapControlLinks from '../map/extras/MapControlLinks';
 import AccountModal from '../common/components/AccountModal';
 import { useTranslation } from '../common/components/LocalizationProvider';
+import { ExpandMore } from '@mui/icons-material';
+import CenterFocusWeakIcon from '@mui/icons-material/CenterFocusWeak';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -94,6 +97,9 @@ const LiveMap = () => {
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
   const user = useSelector((state) => state.session.user);
   const [accountPopupOpen, setAccountPopupOpen] = useState(false);
+  const [statusCardMinimized, setStatusCardMinimized] = useState(true);
+  const [focusDeviceId, setFocusDeviceId] = useState(null);
+  const mapClickdeviceId = useRef(null);
 
   // Clear selected device only once when page loads in compact layout on small devices
   useEffect(() => {
@@ -101,6 +107,7 @@ const LiveMap = () => {
       dispatch(devicesActions.selectId(null));
       hasClearedDevice.current = true;
     }
+    if(focusDeviceId !== selectedDeviceId) setFocusDeviceId(null);
   }, [isSmallDevice, dashboardType, selectedDeviceId, dispatch]);
 
   const positions = useSelector((state) => state.session.positions);
@@ -135,6 +142,16 @@ const LiveMap = () => {
   }, [isSmallDevice, desktop]);
 
   useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
+
+  const mapLinksMemo = useMemo(() => 
+    selectedDeviceId && <MapControlLinks links={[{ title: t('reportReplay'), icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }, {title: t('deviceKeepFocus'), icon: <CenterFocusWeakIcon color={focusDeviceId === selectedDeviceId ? 'primary' : ''} />, onClick: () => { setFocusDeviceId(focusDeviceId ? null : selectedDeviceId)} }]} />
+  , [selectedDeviceId, focusDeviceId])
+
+  const handleMapClick = () => {
+    setFilter({ statuses: [], groups: [] })
+    if(mapClickdeviceId.current) navigate({ pathname: '/live', search: createSearchParams({ deviceId: mapClickdeviceId.current }).toString() })
+    else navigate('/live')
+  }
 
   const renderCompactLayout = () => (
     <div className={classes.root}>
@@ -176,7 +193,11 @@ const LiveMap = () => {
             {t('sharedSeeAll')}
           </Typography>
         </Box>
-        <Box sx={{ borderRadius: '8px', height: '100%', width: '100%', overflow: 'hidden' }} onClick={() => navigate('/live')}>
+        <Box sx={{ borderRadius: '8px', height: '100%', width: '100%', overflow: 'hidden' }} onClick={(event) => { 
+          // if (event.defaultPrevented) return; 
+          // navigate('/live')
+          handleMapClick()
+          }}>
           <MainMap
             filteredPositions={filteredPositions}
             selectedPosition={selectedPosition}
@@ -184,9 +205,15 @@ const LiveMap = () => {
             filteredDevices={filterMap ? filteredDevices : undefined}
             hideControls
             animationDuration={7000}
-            onMarkerClick={(deviceId) => { }}
+            onMarkerClick={(deviceId, event) => { 
+              event.preventDefault(); 
+              mapClickdeviceId.current = deviceId
+              // event.stopPropagation();
+              // setFilter({ statuses: [], groups: [] }); 
+              // navigate({ pathname: '/live', search: createSearchParams({ deviceId: deviceId }).toString() })  
+            }}
           />
-          { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> }
+          { mapLinksMemo }
         </Box>
       </div>
       <Paper square className={classes.contentList}>
@@ -202,8 +229,11 @@ const LiveMap = () => {
             index={index}
             style={{ marginBottom: theme.spacing(1) }}
             onClick={() => {
-              setFilter;
-              navigate({ pathname: '/live', search: createSearchParams({ deviceId: filteredDevices[index].id }).toString() }, { replace: false });
+              setFilter({
+                statuses: [],
+                groups: [],
+              });
+              navigate({ pathname: '/live', search: createSearchParams({ deviceId: filteredDevices[index].id }).toString() });
             }}
           />
         ))}
@@ -231,6 +261,7 @@ const LiveMap = () => {
           onEventsClick={onEventsClick}
           filteredDevices={filterMap ? filteredDevices : undefined}
           animationDuration={7000}
+          selectedDeviceId={focusDeviceId}
         />
       )}
       <div className={classes.sidebar}>
@@ -270,10 +301,11 @@ const LiveMap = () => {
                 filteredDevices={filterMap ? filteredDevices : undefined}
                 animationDuration={7000}
               />
-              { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> }
+              { mapLinksMemo }
+              {/* { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> } */}
             </div>
           )}
-          <Paper square className={classes.contentList} style={devicesOpen ? {} : { visibility: 'hidden' }}>
+          <Paper square className={classes.contentList} background={theme.palette.background.default} style={devicesOpen ? {} : { visibility: 'hidden' }}>
             <DeviceList devices={filteredDevices} />
           </Paper>
         </div>
@@ -292,13 +324,17 @@ const LiveMap = () => {
         //   desktopPadding={theme.dimensions.drawerWidthDesktop}
         //   summary={summaries[selectedDeviceId] || {}}
         // />
-        <DeviceStatusCard
-          deviceId={selectedDeviceId}
-          position={selectedPosition}
-          onClose={() => dispatch(devicesActions.selectId(null))}
-          desktopPadding={theme.dimensions.drawerWidthDesktop}
-          summary={summaries[selectedDeviceId] || {}}
-        />
+        
+          <DeviceStatusCard
+            deviceId={selectedDeviceId}
+            position={selectedPosition}
+            desktopPadding={theme.dimensions.drawerWidthDesktop}
+            summary={summaries[selectedDeviceId] || {}}
+            haveBottomTabs={isSmallDevice}
+            minimize={statusCardMinimized}
+            onClose={(() => setStatusCardMinimized(!statusCardMinimized))}
+            closeIcon={<ExpandMore />}
+          />
       )}
       <AccountModal open={accountPopupOpen} onClose={() => setAccountPopupOpen(false)} />
     </div>

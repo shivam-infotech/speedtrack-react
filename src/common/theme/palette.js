@@ -89,5 +89,13 @@ export default (server, darkMode) => {
       disabled: darkMode ? grey[600] : grey[400],
     },
     divider: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+    action: {
+      active: darkMode ? grey[300] : grey[700],
+      hover: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+      selected: darkMode ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.08)',
+      disabled: darkMode ? grey[600] : grey[400],
+      disabledBackground: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+      focus: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+    },
   });
 };

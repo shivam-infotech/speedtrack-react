@@ -29,6 +29,7 @@ class LinkControls{
         this.button = document.createElement( this.getLink().href ? 'a' : 'button');
         this.button.className = `maplibregl-ctrl-icon`;
         // rendering MUI icon to make it as SVG
+        this.button.title = this.getLink().title;
         this.button.appendChild(this.renderReactIcon(this.getLink().icon));
         // connecting href / onClick interactions
         if(this.getLink()?.href) this.button.href = this.getLink().href;

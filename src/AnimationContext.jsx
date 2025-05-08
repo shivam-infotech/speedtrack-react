@@ -8,8 +8,10 @@ import { distanceFromMeters } from './common/util/converter';
 export const useAnimatedPositions = create((set, get) => ({
   animPositions: {},
   animHistory: {},
+  lastAnimatedPositions: {},
   setPositions: (positions) => set({ animPositions: positions }),
   setHistory: (history) => set({ animHistory: history }),
+  setLastAnimatedPositions: (positions) => set({ lastAnimatedPositions: positions }),
   resetHistory: () => set({ animHistory: {} }),
 }));
 
@@ -24,7 +26,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
   const adjustedDurationRef = useRef(animationDuration);
   const isUnfocused = useRef(false);
 
-  const { setPositions, setHistory } = useAnimatedPositions.getState();
+  const { setPositions, setHistory, setLastAnimatedPositions } = useAnimatedPositions.getState();
 
   useEffect(() => {
     for (const [deviceId, pos] of Object.entries(positions)) {
@@ -37,7 +39,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
           animationQueueRef.current[deviceId] = [];
         }
 
-        animationQueueRef.current[deviceId].push([{ ...from, _startTime: performance.now() }, to]);
+        animationQueueRef.current[deviceId].push([{ ...from, _startTime: performance.now() }, {...to, _lastSet: false}]);
         lastPositionRef.current[deviceId] = pos;
       }
     }
@@ -67,7 +69,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
             newHistory[deviceId].push([to.longitude, to.latitude]);
           } else {
             const distance = to?.attributes?.distance || calculateDistance(from.latitude, from.longitude, to.latitude, to.longitude);
-            const currentSpeed = Math.max(to?.speed || 0, 5); // to maintain the
+            const currentSpeed = to?.speed ? Math.max(Math.min(to.speed, 20), 5) : 5;
             const speedInmps = currentSpeed * (1000 / 3600);
 
             const adjustedDuration = speedInmps > 0 ? (distance / speedInmps) * 600 : adjustedDurationRef.current;
@@ -98,6 +100,11 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
 
             if (!newHistory[deviceId]) newHistory[deviceId] = [];
             newHistory[deviceId].push([longitude, latitude]);
+
+            if (progress >= 0.7 && !to?._lastSet) {
+              setLastAnimatedPositions({ ...newPositions });
+              to._lastSet = true;
+            }
 
             if (progress < 1) {
               if (isUnfocused.current) return skipToLatest();
@@ -152,6 +159,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
 
     setPositions(newPositions);
     setHistory(newHistory);
+    setLastAnimatedPositions(newPositions);
 
     isAnimating.current = false;
     animatedRef.current = null;
@@ -196,6 +204,7 @@ export const AnimationController = ({ animationDuration = 1000, targetFPS = 30 }
 
       setPositions(initialPositions);
       setHistory(initialHistory);
+      setLastAnimatedPositions(initialPositions);
     }
   }, [positions]);
 

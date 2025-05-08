@@ -63,7 +63,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
     event.preventDefault();
     const feature = event.features[0];
     if (onClick) {
-      onClick(feature.properties.id, feature.properties.deviceId);
+      onClick(feature.properties.id, feature.properties.deviceId, event);
     }
   }, [onClick]);
 
@@ -123,23 +123,23 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'text-halo-width': 1.5,
         },
       });
-      map.addLayer({
-        id: `direction-${source}`,
-        type: 'symbol',
-        source,
-        filter: [
-          'all',
-          ['!has', 'point_count'],
-          ['==', 'direction', true],
-        ],
-        layout: {
-          'icon-image': 'direction',
-          'icon-size': iconScale,
-          'icon-allow-overlap': true,
-          'icon-rotate': ['get', 'rotation'],
-          'icon-rotation-alignment': 'map',
-        },
-      });
+      // map.addLayer({
+      //   id: `direction-${source}`,
+      //   type: 'symbol',
+      //   source,
+      //   filter: [
+      //     'all',
+      //     ['!has', 'point_count'],
+      //     ['==', 'direction', true],
+      //   ],
+      //   layout: {
+      //     'icon-image': 'direction',
+      //     'icon-size': iconScale,
+      //     'icon-allow-overlap': true,
+      //     'icon-rotate': ['get', 'rotation'],
+      //     'icon-rotation-alignment': 'map',
+      //   },
+      // });
 
       map.on('mouseenter', source, onMouseEnter);
       map.on('mouseleave', source, onMouseLeave);

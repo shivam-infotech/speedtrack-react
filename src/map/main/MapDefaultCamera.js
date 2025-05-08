@@ -1,16 +1,17 @@
 import maplibregl from 'maplibre-gl';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { usePreference } from '../../common/util/preferences';
+import { useAttributePreference, usePreference } from '../../common/util/preferences';
 import { map } from '../core/MapView';
 
-const MapDefaultCamera = ({ animationDuration = 1000 }) => {
+const MapDefaultCamera = ({ animationDuration = 1000, focusableDeviceId = null }) => {
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
   const positions = useSelector((state) => state.session.positions);
 
   const defaultLatitude = usePreference('latitude');
   const defaultLongitude = usePreference('longitude');
-  const defaultZoom = usePreference('zoom', 0);
+  const defaultZoomPref = usePreference('zoom', 15);
+  const defaultZoom = useAttributePreference('zoom', defaultZoomPref);
 
   const [initialized, setInitialized] = useState(false);
 
@@ -21,7 +22,7 @@ const MapDefaultCamera = ({ animationDuration = 1000 }) => {
       if (defaultLatitude && defaultLongitude) {
         map.jumpTo({
           center: [defaultLongitude, defaultLatitude],
-          zoom: defaultZoom,
+          zoom: defaultZoom
         });
         setInitialized(true);
       } else {

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
+import viteCompression from 'vite-plugin-compression';
 
 /* eslint-disable no-template-curly-in-string */
 export default defineConfig(() => ({
@@ -25,6 +26,7 @@ export default defineConfig(() => ({
   plugins: [
     svgr(),
     react(),
+    viteCompression({ algorithm: 'gzip' }),
     VitePWA({
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
       workbox: {

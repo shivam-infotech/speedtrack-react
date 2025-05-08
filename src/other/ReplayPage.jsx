@@ -15,6 +15,8 @@ import {
   Popover,
   Button,
   Divider,
+  Card,
+  CardContent,
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -29,7 +31,7 @@ import MapView from '../map/core/MapView';
 import MapRoutePath from '../map/MapRoutePath';
 import MapRoutePoints from '../map/MapRoutePoints';
 import MapPositions from '../map/MapPositions';
-import { formatDistance, formatTime } from '../common/util/formatter';
+import { formatDistance, formatTime, TimeDiffInHumanReadableFormat } from '../common/util/formatter';
 import ReportFilter from '../reports/components/ReportFilter';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import { useCatch } from '../reactHelper';
@@ -46,6 +48,10 @@ import FilteredSegments from './FilteredSegments';
 import DeviceReplayStatusCard from '../common/components/DeviceReplayStatusCard';
 import { useAttributePreference } from '../common/util/preferences';
 import PositionValue from '../common/components/PositionValue';
+import PopupContent from '../common/components/MarkerPopupContent';
+import { createRoot } from 'react-dom/client';
+import { Popup } from 'maplibre-gl';
+import PlaybackSegmentCard from '../common/components/PlaybackSegmentCard';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -261,9 +267,8 @@ const ReplayPage = () => {
   const [params] = useSearchParams();
   const duration = 1000;
   const distanceUnit = useAttributePreference('distanceUnit');
+  const [selectedSegment, setSelectedSegment] = useState(null);
 
-  const [multiplierAnchor, setMultiplierAnchor] = useState(null);
-  const multiplierMenuExpanded = Boolean(multiplierAnchor);
   const [filterAnchor, setFilterAnchor] = useState(null);
   const filterMenuExpanded = Boolean(filterAnchor);
   const [filters, setFilters] = useState({
@@ -411,68 +416,94 @@ const ReplayPage = () => {
   };
 
   const animatedPositions = useInterpolatedPosition(positions[index], positions[index + 1], duration / multiplier, 'linear');
+  const updateSegmentSelection = (segment, filterType, options = []) => {
+    setSelectedSegment({ segment, filterType, options });
+  }
 
   // using memorizarions for preventing the non-logical rendering
   const stoppageMarkersMemo = useMemo(() => (stoppages && !(filters.stoppedMoreThan || filters.idleMoreThan || filters.speedMoreThan || filters.inactivity))
-      && (<MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} />), [stoppages, filters]);
+    && (<MapStoppages positions={stoppages} startPosition={positions[0]} endPosition={positions[positions.length - 1]} device={devices[selectedDeviceId]} onClick={(segment, index) => updateSegmentSelection(segment, 'stoppage', { segmentIndex: index })} />), [stoppages, filters]);
 
   const filterStopMoreThanMemo = useMemo(() => filters.stoppedMoreThan && (
-  <FilteredSegments
-    positions={rawPositions}
-    isValidPosition={(current, previous) => current.attributes.ignition === false}
-    isValidSegment={(segment) => {
-      const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
-      return duration >= filters.stoppedMoreThan;
-    }}
-    renderType={filterRenderType.stoppedMoreThan}
-    color={FilterMarkingColors.stoppedMoreThan}
-    activityType="Stoppage"
-    device={devices[selectedDeviceId]}
-  />
-  ), [filters.stoppedMoreThan]);
+    <FilteredSegments
+      positions={rawPositions}
+      isValidPosition={(current, previous) => current.attributes.ignition === false}
+      isValidSegment={(segment) => {
+        const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
+        return duration >= filters.stoppedMoreThan;
+      }}
+      renderType={filterRenderType.stoppedMoreThan}
+      color={FilterMarkingColors.stoppedMoreThan}
+      highlightSegmentIndex={selectedSegment && selectedSegment?.filterType === 'stoppage' ? selectedSegment.options.segmentIndex : null}
+      onClick={(segment, index) => updateSegmentSelection(segment, 'stoppage', { segmentIndex: index })}
+    />
+  ), [filters.stoppedMoreThan, selectedSegment]);
 
   const filterIdleMoreThanMemo = useMemo(() => filters.idleMoreThan && (
-  <FilteredSegments
-    positions={rawPositions}
-    isValidPosition={(current, previous) => current.attributes.activity === 'idle'}
-    isValidSegment={(segment) => {
-      const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
-      return duration >= filters.idleMoreThan;
-    }}
-    activityType="Idle"
-    renderType={filterRenderType.idleMoreThan}
-    color={FilterMarkingColors.idleMoreThan}
-    device={devices[selectedDeviceId]}
-  />
-  ), [filters.idleMoreThan]);
+    <FilteredSegments
+      positions={rawPositions}
+      isValidPosition={(current, previous) => current.attributes.activity === 'idle'}
+      isValidSegment={(segment) => {
+        const duration = dayjs(segment[segment.length - 1].fixTime).diff(dayjs(segment[0].fixTime), 'second') / 60;
+        return duration >= filters.idleMoreThan;
+      }}
+      renderType={filterRenderType.idleMoreThan}
+      color={FilterMarkingColors.idleMoreThan}
+      highlightSegmentIndex={selectedSegment && selectedSegment?.filterType === 'idle' ? selectedSegment.options.segmentIndex : null}
+      onClick={(segment, index) => updateSegmentSelection(segment, 'idle', { segmentIndex: index })}
+    />
+  ), [filters.idleMoreThan, selectedSegment]);
 
   const filterSpeedMoreThanFilterMemo = useMemo(() => filters.speedMoreThan && (
-  <FilteredSegments
-    positions={rawPositions}
-    isValidPosition={(current, previous) => current.speed > filters.speedMoreThan}
-    isValidSegment={(segment) => segment.length > 0}
-    renderType={filterRenderType.speedMoreThan}
-    color={FilterMarkingColors.speedMoreThan}
-    activityType="Speed"
-    device={devices[selectedDeviceId]}
-  />
-  ), [filters.speedMoreThan]);
+    <FilteredSegments
+      positions={rawPositions}
+      isValidPosition={(current, previous) => current.speed > filters.speedMoreThan}
+      isValidSegment={(segment) => segment.length > 0}
+      renderType={filterRenderType.speedMoreThan}
+      color={FilterMarkingColors.speedMoreThan}
+      highlightSegmentIndex={selectedSegment && selectedSegment?.filterType === 'speed' ? selectedSegment.options.segmentIndex : null}
+      onClick={(segment, index) => updateSegmentSelection(segment, 'speed', { segmentIndex: index })}
+    />
+  ), [filters.speedMoreThan, selectedSegment]);
 
   const filterInactiveMemo = useMemo(() => filters.inactivity && (
-  <FilteredSegments
-    positions={rawPositions}
-    isValidPosition={(current, previous) => {
-      if (!previous) return false;
-      const timeDifference = dayjs(current.fixTime).diff(dayjs(previous.fixTime), 'second') / 60;
-      return timeDifference > 1;
-    }}
-    isValidSegment={(segment) => segment.length > 0}
-    renderType={filterRenderType.inactivity}
-    color={FilterMarkingColors.inactivity}
-    activityType="Inactivity"
-    device={devices[selectedDeviceId]}
-  />
-  ), [filters.inactivity]);
+    <FilteredSegments
+      positions={rawPositions}
+      isValidPosition={(current, previous) => {
+        if (!previous) return false;
+        const timeDifference = dayjs(current.fixTime).diff(dayjs(previous.fixTime), 'second') / 60;
+        return timeDifference > 1;
+      }}
+      isValidSegment={(segment) => segment.length > 0}
+      renderType={filterRenderType.inactivity}
+      color={FilterMarkingColors.inactivity}
+      highlightSegmentIndex={selectedSegment && selectedSegment?.filterType === 'inactive' ? selectedSegment.options.segmentIndex : null}
+      onClick={(segment) => updateSegmentSelection(segment, 'inactive')}
+    />
+  ), [filters.inactivity, selectedSegment]);
+
+  const segmentSelectionCardMemo = useMemo(() => {
+    if (selectedSegment) {
+      const start = selectedSegment.segment[0];
+      const end = selectedSegment.segment[selectedSegment.segment.length - 1];
+      const startTime = new Date(start.fixTime);
+      const endTime = new Date(end.fixTime);
+      const duration = TimeDiffInHumanReadableFormat(start.fixTime, end.fixTime);
+      const address = start.address
+
+      return <PlaybackSegmentCard
+        deviceName={devices[selectedDeviceId].name}
+        startTime={startTime}
+        endTime={endTime}
+        duration={duration}
+        location={address}
+        segmentOf={selectedSegment.filterType}
+        coords={{ longitude: start.longitude, latitude: start.latitude }}
+        onClose={() => setSelectedSegment(null)}
+      />
+    }
+
+  }, [selectedSegment])
 
   return (
     <div className={classes.root}>
@@ -483,11 +514,11 @@ const ReplayPage = () => {
             <MapRoutePath positions={positions} color={ReportColor} />
             <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
             <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
-            { stoppageMarkersMemo }
-            { filterStopMoreThanMemo }
-            { filterIdleMoreThanMemo }
-            { filterSpeedMoreThanFilterMemo }
-            { filterInactiveMemo }
+            {stoppageMarkersMemo}
+            {filterStopMoreThanMemo}
+            {filterIdleMoreThanMemo}
+            {filterSpeedMoreThanFilterMemo}
+            {filterInactiveMemo}
           </>
         )}
       </MapView>
@@ -505,12 +536,12 @@ const ReplayPage = () => {
                 {/* <IconButton onClick={handleDownload}>
                   <DownloadIcon />
                 </IconButton> */}
-                { positions
+                {positions
                   && (
-                  <Box sx={{ background: theme.palette.background.default, padding: 1 }}>
-                    <Typography fontSize="1.1rem" lineHeight={1} textAlign="center" fontWeight={700}>{formatDistance(calculateDistanceFromCoords(positions), distanceUnit, t)}</Typography>
-                    <Typography fontSize="0.6rem" lineHeight={1} textAlign="center">{ t('deviceTotalDistance') }</Typography>
-                  </Box>
+                    <Box sx={{ background: theme.palette.background.default, padding: 1 }}>
+                      <Typography fontSize="1.1rem" lineHeight={1} textAlign="center" fontWeight={700}>{formatDistance(calculateDistanceFromCoords(positions), distanceUnit, t)}</Typography>
+                      <Typography fontSize="0.6rem" lineHeight={1} textAlign="center">{t('deviceTotalDistance')}</Typography>
+                    </Box>
                   )}
                 <IconButton onClick={openFilterMenu}>
                   <Badge color="info" variant="dot" fontSize="small" invisible={Object.values(filters).every((f) => f === null)}>
@@ -532,6 +563,9 @@ const ReplayPage = () => {
           </Toolbar>
         </Paper>
         {expanded && <Paper className={classes.content} square><ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} /></Paper>}
+        <Paper elevation={3} square sx={{ marginTop: 1 }}>
+          {segmentSelectionCardMemo}
+        </Paper>
       </div>
       {(showCard && positions.length > 0 && summary) && (
         <DeviceReplayStatusCard

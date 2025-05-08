@@ -18,6 +18,8 @@ import useFilter from './useFilter';
 import DeviceStatusCard from '../common/components/DeviceStatusCard';
 import MapControlLinks from '../map/extras/MapControlLinks';
 import { useAnimatedPositions } from '../AnimationContext';
+import CenterFocusWeakIcon from '@mui/icons-material/CenterFocusWeak';
+import PlaybackDurationDialog from '../common/components/PlaybackDurationDialog';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -89,7 +91,8 @@ export default function LiveMap() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { resetHistory } = useAnimatedPositions();
-
+  const [focusDeviceId, setFocusDeviceId] = useState(null);
+  const [playbackDurationOpen, setPlaybackDurationOpen] = useState(false);
   useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
 
   useEffect(() => {
@@ -100,15 +103,47 @@ export default function LiveMap() {
     resetHistory();
     if (params.has('deviceId') && selectedDeviceId === null) {
       dispatch(devicesActions.selectId(Number(params.get('deviceId'))));
+      setFocusDeviceId(Number(params.get('deviceId')))
     }
   }, []);
 
-  const mapLinks = useMemo(() => (selectedDeviceId || params.has('deviceId')) && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} />, [selectedDeviceId, params]);
+  const paramDeviceId = params.has('deviceId') ? Number(params.get('deviceId')) : null;
+
+  const mapLinks = useMemo(() => (
+    (selectedDeviceId || paramDeviceId) && (
+      <MapControlLinks
+        links={[
+          {
+            title: 'playback',
+            icon: <PlayArrowIcon />,
+            onClick: () => setPlaybackDurationOpen(true),
+          },
+          {
+            title: t('deviceKeepFocus'),
+            icon: (
+              <CenterFocusWeakIcon
+                color={
+                  focusDeviceId === (paramDeviceId || selectedDeviceId)
+                    ? 'primary'
+                    : undefined
+                }
+              />
+            ),
+            onClick: () => {
+              const targetId = paramDeviceId || selectedDeviceId;
+              setFocusDeviceId(focusDeviceId === targetId ? null : targetId);
+            },
+          },
+        ]}
+      />
+    )
+  ), [selectedDeviceId, paramDeviceId, focusDeviceId]);
+
 
   return (
     <div className={styles.root}>
       <div className={styles.sidebar}>
-        { params.has('deviceId') ? (
+        {params.has('deviceId') ? (
           <Box className={styles.floatingNavContainer}>
             <IconButton onClick={() => navigate(-1)} sx={{ backgroundColor: theme.palette.background.default }}>
               <ArrowBackIcon />
@@ -121,8 +156,8 @@ export default function LiveMap() {
                 <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
                   <Typography variant="h6">Live Map</Typography>
                 </Box>
-)}
-                            // filteredDevices={filteredDevices}
+              )}
+              // filteredDevices={filteredDevices}
               devicesOpen={devicesOpen}
               setDevicesOpen={setDevicesOpen}
               hideDevicesOpen
@@ -130,7 +165,7 @@ export default function LiveMap() {
                 <IconButton edge="start" size="small" onClick={() => navigate(-1)}>
                   <ArrowBackIcon fontSize="small" />
                 </IconButton>
-                              )}
+              )}
               keyword={keyword}
               setKeyword={setKeyword}
               filter={filter}
@@ -144,7 +179,7 @@ export default function LiveMap() {
               filteredPositions={filteredPositions}
               selectedPosition={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
               hideControls
-              onEventsClick={() => {}}
+              onEventsClick={() => { }}
               filteredDevices={params.has('deviceId') && Object.values(devices).map((fd) => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(devices).filter((fd) => fd.id == params.get('deviceId')) : filteredDevices}
               hidefilters={params.has('deviceId')}
             />
@@ -156,23 +191,25 @@ export default function LiveMap() {
           filteredPositions={filteredPositions}
           selectedPosition={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
           hideControls
-          onEventsClick={() => {}}
+          onEventsClick={() => { }}
           filteredDevices={params.has('deviceId') && Object.values(devices).map((fd) => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(devices).filter((fd) => fd.id == params.get('deviceId')) : filteredDevices}
           animationDuration={4000}
+          selectedDeviceId={focusDeviceId}
         />
         {mapLinks}
       </div>
       {selectedDeviceId && (
-      <DeviceStatusCard
-        deviceId={selectedDeviceId}
-        position={params.has('deviceId') && Object.values(devices).map((fd) => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(positions).find((position) => selectedDeviceId && position.deviceId === selectedDeviceId) : filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
-        onClose={params.has('deviceId') ? (() => setStatusCardMinimized(!statusCardMinimized)) : (() => dispatch(devicesActions.selectId(null)))}
-        desktopPadding={theme.dimensions.drawerWidthDesktop}
-        minimize={statusCardMinimized}
-        closeIcon={params.has('deviceId') && <ExpandMore />}
-        summary={summaries[selectedDeviceId] || {}}
-      />
+        <DeviceStatusCard
+          deviceId={selectedDeviceId}
+          position={params.has('deviceId') && Object.values(devices).map((fd) => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(positions).find((position) => selectedDeviceId && position.deviceId === selectedDeviceId) : filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
+          onClose={(() => setStatusCardMinimized(!statusCardMinimized))}
+          desktopPadding={theme.dimensions.drawerWidthDesktop}
+          minimize={statusCardMinimized}
+          closeIcon={<ExpandMore />}
+          summary={summaries[selectedDeviceId] || {}}
+        />
       )}
+      <PlaybackDurationDialog deviceId={selectedDeviceId} onClose={() => setPlaybackDurationOpen(false)} open={playbackDurationOpen} />
     </div>
   );
 }

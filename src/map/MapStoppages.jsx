@@ -43,13 +43,12 @@ const startEndIcons = (type) => new Promise((loaded) => {
   };
 });
 
-const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
+const MapStoppages = ({ positions, startPosition, endPosition, device, onClick }) => {
   const componentId = useId();
   const id = `${componentId}-stoppage-marker`;
 
   // Initialize source and layer (runs only once on mount)
   useEffect(() => {
-    let popup;
     if (!map.getSource(id)) {
       map.addSource(id, {
         type: 'geojson',
@@ -79,39 +78,14 @@ const MapStoppages = ({ positions, startPosition, endPosition, device }) => {
         const positionGroup = positions[parseInt(properties.index) - 1];
 
         if (positionGroup) {
-          const startTime = new Date(positionGroup[0].fixTime);
-          const endTime = new Date(positionGroup[positionGroup.length - 1].fixTime);
-          const duration = TimeDiffInHumanReadableFormat(positionGroup[0].fixTime, positionGroup[positionGroup.length - 1].fixTime);
-
-          const address = positionGroup[0]?.address || 'Address not available'; // Replace with actual address
-          const deviceName = device?.name || 'Unknown Device';
-          const activityStatus = 'Stoppage';
-
-          const container = document.createElement('div');
-          const root = createRoot(container);
-          root.render(
-            <PopupContent
-              duration={duration === '' ? '0s' : duration}
-              startTime={startTime}
-              endTime={endTime}
-              address={address}
-              coordinates={coordinates}
-              deviceName={deviceName}
-              activityStatus={activityStatus}
-            />,
-          );
-
-          popup = new Popup()
-            .setLngLat(coordinates)
-            .setDOMContent(container)
-            .addTo(map);
+          onClick(positionGroup, parseInt(properties.index) - 1);
         }
       });
     }
 
     // Cleanup function (runs only on unmount)
     return () => {
-      if (popup) popup.remove();
+      // if (popup) popup.remove();
       map.off('click', id);
       if (map.getLayer(id)) {
         map.removeLayer(id);

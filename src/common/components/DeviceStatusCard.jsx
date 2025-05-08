@@ -43,7 +43,7 @@ import Speedometer from './Speedometer';
 import useGlobalSpeech from '../util/useGlobalSpeech';
 
 const useStyles = makeStyles((theme) => ({
-  root: ({ desktopPadding }) => ({
+  root: ({ desktopPadding, haveBottomTabs }) => ({
     pointerEvents: 'none',
     position: 'fixed',
     zIndex: 2,
@@ -55,7 +55,7 @@ const useStyles = makeStyles((theme) => ({
     },
     [theme.breakpoints.down('md')]: {
       left: '50%',
-      bottom: theme.spacing(0.5),
+      bottom: haveBottomTabs ? theme.spacing(7.2) : theme.spacing(0.5),
       width: '100%',
     },
     transform: 'translateX(-50%)',
@@ -215,9 +215,9 @@ const PositionCell = ({ title, value }) => {
 };
 
 const DeviceStatusCard = ({
-  deviceId, position, onClose, disableActions, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false,
+  deviceId, position, onClose, disableActions, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false, haveBottomTabs = false
 }) => {
-  const classes = useStyles({ desktopPadding });
+  const classes = useStyles({ desktopPadding, haveBottomTabs });
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();

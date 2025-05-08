@@ -20,7 +20,7 @@ import MapNotification from '../map/notification/MapNotification';
 import useFeatures from '../common/util/useFeatures';
 import { useAnimatedPositions } from '../AnimationContext';
 
-const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices, onMarkerClick, animationDuration = 1000 }) => {
+const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredDevices, onMarkerClick, animationDuration = 1000, selectedDeviceId }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -31,8 +31,8 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
   const features = useFeatures();
   const { animPositions: positions } = useAnimatedPositions();
 
-  const markerClick = useCallback((_, deviceId) => {
-    if (onMarkerClick) onMarkerClick(deviceId);
+  const markerClick = useCallback((_, deviceId, event) => {
+    if (onMarkerClick) onMarkerClick(deviceId, event);
     else dispatch(devicesActions.selectId(deviceId));
   }, [dispatch]);
 
@@ -55,7 +55,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
           showStatus
         />
         <MapDefaultCamera animationDuration={animationDuration} />
-        <MapSelectedDevice />
+        <MapSelectedDevice deviceId={selectedDeviceId} />
         <PoiMap />
       </MapView>
       {/* <MapScale /> */}

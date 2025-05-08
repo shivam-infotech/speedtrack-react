@@ -98,6 +98,11 @@ export function calculateBearing(lat1, lon1, lat2, lon2) {
   return bearing;
 }
 
+function interpolateAngle(from, to, t) {
+  let delta = ((to - from + 540) % 360) - 180; // shortest path
+  return (from + delta * t + 360) % 360;
+}
+
 export function useInterpolatedPosition(start, end, duration = 1000, easingFn = 'easeInOutQuad') {
   const [animatedPosition, setAnimatedPosition] = useState(start);
   const animationRef = useRef(null);
@@ -105,27 +110,49 @@ export function useInterpolatedPosition(start, end, duration = 1000, easingFn = 
   const ease = useAnimationEase(easingFn);
 
   useEffect(() => {
-    if (!start || !end || start === end || duration === 0) {
+    if (
+      !start || !end ||
+      (start.latitude === end.latitude && start.longitude === end.longitude) ||
+      duration === 0
+    ) {
       setAnimatedPosition(end);
       return;
     }
 
+    cancelAnimationFrame(animationRef.current); // Stop previous animation
     startTimeRef.current = performance.now();
+
+    const from = { ...start };
+    const to = { ...end };
+
+    const fromRotation = start.course ?? 0;
+    let toRotation = calculateBearing(start.latitude, start.longitude, end.latitude, end.longitude) ?? end.course ?? fromRotation;
+
+    // Handle tiny distance where bearing is unstable
+    const distance = end?.attributes?.distance || calculateDistance(start.latitude, start.longitude, end.latitude, end.longitude)
+    if (distance < 2) {
+      toRotation = fromRotation;
+    }
+
+    // Normalize rotation difference
+    let delta = toRotation - fromRotation;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
 
     const animate = (now) => {
       const elapsed = now - startTimeRef.current;
       const t = Math.min(elapsed / duration, 1);
       const progress = ease ? ease(t) : t;
 
-      const latitude = start.latitude + (end.latitude - start.latitude) * progress;
-      const longitude = start.longitude + (end.longitude - start.longitude) * progress;
-      const rotation = calculateBearing(start.latitude, start.longitude, end.latitude, end.longitude);
+      const latitude = from.latitude + (to.latitude - from.latitude) * progress;
+      const longitude = from.longitude + (to.longitude - from.longitude) * progress;
+      const course = interpolateAngle(fromRotation, toRotation, progress);
 
       setAnimatedPosition({
-        ...start,
+        ...from,
         latitude,
         longitude,
-        course: rotation,
+        course,
       });
 
       if (t < 1) {

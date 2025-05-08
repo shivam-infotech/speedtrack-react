@@ -240,14 +240,14 @@ const DeviceCard = ({ data, index, style, onClick }) => {
   return (
     <>
       <Card
-        className={`${classes.card} ${selectedDeviceId === item.id ? classes.selectedCard : ''}`}
+        className={`${classes.card}`}
         onClick={() => {
           dispatch(devicesActions.selectId(item.id));
           if (onClick) onClick();
         }}
         style={{ ...style }}
       >
-        <CardContent className={classes.compactContent}>
+        <CardContent className={`${classes.compactContent} ${selectedDeviceId === item.id ? classes.selectedCard : ''}`}>
           <Box className={classes.headerBox}>
             <ListItemAvatar sx={{ minWidth: 40, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <img src={device3dIcons[item?.category || 'car'][position ? getDeviceStatusColor(position) : 'neutral']} width="56px" />
