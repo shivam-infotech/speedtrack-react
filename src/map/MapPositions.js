@@ -122,7 +122,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'text-halo-color': 'white',
           'text-halo-width': 1.5,
         },
-      }, map.getStyle().layers[map.getStyle().layers.length - 1].id);
+      });
       // map.addLayer({
       //   id: `direction-${source}`,
       //   type: 'symbol',

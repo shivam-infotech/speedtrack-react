@@ -73,7 +73,7 @@ const App = ({ noBottomMenu = false }) => {
       <SocketController />
       <CachingController />
       <UpdateController />
-      <AnimationController animationDuration={7000} />
+      <AnimationController animationDuration={6000} />
       <div className={classes.page}>
         <Outlet />
       </div>
