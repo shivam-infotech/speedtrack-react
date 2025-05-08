@@ -513,12 +513,12 @@ const ReplayPage = () => {
           <>
             <MapRoutePath positions={positions} color={ReportColor} />
             <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
-            <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
             {stoppageMarkersMemo}
             {filterStopMoreThanMemo}
             {filterIdleMoreThanMemo}
             {filterSpeedMoreThanFilterMemo}
             {filterInactiveMemo}
+            <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
           </>
         )}
       </MapView>

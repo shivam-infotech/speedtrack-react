@@ -108,6 +108,7 @@ export function useInterpolatedPosition(start, end, duration = 1000, easingFn = 
   const animationRef = useRef(null);
   const startTimeRef = useRef(null);
   const ease = useAnimationEase(easingFn);
+  const lastRotation = useRef(null);
 
   useEffect(() => {
     if (
@@ -125,9 +126,6 @@ export function useInterpolatedPosition(start, end, duration = 1000, easingFn = 
     const from = { ...start };
     const to = { ...end };
 
-    const fromRotation = start.course ?? 0;
-    let toRotation = calculateBearing(start.latitude, start.longitude, end.latitude, end.longitude) ?? end.course ?? fromRotation;
-
     // Handle tiny distance where bearing is unstable
     const distance = end?.attributes?.distance || calculateDistance(start.latitude, start.longitude, end.latitude, end.longitude)
     if (distance < 2) {
@@ -135,18 +133,23 @@ export function useInterpolatedPosition(start, end, duration = 1000, easingFn = 
     }
 
     // Normalize rotation difference
-    let delta = toRotation - fromRotation;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
+    // let delta = toRotation - fromRotation;
+    // if (delta > 180) delta -= 360;
+    // if (delta < -180) delta += 360;
 
     const animate = (now) => {
       const elapsed = now - startTimeRef.current;
       const t = Math.min(elapsed / duration, 1);
       const progress = ease ? ease(t) : t;
 
+      const fromRotation = lastRotation.current ?? start.course ?? 0;
+      let toRotation = calculateBearing(start.latitude, start.longitude, end.latitude, end.longitude) ?? end.course ?? fromRotation;
+
       const latitude = from.latitude + (to.latitude - from.latitude) * progress;
       const longitude = from.longitude + (to.longitude - from.longitude) * progress;
       const course = interpolateAngle(fromRotation, toRotation, progress);
+
+      lastRotation.current = course
 
       setAnimatedPosition({
         ...from,

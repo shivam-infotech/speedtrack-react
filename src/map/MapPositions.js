@@ -16,7 +16,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
 
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
-  const iconScale = useAttributePreference('iconScale', desktop ? 0.75 : 1);
+  const iconScale = useAttributePreference('iconScale', desktop ? 0.75 : 0.85);
 
   const devices = useSelector((state) => state.devices.items);
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
@@ -122,7 +122,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'text-halo-color': 'white',
           'text-halo-width': 1.5,
         },
-      });
+      }, map.getStyle().layers[map.getStyle().layers.length - 1].id);
       // map.addLayer({
       //   id: `direction-${source}`,
       //   type: 'symbol',
