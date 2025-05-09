@@ -8,6 +8,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffectAsync } from '../reactHelper';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,10 +29,9 @@ const useStyles = makeStyles((theme) => ({
 const NetworkPage = () => {
   const classes = useStyles();
   const navigate = useNavigate();
-
   const { positionId } = useParams();
-
   const [item, setItem] = useState({});
+  const navigateBack = useNativeNavigateBack();
 
   useEffectAsync(async () => {
     if (positionId) {
@@ -61,7 +61,7 @@ const NetworkPage = () => {
     <div className={classes.root}>
       <AppBar position="sticky" color="inherit">
         <Toolbar>
-          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigateBack()}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6">

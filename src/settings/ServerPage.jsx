@@ -33,12 +33,14 @@ import useServerAttributes from '../common/attributes/useServerAttributes';
 import useMapStyles from '../map/core/useMapStyles';
 import { map } from '../map/core/MapView';
 import useSettingsStyles from './common/useSettingsStyles';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const ServerPage = () => {
   const classes = useSettingsStyles();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack()
 
   const mapStyles = useMapStyles();
   const commonUserAttributes = useCommonUserAttributes(t);
@@ -70,7 +72,7 @@ const ServerPage = () => {
 
     if (response.ok) {
       dispatch(sessionActions.updateServer(await response.json()));
-      navigate(-1);
+      navigateBack();
     } else {
       throw Error(await response.text());
     }
@@ -297,7 +299,7 @@ const ServerPage = () => {
           </>
         )}
         <div className={classes.buttons}>
-          <Button type="button" color="primary" variant="outlined" onClick={() => navigate(-1)}>
+          <Button type="button" color="primary" variant="outlined" onClick={() => navigateBack()}>
             {t('sharedCancel')}
           </Button>
           <Button type="button" color="primary" variant="contained" onClick={handleSave}>

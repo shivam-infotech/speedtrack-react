@@ -7,6 +7,7 @@ import { useCatch, useEffectAsync } from '../../reactHelper';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 import PageLayout from '../../common/components/PageLayout';
 import useSettingsStyles from '../common/useSettingsStyles';
+import useNativeNavigateBack from '../../common/util/nativeNavigation';
 
 const EditItemView = ({
   children, endpoint, item, setItem, whenItemsLoaded, defaultItem, validate, onItemSaved, menu, breadcrumbs,
@@ -14,6 +15,7 @@ const EditItemView = ({
   const navigate = useNavigate();
   const classes = useSettingsStyles();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack();
 
   const { id } = useParams();
 
@@ -50,7 +52,7 @@ const EditItemView = ({
       if (onItemSaved) {
         onItemSaved(await response.json());
       }
-      navigate(-1);
+      navigateBack();
     } else {
       throw Error(await response.text());
     }
@@ -80,7 +82,7 @@ const EditItemView = ({
             type="button"
             color="primary"
             variant="outlined"
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack()}
             disabled={!item}
           >
             {t('sharedCancel')}

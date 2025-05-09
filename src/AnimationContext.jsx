@@ -106,11 +106,13 @@ export const AnimationController = ({ animationDuration = 1000}) => {
               hasWork = true;
             } else {
               queue.shift();
-              queue[0][0]._startTime = performance.now();
               animationQueueRef.current[deviceId] = queue;
 
               if (isUnfocused.current) return skipToLatest();
-              if (queue.length > 0) hasWork = true;
+              if (queue.length > 0) {
+                hasWork = true;
+                queue[0][0]._startTime = performance.now();
+              }
               else delete animationQueueRef.current[deviceId];
             }
           }

@@ -11,6 +11,7 @@ import { useEffectAsync } from '../reactHelper';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PositionValue from '../common/components/PositionValue';
 import usePositionAttributes from '../common/attributes/usePositionAttributes';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -31,7 +32,7 @@ const PositionPage = () => {
   const t = useTranslation();
 
   const positionAttributes = usePositionAttributes(t);
-
+  const navigateBack = useNativeNavigateBack();
   const { id } = useParams();
 
   const [item, setItem] = useState();
@@ -64,7 +65,7 @@ const PositionPage = () => {
     <div className={classes.root}>
       <AppBar position="sticky" color="inherit">
         <Toolbar>
-          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigateBack()}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6">

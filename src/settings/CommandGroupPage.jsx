@@ -22,11 +22,13 @@ import PageLayout from '../common/components/PageLayout';
 import SettingsMenu from './components/SettingsMenu';
 import { useCatch } from '../reactHelper';
 import useSettingsStyles from './common/useSettingsStyles';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const CommandDevicePage = () => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack();
 
   const { id } = useParams();
 
@@ -43,7 +45,7 @@ const CommandDevicePage = () => {
     });
 
     if (response.ok) {
-      navigate(-1);
+      navigateBack(-1);
     } else {
       throw Error(await response.text());
     }
@@ -83,7 +85,7 @@ const CommandDevicePage = () => {
             type="button"
             color="primary"
             variant="outlined"
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack(-1)}
           >
             {t('sharedCancel')}
           </Button>

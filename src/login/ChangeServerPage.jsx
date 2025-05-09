@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../common/components/LocalizationProvider';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const currentServer = `${window.location.protocol}//${window.location.host}`;
 
@@ -39,6 +40,7 @@ const ChangeServerPage = () => {
   const classes = useStyles();
   const navigate = useNavigate();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack()
 
   const filter = createFilterOptions();
 
@@ -71,7 +73,7 @@ const ChangeServerPage = () => {
         }}
       />
       <Button
-        onClick={() => navigate(-1)}
+        onClick={() => navigateBack()}
         color="secondary"
       >
         {t('sharedCancel')}

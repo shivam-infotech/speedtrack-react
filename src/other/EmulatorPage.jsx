@@ -19,6 +19,7 @@ import { devicesActions } from '../store';
 import MapPositions from '../map/MapPositions';
 import { useCatch } from '../reactHelper';
 import MapScale from '../map/MapScale';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -61,6 +62,7 @@ const EmulatorPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack()
 
   const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -106,7 +108,7 @@ const EmulatorPage = () => {
           classes={{ paper: classes.drawerPaper }}
         >
           <Toolbar>
-            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigateBack()}>
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" className={classes.title}>{t('sharedEmulator')}</Typography>

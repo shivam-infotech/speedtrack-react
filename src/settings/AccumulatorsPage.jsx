@@ -18,11 +18,13 @@ import { useCatch } from '../reactHelper';
 import { useAttributePreference } from '../common/util/preferences';
 import { distanceFromMeters, distanceToMeters, distanceUnitString } from '../common/util/converter';
 import useSettingsStyles from './common/useSettingsStyles';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const AccumulatorsPage = () => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack();
 
   const distanceUnit = useAttributePreference('distanceUnit');
 
@@ -49,7 +51,7 @@ const AccumulatorsPage = () => {
     });
 
     if (response.ok) {
-      navigate(-1);
+      navigateBack();
     } else {
       throw Error(await response.text());
     }
@@ -85,7 +87,7 @@ const AccumulatorsPage = () => {
               type="button"
               color="primary"
               variant="outlined"
-              onClick={() => navigate(-1)}
+              onClick={() => navigateBack()}
             >
               {t('sharedCancel')}
             </Button>

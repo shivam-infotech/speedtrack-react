@@ -17,6 +17,7 @@ import { useTranslation } from '../common/components/LocalizationProvider';
 import MapGeocoder from '../map/geocoder/MapGeocoder';
 import { errorsActions } from '../store';
 import MapScale from '../map/MapScale';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -59,6 +60,7 @@ const GeofencesPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack()
 
   const [selectedGeofenceId, setSelectedGeofenceId] = useState();
 
@@ -101,7 +103,7 @@ const GeofencesPage = () => {
       <div className={classes.content}>
         <Paper square className={classes.drawer}>
           <Toolbar>
-            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigateBack()}>
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" className={classes.title}>{t('sharedGeofences')}</Typography>

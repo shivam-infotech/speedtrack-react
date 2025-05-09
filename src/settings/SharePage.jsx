@@ -17,11 +17,13 @@ import PageLayout from '../common/components/PageLayout';
 import SettingsMenu from './components/SettingsMenu';
 import { useCatchCallback } from '../reactHelper';
 import useSettingsStyles from './common/useSettingsStyles';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const SharePage = () => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack();
 
   const { id } = useParams();
 
@@ -87,7 +89,7 @@ const SharePage = () => {
             type="button"
             color="primary"
             variant="outlined"
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack()}
           >
             {t('sharedCancel')}
           </Button>

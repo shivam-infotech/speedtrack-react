@@ -52,6 +52,7 @@ import PopupContent from '../common/components/MarkerPopupContent';
 import { createRoot } from 'react-dom/client';
 import { Popup } from 'maplibre-gl';
 import PlaybackSegmentCard from '../common/components/PlaybackSegmentCard';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -268,6 +269,7 @@ const ReplayPage = () => {
   const duration = 1000;
   const distanceUnit = useAttributePreference('distanceUnit');
   const [selectedSegment, setSelectedSegment] = useState(null);
+  const navigateBack = useNativeNavigateBack()
 
   const [filterAnchor, setFilterAnchor] = useState(null);
   const filterMenuExpanded = Boolean(filterAnchor);
@@ -527,7 +529,7 @@ const ReplayPage = () => {
       <div className={classes.sidebar}>
         <Paper elevation={3} square>
           <Toolbar>
-            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigateBack()}>
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" className={classes.title}>{t('reportReplay')}</Typography>

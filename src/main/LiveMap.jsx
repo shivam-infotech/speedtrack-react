@@ -20,6 +20,7 @@ import MapControlLinks from '../map/extras/MapControlLinks';
 import { useAnimatedPositions } from '../AnimationContext';
 import CenterFocusWeakIcon from '@mui/icons-material/CenterFocusWeak';
 import PlaybackDurationDialog from '../common/components/PlaybackDurationDialog';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -76,6 +77,7 @@ export default function LiveMap() {
   const devices = useSelector((state) => state.devices.items);
   const dispatch = useDispatch();
   const [statusCardMinimized, setStatusCardMinimized] = useState(true);
+  const navigateBack = useNativeNavigateBack()
 
   // Add necessary state variables for MainToolbar
   const [keyword, setKeyword] = useState('');
@@ -145,7 +147,7 @@ export default function LiveMap() {
       <div className={styles.sidebar}>
         {params.has('deviceId') ? (
           <Box className={styles.floatingNavContainer}>
-            <IconButton onClick={() => navigate(-1)} sx={{ backgroundColor: theme.palette.background.default }}>
+            <IconButton onClick={() => navigateBack()} sx={{ backgroundColor: theme.palette.background.default }}>
               <ArrowBackIcon />
             </IconButton>
           </Box>
@@ -162,7 +164,7 @@ export default function LiveMap() {
               setDevicesOpen={setDevicesOpen}
               hideDevicesOpen
               onLeftTop={(
-                <IconButton edge="start" size="small" onClick={() => navigate(-1)}>
+                <IconButton edge="start" size="small" onClick={() => navigateBack()}>
                   <ArrowBackIcon fontSize="small" />
                 </IconButton>
               )}

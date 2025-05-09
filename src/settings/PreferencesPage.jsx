@@ -23,6 +23,7 @@ import { useCatch } from '../reactHelper';
 import { sessionActions } from '../store';
 import { useAdministrator, useRestriction } from '../common/util/permissions';
 import useSettingsStyles from './common/useSettingsStyles';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const deviceFields = [
   { id: 'name', name: 'sharedName' },
@@ -37,6 +38,7 @@ const PreferencesPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack();
 
   const admin = useAdministrator();
   const readonly = useRestriction('readonly');
@@ -84,7 +86,7 @@ const PreferencesPage = () => {
     });
     if (response.ok) {
       dispatch(sessionActions.updateUser(await response.json()));
-      navigate(-1);
+      navigateBack();
     } else {
       throw Error(await response.text());
     }
@@ -422,7 +424,7 @@ const PreferencesPage = () => {
                 type="button"
                 color="primary"
                 variant="outlined"
-                onClick={() => navigate(-1)}
+                onClick={() => navigateBack()}
               >
                 {t('sharedCancel')}
               </Button>

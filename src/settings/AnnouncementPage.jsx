@@ -17,11 +17,13 @@ import { useCatchCallback } from '../reactHelper';
 import useSettingsStyles from './common/useSettingsStyles';
 import SelectField from '../common/components/SelectField';
 import { prefixString } from '../common/util/stringUtils';
+import useNativeNavigateBack from '../common/util/nativeNavigation';
 
 const AnnouncementPage = () => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
   const t = useTranslation();
+  const navigateBack = useNativeNavigateBack();
 
   const [users, setUsers] = useState([]);
   const [notificator, setNotificator] = useState();
@@ -36,11 +38,11 @@ const AnnouncementPage = () => {
       body: JSON.stringify(message),
     });
     if (response.ok) {
-      navigate(-1);
+      navigateBack();
     } else {
       throw Error(await response.text());
     }
-  }, [users, notificator, message, navigate]);
+  }, [users, notificator, message, navigateBack]);
 
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['serverAnnouncement']}>
@@ -84,7 +86,7 @@ const AnnouncementPage = () => {
             type="button"
             color="primary"
             variant="outlined"
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack()}
           >
             {t('sharedCancel')}
           </Button>
