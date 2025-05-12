@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { create } from 'zustand';
+import { useSelector } from 'react-redux';;
 import useAnimationEase from './common/util/useAnimationEase';
 import { calculateBearing, calculateDistance } from './common/util/position';
-import { distanceFromMeters } from './common/util/converter';
 import { useAnimatedPositions } from './store/animation';
 
 export { useAnimatedPositions } from './store/animation'
@@ -16,12 +14,14 @@ export const AnimationController = ({ animationDuration = 1000}) => {
   const lastPositionRef = useRef({});
   const animatedRef = useRef(null);
   const isAnimating = useRef(false);
+  const isSkipping = useRef(false);
   const adjustedDurationRef = useRef(animationDuration);
   const isUnfocused = useRef(false);
 
   const { setPositions, setHistory, setLastAnimatedPositions } = useAnimatedPositions.getState();
 
   useEffect(() => {
+    console.log('new coords');
     for (const [deviceId, pos] of Object.entries(positions)) {
       const last = lastPositionRef.current[deviceId];
       
@@ -109,7 +109,7 @@ export const AnimationController = ({ animationDuration = 1000}) => {
               animationQueueRef.current[deviceId] = queue;
 
               if (isUnfocused.current) return skipToLatest();
-              if (queue.length > 0) {
+              if (Object.values(animationQueueRef.current).every(v => v.length < 1)) {
                 hasWork = true;
                 queue[0][0]._startTime = performance.now();
               }
@@ -137,31 +137,42 @@ export const AnimationController = ({ animationDuration = 1000}) => {
 
   const skipToLatest = () => {
     if (animatedRef.current) cancelAnimationFrame(animatedRef.current);
+    isSkipping.current = true;
+    let shouldIterate = false;
 
-    const newPositions = { ...useAnimatedPositions.getState().animPositions };
-    const newHistory = { ...useAnimatedPositions.getState().animHistory };
+    const pushCoords = () => {
+      const newPositions = { ...useAnimatedPositions.getState().animPositions };
+      const newHistory = { ...useAnimatedPositions.getState().animHistory };
 
-    for (const [deviceId, queue] of Object.entries(animationQueueRef.current)) {
-      if (queue.length > 0) {
-        const [, to] = queue[0];
-        const { longitude, latitude } = to;
+      for (const [deviceId, queue] of Object.entries(animationQueueRef.current)) {
+        if (queue.length > 0) {
+          const [, to] = queue[0];
+          const { longitude, latitude } = to;
 
-        newPositions[deviceId] = to;
+          newPositions[deviceId] = to;
 
-        if (!newHistory[deviceId]) newHistory[deviceId] = [];
-        newHistory[deviceId].push([longitude, latitude]);
+          if (!newHistory[deviceId]) newHistory[deviceId] = [];
+          newHistory[deviceId].push([longitude, latitude]);
 
-        queue.shift();
+          queue.shift();
+          animationQueueRef.current[deviceId] = queue;
+          if(Object.values(animationQueueRef.current).every(v => v.length < 1)) shouldIterate = true;
+        }
+      }
+
+      setPositions(newPositions);
+      setHistory(newHistory);
+      setLastAnimatedPositions(newPositions);
+
+      if(shouldIterate) pushCoords()
+      else {
+        isAnimating.current = false;
+        animatedRef.current = null;
+        animationQueueRef.current = {};
       }
     }
 
-    setPositions(newPositions);
-    setHistory(newHistory);
-    setLastAnimatedPositions(newPositions);
-
-    isAnimating.current = false;
-    animatedRef.current = null;
-    animationQueueRef.current = {};
+    pushCoords()
   };
 
   useEffect(() => {

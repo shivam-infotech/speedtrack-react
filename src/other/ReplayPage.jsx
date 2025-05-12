@@ -53,6 +53,7 @@ import { createRoot } from 'react-dom/client';
 import { Popup } from 'maplibre-gl';
 import PlaybackSegmentCard from '../common/components/PlaybackSegmentCard';
 import useNativeNavigateBack from '../common/util/nativeNavigation';
+import ActivityLoader from '../common/components/ActivityLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -509,6 +510,7 @@ const ReplayPage = () => {
 
   return (
     <div className={classes.root}>
+      {loading && <ActivityLoader />}
       <MapView>
         <MapGeofence />
         {index < positions.length && (
@@ -564,7 +566,7 @@ const ReplayPage = () => {
             </IconButton>
           </Toolbar>
         </Paper>
-        {expanded && <Paper className={classes.content} square><ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} /></Paper>}
+        {(expanded && !loading) && <Paper className={classes.content} square><ReportFilter handleSubmit={handleSubmit} fullScreen showOnly loading={loading} /></Paper>}
         <Paper elevation={3} square sx={{ marginTop: 1 }}>
           {segmentSelectionCardMemo}
         </Paper>
