@@ -8,6 +8,7 @@ import viteCompression from 'vite-plugin-compression';
 export default defineConfig(() => ({
   server: {
     port: 3000,
+    host: '0.0.0.0', // Allow access from all network interfaces
     proxy: {
       '/api/socket': 'ws://147.93.31.49:8082',
       '/api': 'http://147.93.31.49:8082',
