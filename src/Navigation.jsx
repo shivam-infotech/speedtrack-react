@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Route, Routes, useLocation, useNavigate,
+  Route, useLocation, useNavigate,
 } from 'react-router-dom';
+import AnimatedRoutes from './common/components/AnimatedRoutes';
+import TransitionLayout from './common/components/TransitionLayout';
 import { useDispatch } from 'react-redux';
 import MainPage from './main/MainPage';
 import CombinedReportPage from './reports/CombinedReportPage';
@@ -135,21 +137,21 @@ const Navigation = () => {
     return (<Loader />);
   }
   return (
-    <Routes>
+    <AnimatedRoutes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/change-server" element={<ChangeServerPage />} />
       <Route path="/" element={<App noBottomMenu={noBottomMenu} />}>
-        <Route index element={<MainPage />} />
-        <Route path="/live" element={<LiveMap />} />
+        <Route index element={<TransitionLayout><MainPage /></TransitionLayout>} />
+        <Route path="/live" element={<TransitionLayout><LiveMap /></TransitionLayout>} />
 
-        <Route path="position/:id" element={<PositionPage />} />
-        <Route path="network/:positionId" element={<NetworkPage />} />
-        <Route path="event/:id" element={<EventPage />} />
-        <Route path="replay" element={<ReplayPage />} />
-        <Route path="geofences" element={<GeofencesPage />} />
-        <Route path="emulator" element={<EmulatorPage />} />
+        <Route path="position/:id" element={<TransitionLayout><PositionPage /></TransitionLayout>} />
+        <Route path="network/:positionId" element={<TransitionLayout><NetworkPage /></TransitionLayout>} />
+        <Route path="event/:id" element={<TransitionLayout><EventPage /></TransitionLayout>} />
+        <Route path="replay" element={<TransitionLayout><ReplayPage /></TransitionLayout>} />
+        <Route path="geofences" element={<TransitionLayout><GeofencesPage /></TransitionLayout>} />
+        <Route path="emulator" element={<TransitionLayout><EmulatorPage /></TransitionLayout>} />
 
         <Route path="settings">
           <Route path="accumulators/:deviceId" element={<AccumulatorsPage />} />
@@ -206,7 +208,7 @@ const Navigation = () => {
           <Route path="logs" element={<LogsPage />} />
         </Route>
       </Route>
-    </Routes>
+    </AnimatedRoutes>
   );
 };
 

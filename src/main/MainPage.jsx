@@ -343,4 +343,12 @@ const LiveMap = () => {
 	return isSmallDevice && dashboardType === 'compact' ? renderCompactLayout() : renderLiveMapLayout();
 };
 
-export default LiveMap;
+import PageTransition from '../common/components/PageTransition';
+
+export default function MainPageWithTransition() {
+  return (
+    <PageTransition>
+      <LiveMap />
+    </PageTransition>
+  );
+}
