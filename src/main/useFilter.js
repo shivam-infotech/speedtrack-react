@@ -10,7 +10,7 @@ export default (keyword, filter, filterSort, filterMap, positions, setFilteredDe
 
   const isOffline = (device) => {
     const position = positions[device.id];
-    return position != undefined && device.status === 'offline';
+    return device.lastUpdate === null && device.status === 'offline';
   };
 
   const isRunning = (device) => {

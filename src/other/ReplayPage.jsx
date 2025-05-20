@@ -31,6 +31,7 @@ import MapView from '../map/core/MapView';
 import MapRoutePath from '../map/MapRoutePath';
 import MapRoutePoints from '../map/MapRoutePoints';
 import MapPositions from '../map/MapPositions';
+import MapAutoCenter from '../map/MapAutoCenter';
 import { formatDistance, formatTime, TimeDiffInHumanReadableFormat } from '../common/util/formatter';
 import ReportFilter from '../reports/components/ReportFilter';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -270,7 +271,17 @@ const ReplayPage = () => {
   const duration = 1000;
   const distanceUnit = useAttributePreference('distanceUnit');
   const [selectedSegment, setSelectedSegment] = useState(null);
-  const navigateBack = useNativeNavigateBack()
+  // Custom navigate back function that stops playback immediately before navigating
+  const nativeNavigateBack = useNativeNavigateBack();
+  const navigateBack = useCallback(() => {
+    // Stop playback immediately
+    if (playing) {
+      clearInterval(timerRef.current);
+      setPlaying(false);
+    }
+    // Navigate back immediately
+    nativeNavigateBack();
+  }, [nativeNavigateBack, playing])
 
   const [filterAnchor, setFilterAnchor] = useState(null);
   const filterMenuExpanded = Boolean(filterAnchor);
@@ -515,7 +526,7 @@ const ReplayPage = () => {
         <MapGeofence />
         {index < positions.length && (
           <>
-            <MapRoutePath positions={positions} color={ReportColor} />
+            <MapRoutePath positions={positions} index={index} color={ReportColor} />
             <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
             {stoppageMarkersMemo}
             {filterStopMoreThanMemo}
@@ -523,6 +534,7 @@ const ReplayPage = () => {
             {filterSpeedMoreThanFilterMemo}
             {filterInactiveMemo}
             <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
+            <MapAutoCenter position={animatedPositions || positions[index]} enabled={true} />
           </>
         )}
       </MapView>

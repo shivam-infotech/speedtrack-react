@@ -142,7 +142,7 @@ const LiveMap = () => {
 	}, [isSmallDevice, desktop]);
 
 	useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
-
+	
 	const mapLinksMemo = useMemo(() =>
 		selectedDeviceId && <MapControlLinks links={[{ title: t('reportReplay'), icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }, { title: t('deviceKeepFocus'), icon: <CenterFocusWeakIcon color={focusDeviceId === selectedDeviceId ? 'primary' : ''} />, onClick: () => { setFocusDeviceId(focusDeviceId ? null : selectedDeviceId) } }]} />
 		, [selectedDeviceId, focusDeviceId])
@@ -198,11 +198,12 @@ const LiveMap = () => {
 					// navigate('/live')
 					handleMapClick()
 				}}>
+					
 					<MainMap
 						filteredPositions={filteredPositions}
 						selectedPosition={selectedPosition}
 						onEventsClick={onEventsClick}
-						filteredDevices={filterMap ? filteredDevices : undefined}
+						filteredDevices={filteredDevices}
 						hideControls
 						animationDuration={7000}
 						onMarkerClick={(deviceId, event) => {

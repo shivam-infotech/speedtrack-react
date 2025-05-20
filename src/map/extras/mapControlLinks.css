@@ -1,3 +1,20 @@
 .maplibregl-ctrl-icon{
     color: black;
 }
+
+.maplibregl-ctrl-link {
+    background-color: #ffffff !important;
+   
+}
+
+.maplibregl-ctrl-link .maplibregl-ctrl-icon {
+    color: #333333 !important;
+}
+
+.maplibregl-ctrl-link:hover {
+    background-color: #f5f5f5 !important;
+}
+
+.maplibregl-ctrl.maplibregl-ctrl-group{
+    background-color: #f5f5f5 !important;
+}

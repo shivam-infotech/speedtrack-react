@@ -37,9 +37,22 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
   }, [dispatch]);
 
   const deviceIds = useMemo(() => filteredDevices?.map((fd) => fd.id), [filteredDevices] || []);
-
-  const animatedPositions = useMemo(() => Object.values(positions).filter((p) => deviceIds?.includes(p.deviceId) || true), [positions]);
-
+  const animatedPositions = useMemo(() => {
+    const filtered = Object.values(positions).filter((p) => deviceIds?.includes(p.deviceId));
+    return filtered;
+  }, [positions, deviceIds]);
+  
+  // Memoize the MapPositions component to prevent unnecessary re-renders
+  const memoizedMapPositions = useMemo(() => (
+    <MapPositions
+      key="map-positions"
+      positions={animatedPositions}
+      onClick={markerClick}
+      selectedPosition={selectedPosition}
+      filteredDevices={filteredDevices}
+      showStatus
+    />
+  ), [animatedPositions, markerClick, selectedPosition, filteredDevices]);
   return (
     <>
       <MapView>
@@ -47,13 +60,7 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick, filteredD
         <MapGeofence />
         <MapAccuracy positions={filteredPositions} />
         <MapLiveRoutes filteredDevices={filteredDevices} />
-        <MapPositions
-          positions={animatedPositions}
-          onClick={markerClick}
-          selectedPosition={selectedPosition}
-          filteredDevices={filteredDevices}
-          showStatus
-        />
+        {memoizedMapPositions}
         <MapDefaultCamera animationDuration={animationDuration} />
         <MapSelectedDevice deviceId={selectedDeviceId} />
         <PoiMap />

@@ -6,7 +6,7 @@ const validatedColor = (color) => (/^#([0-9A-Fa-f]{3}){1,2}$/.test(color) ? colo
 
 export default (server, darkMode) => {
   const getModeColor = (darkColor, lightColor, serverAttribute) => validatedColor(server?.attributes?.[serverAttribute]) || (darkMode ? darkColor : lightColor);
-
+  darkMode = false
   return ({
     mode: darkMode ? 'dark' : 'light',
     greys: { ...grey },

@@ -52,7 +52,12 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
 						const distance = to?.attributes?.distance || calculateDistance(from.latitude, from.longitude, to.latitude, to.longitude);
 						const currentSpeed = to?.speed ? Math.max(Math.min(to.speed, 25), 5) : 5;
 						const speedInmps = currentSpeed * (1000 / 3600);
-						const adjustedDuration = speedInmps > 0 ? (distance / speedInmps) * 600 : adjustedDurationRef.current;
+						// Adjust duration based on distance and speed for smoother animation
+						const minDuration = 1000; // Minimum animation duration in ms
+						const maxDuration = 5000; // Maximum animation duration in ms
+						let adjustedDuration = speedInmps > 0 ? (distance / speedInmps) * 1000 : adjustedDurationRef.current;
+						// Ensure duration is within bounds
+						adjustedDuration = Math.max(minDuration, Math.min(adjustedDuration, maxDuration));
 						const elapsed = performance.now() - from._startTime;
 						const progress = Math.min(elapsed / adjustedDuration, 1);
 						const eased = easing(progress);
@@ -73,7 +78,8 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
 						};
 						if (!newHistory[deviceId]) newHistory[deviceId] = [];
 						newHistory[deviceId].push([longitude, latitude]);
-						if (progress >= 0.7 && !to?._lastSet) {
+						// Only update last positions when animation completes
+						if (progress >= 1 && !to?._lastSet) {
 							setLastAnimatedPositions({ ...newPositions });
 							to._lastSet = true;
 						}
@@ -84,11 +90,14 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
 							queue.shift();
 							animationQueueRef.current[deviceId] = queue;
 							if (isUnfocused.current) return skipToLatest();
-							if (Object.values(animationQueueRef.current).every(v => v.length < 1)) {
-								hasWork = true;
+							if (queue.length > 0) {
+								// If there are more positions to animate, start the next animation
 								queue[0][0]._startTime = performance.now();
+								hasWork = true;
+							} else {
+								// No more positions to animate for this device
+								delete animationQueueRef.current[deviceId];
 							}
-							else delete animationQueueRef.current[deviceId];
 						}
 					}
 				}

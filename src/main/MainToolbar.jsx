@@ -119,7 +119,7 @@ const MainToolbar = ({
       // case 'online':
       //   return dvsc.filter((d) => d.status === 'online').length;
       case 'offline':
-        return dvsc.filter((d) => d.status === 'offline' && positions[d.id] !== undefined).length;
+        return dvsc.filter((d) => d.status === 'offline' && d.lastUpdate === null).length;
       case 'running':
         return dvsc.filter((d) => positions[d.id]?.attributes?.activity === 'running' || false).length;
       case 'idle':
@@ -182,6 +182,10 @@ const MainToolbar = ({
       color: 'analogous',
     },
   ];
+
+  const handleFilter = (status) => {
+    setFilter({ ...filter, statuses: (!filter.statuses.includes(status) ? status : '') })
+  }
 
   return (
     <Toolbar ref={toolbarRef} className={classes.toolbarContainer}>
@@ -366,7 +370,7 @@ const MainToolbar = ({
               icon={filter.statuses.includes(ds.status) ? <CheckIcon /> : undefined}
               size="small"
               color={ds.color || undefined}
-              onClick={() => setFilter({ ...filter, statuses: (!filter.statuses.includes(ds.status) ? ds.status : '') })}
+              onClick={() => handleFilter(ds.status)}
               label={`${checkDeviceCountForStatus(ds.status)} ${ds.title}`}
             />
           ))}
