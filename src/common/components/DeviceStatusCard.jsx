@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Draggable from 'react-draggable';
@@ -41,6 +41,9 @@ import {
 } from './PostionalHelpers';
 import Speedometer from './Speedometer';
 import useGlobalSpeech from '../util/useGlobalSpeech';
+import { BottomSheet } from 'react-spring-bottom-sheet'
+import 'react-spring-bottom-sheet/dist/style.css'
+import '../../resources/bottomSheetStyle.css'
 
 const useStyles = makeStyles((theme) => ({
   root: ({ desktopPadding, haveBottomTabs }) => ({
@@ -69,6 +72,15 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     pointerEvents: 'auto',
+    borderRadius: theme.spacing(1),
+    width: theme.dimensions.popupMaxWidth,
+    [theme.breakpoints.down('md')]: {
+      width: '100vw',
+    },
+  },
+  cardMobile: {
+    pointerEvents: 'auto',
+    overflowY: 'hidden !important',
     borderRadius: theme.spacing(1),
     width: theme.dimensions.popupMaxWidth,
     [theme.breakpoints.down('md')]: {
@@ -219,6 +231,7 @@ const DeviceStatusCard = ({
 }) => {
   const classes = useStyles({ desktopPadding, haveBottomTabs });
   const theme = useTheme();
+  const [open, setOpen] = useState(false)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -381,13 +394,101 @@ const DeviceStatusCard = ({
     </Card>
   );
 
+  const cardMobile = (
+    <Card className={classes.cardMobile} elevation={3}>
+      <Box
+        className="drag-handle"
+        sx={{ padding: theme.spacing(1), display: 'flex', alignItems: 'center' }}
+      >
+        <img src={device3dIcons[device?.category || 'car'][position ? getDeviceStatusColor(position) : 'neutral']} height="48px" />
+        <Box sx={{ flex: 1, marginLeft: 1, display: 'flex', flexDirection: 'column' }}>
+          <Typography fontWeight="600" lineHeight={1.2}>{device?.name}</Typography>
+          <Typography color="neutral" variant="caption" fontWeight="400">{position?.fixTime ? formatTime(position.fixTime) : 'N/A'}</Typography>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+            {statusIcon(position?.attributes?.activity, position ? (getDeviceStatusColor(position)) : 'default', '0.6rem')}
+            <Typography align="center" fontSize="0.8rem" sx={{ marginLeft: 0.5 }} color={position ? (getDeviceStatusColor(position)) : 'default'}>{position ? (position?.attributes?.activity ? (`${t(`deviceStatus${position?.attributes?.activity.ucfirst()}`)} since ${formatNumericHours(position.attributes.activityDurationHours, t)}`) : t('deviceStatusStopped')) : t('deviceStatusOffline')}</Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Speedometer speed={position?.speed || 0} />
+        </Box>
+      </Box>
+      <Divider />
+      {position && (
+      <CardContent className={classes.content}>
+        {position?.address && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
+          <FmdGoodIcon fontSize="small" color="primary" />
+          <Typography variant="body2" sx={{ flex: 1 }}>
+            <PositionValue position={position} property="address" attribute="address" />
+          </Typography>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); start(); }}>
+            <VolumeUpIcon />
+          </IconButton>
+        </Box>
+        )}
+        <Grid container spacing={1}>
+          {primaryFields.map((field) => (
+            <Grid item xs={4} key={field.key}>
+              <CompactFieldChip
+                label={field.label}
+                value={field.value}
+                icon={field.icon}
+              />
+            </Grid>
+          ))}
+        </Grid>
+        
+        
+        <>
+          <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+          <Box>
+            <Box sx={{ display: 'flex', overflowX: 'auto' }}>
+              {sensorFields.map((field) => (
+                <Box sx={{ minWidth: '5rem' }} key={field.key}>
+                  <FieldItem
+                    label={field.label}
+                    value={field.value}
+                    icon={field.icon}
+                  />
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </>
+    
+      </CardContent>
+      ) }
+    </Card>
+  );
+
+  const BSheet = (card) => {
+    return <BottomSheet open={true} 
+        snapPoints={({ maxHeight }) => [
+          maxHeight/3.5,maxHeight / 1.39
+        ]}
+        // defaultSnap={({ maxHeight }) => 126}
+        defaultSnap={({ maxHeight }) => maxHeight / 2.8}
+        expandOnContentDrag={false}
+        maxHeight={500}
+        scrollLocking={false}
+        reserveScrollBarGap={true}
+        blocking={false}
+      >
+      <Box sx={{ overflow: 'hidden' }}>
+        {card}
+      </Box>
+    </BottomSheet>
+  }
+
   return (
     <div className={classes.root}>
+      
       { !isMobile ? (
         <Draggable handle=".drag-handle">
           {card}
         </Draggable>
-      ) : card }
+      ) : BSheet(cardMobile) }
       <RemoveDialog
         open={removing}
         endpoint="devices"

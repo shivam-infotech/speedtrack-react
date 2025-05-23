@@ -274,13 +274,11 @@ const ReplayPage = () => {
   // Custom navigate back function that stops playback immediately before navigating
   const nativeNavigateBack = useNativeNavigateBack();
   const navigateBack = useCallback(() => {
-    // Stop playback immediately
+    nativeNavigateBack();
     if (playing) {
       clearInterval(timerRef.current);
       setPlaying(false);
     }
-    // Navigate back immediately
-    nativeNavigateBack();
   }, [nativeNavigateBack, playing])
 
   const [filterAnchor, setFilterAnchor] = useState(null);

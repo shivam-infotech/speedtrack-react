@@ -56,6 +56,9 @@ import {
   ACIcon, BatteryLevelIcon, ChargingIcon, ChargingStatus, GSMConditionStatus, GSMSignalIcon, IgnitionIcon, MotionIcon, ParkingIcon, ParkingStatus, SatelliteConditionStatus, SatelliteSignalIcon, statusIcon,
 } from './PostionalHelpers';
 import carHead from '../../resources/images/car-head.gif';
+import { BottomSheet } from 'react-spring-bottom-sheet'
+import 'react-spring-bottom-sheet/dist/style.css'
+import '../../resources/bottomSheetStyle.css'
 
 const useStyles = makeStyles((theme) => ({
   root: ({ desktopPadding }) => ({
@@ -388,7 +391,7 @@ const DeviceReplayStatusCard = ({
             {position?.address ? (
               <>
                 {/* <Divider sx={{ my: 1 }} /> */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0 }}>
                   <FmdGoodIcon fontSize="small" color="primary" />
                   <Typography variant="body2" sx={{ flex: 1 }}>
                     <PositionValue position={position} property="address" attribute="address" />
@@ -488,13 +491,139 @@ const DeviceReplayStatusCard = ({
     </Card>
   );
 
+  const cardMobile = (
+    <Card className={classes.card} elevation={3}>
+      <Box
+        className="drag-handle"
+        sx={{ padding: theme.spacing(1), display: 'flex', alignItems: 'center' }}
+      >
+        <img src={device3dIcons[device?.category || 'car'][position ? getDeviceStatusColor(position) : 'neutral']} height="48px" />
+        <Box sx={{ flex: 1, marginLeft: 1, display: 'flex', flexDirection: 'column' }}>
+          <Typography fontWeight="600" lineHeight={1.2}>{device?.name}</Typography>
+          <Typography color="neutral" variant="caption" fontWeight="400">{position?.fixTime ? formatTime(position.fixTime) : 'N/A'}</Typography>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+            {statusIcon(position?.attributes?.activity, position ? (getDeviceStatusColor(position)) : 'default', '0.6rem')}
+            <Typography align="center" fontSize="0.8rem" sx={{ marginLeft: 0.5 }} color={position ? (getDeviceStatusColor(position)) : 'default'}>{position ? (position?.attributes?.activity ? (`${t(`deviceStatus${position?.attributes?.activity.ucfirst()}`)} since ${formatNumericHours(position.attributes.activityDurationHours, t)}`) : t('deviceStatusStopped')) : t('deviceStatusOffline')}</Typography>
+          </Box>
+        </Box>
+        <Box>
+          <Speedometer speed={position?.speed || 0} />
+        </Box>
+      </Box>
+      <Divider />
+      
+      <div style={{paddingLeft: theme.spacing(2), paddingTop: theme.spacing(1)}}>
+      {position?.address ? (
+        <>
+          {/* <Divider sx={{ my: 1 }} /> */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+            <FmdGoodIcon fontSize="small" color="primary" />
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              <PositionValue position={position} property="address" attribute="address" />
+            </Typography>
+
+          </Box>
+        </>
+      ) : <Typography variant="caption" color="secondary">No address found</Typography>}
+      <Stack direction="row" spacing={0} sx={{ alignItems: 'center', padding: `0px ${theme.spacing(1)}` }}>
+        <CarSlider
+          max={positions.length - 1}
+          value={index}
+          sx={{ mx: theme.spacing(1.5) }}
+          onChange={(_, index) => setIndex(index)}
+        />
+        {/* <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
+                                    <FastRewindIcon />
+                                </IconButton> */}
+        <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
+          {playing ? <PauseIcon /> : <PlayArrowIcon />}
+        </IconButton>
+        <div>
+          <IconButton aria-haspopup="true" aria-controls="multiplier-menu" aria-expanded={multiplierMenuExpanded} size="small" onClick={openMultiplierMenu}>
+            {multiplier}
+            x
+          </IconButton>
+          <Menu
+            id="multiplier-menu"
+            anchorEl={multiplierAnchor}
+            open={multiplierMenuExpanded}
+            onClose={closeMultiplierMenu}
+            MenuListProps={{
+              'aria-labelledby': 'multiplier-button',
+            }}
+          >
+            <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu(); }}>1x</MenuItem>
+            <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu(); }}>2x</MenuItem>
+            <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu(); }}>3x</MenuItem>
+            <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu(); }}>4x</MenuItem>
+            <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu(); }}>5x</MenuItem>
+            <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu(); }}>6x</MenuItem>
+          </Menu>
+        </div>
+      </Stack>
+      </div>
+      
+      <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+      {position && (
+        <CardContent className={classes.content}>
+          <Box>
+            <Grid container spacing={1}>
+              {primaryFields.map((field) => (
+                <Grid item xs={4} key={field.key}>
+                  <CompactFieldChip
+                    label={field.label}
+                    value={field.value}
+                    icon={field.icon}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+            <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+            <Box>
+              <Box sx={{ display: 'flex', overflowX: 'auto' }}>
+                {sensorFields.map((field) => (
+                  <Box sx={{ minWidth: '5rem' }} key={field.key}>
+                    <FieldItem
+                      label={field.label}
+                      value={field.value}
+                      icon={field.icon}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        </CardContent>
+      )}
+    </Card>
+  );
+
+  const BSheet = (card) => {
+    return <BottomSheet open={true}
+      snapPoints={({ maxHeight }) => [
+        maxHeight /2.55, maxHeight / 1.17
+      ]}
+      // defaultSnap={({ maxHeight }) => 126}
+      defaultSnap={({ maxHeight }) => maxHeight / 2.55}
+      expandOnContentDrag={false}
+      maxHeight={500}
+      scrollLocking={false}
+      reserveScrollBarGap={true}
+      blocking={false}
+    >
+      <Box sx={{ overflow: 'hidden' }}>
+        {card}
+      </Box>
+    </BottomSheet>
+  }
+
   return (
     <div className={classes.root}>
       {!isMobile ? (
         <Draggable handle=".drag-handle">
           {card}
         </Draggable>
-      ) : card}
+      ) : BSheet(cardMobile)}
       <RemoveDialog
         open={removing}
         endpoint="devices"

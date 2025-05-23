@@ -1,11 +1,15 @@
 import React from 'react';
 import {
   Dialog, DialogActions, DialogContent, Button, Typography, Box,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useTranslation } from './LocalizationProvider';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import ShareIcon from '@mui/icons-material/Share';
+import useNativePlatform from '../util/useNativePlatform';
+
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -73,6 +77,8 @@ const useStyles = makeStyles((theme) => ({
 const LocationDetailsModal = ({ open, onClose, locationData }) => {
   const classes = useStyles();
   const t = useTranslation();
+  const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'));
+  const { postNativeMessage } = useNativePlatform();
 
   if (!locationData) return null;
 
@@ -80,8 +86,8 @@ const LocationDetailsModal = ({ open, onClose, locationData }) => {
   
   const handleShare = () => {
     const shareUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    
-    if (navigator.share) {
+    if (isMobile) {
+      postNativeMessage('share-data', { url: shareUrl, title: 'Location Details', text: `Check out this location: ${address}` });
       navigator.share({
         title: 'Location Details',
         text: `Check out this location: ${address}`,

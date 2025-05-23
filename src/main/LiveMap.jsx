@@ -78,6 +78,7 @@ export default function LiveMap() {
   const dispatch = useDispatch();
   const [statusCardMinimized, setStatusCardMinimized] = useState(true);
   const navigateBack = useNativeNavigateBack()
+  const [isNavigating, setIsNavigating] = useState(false)
 
   // Add necessary state variables for MainToolbar
   const [keyword, setKeyword] = useState('');
@@ -93,7 +94,8 @@ export default function LiveMap() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { resetHistory } = useAnimatedPositions();
-  const [focusDeviceId, setFocusDeviceId] = useState(null);
+  const paramDeviceId = params.has('deviceId') ? Number(params.get('deviceId')) : null;
+  const [focusDeviceId, setFocusDeviceId] = useState(paramDeviceId || selectedDeviceId);
   const [playbackDurationOpen, setPlaybackDurationOpen] = useState(false);
   useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
 
@@ -104,12 +106,20 @@ export default function LiveMap() {
   useEffect(() => {
     resetHistory();
     if (params.has('deviceId') && selectedDeviceId === null) {
-      dispatch(devicesActions.selectId(Number(params.get('deviceId'))));
-      setFocusDeviceId(Number(params.get('deviceId')))
+      const deviceId = Number(params.get('deviceId'));
+      dispatch(devicesActions.selectId(deviceId));
+      setFocusDeviceId(deviceId);
+    } else if (selectedDeviceId) {
+      setFocusDeviceId(selectedDeviceId);
     }
   }, []);
 
-  const paramDeviceId = params.has('deviceId') ? Number(params.get('deviceId')) : null;
+  // Update focusDeviceId when selectedDeviceId changes
+  useEffect(() => {
+    if (selectedDeviceId && !focusDeviceId) {
+      setFocusDeviceId(selectedDeviceId);
+    }
+  }, [selectedDeviceId]);
 
   const mapLinks = useMemo(() => (
     (selectedDeviceId || paramDeviceId) && (
@@ -147,7 +157,17 @@ export default function LiveMap() {
       <div className={styles.sidebar}>
         {params.has('deviceId') ? (
           <Box className={styles.floatingNavContainer}>
-            <IconButton onClick={() => navigateBack()} sx={{ backgroundColor: theme.palette.background.default }}>
+            <IconButton 
+              onClick={() => {
+                if (!isNavigating) {
+                  setIsNavigating(true);
+                  navigateBack();
+                  // Reset the navigation state after a delay
+                  setTimeout(() => setIsNavigating(false), 1000);
+                }
+              }} 
+              disabled={isNavigating}
+              sx={{ backgroundColor: theme.palette.background.default }}>
               <ArrowBackIcon />
             </IconButton>
           </Box>
@@ -164,7 +184,18 @@ export default function LiveMap() {
               setDevicesOpen={setDevicesOpen}
               hideDevicesOpen
               onLeftTop={(
-                <IconButton edge="start" size="small" onClick={() => navigateBack()}>
+                <IconButton 
+                  edge="start" 
+                  size="small" 
+                  onClick={() => {
+                    if (!isNavigating) {
+                      setIsNavigating(true);
+                      navigateBack();
+                      // Reset the navigation state after a delay
+                      setTimeout(() => setIsNavigating(false), 1000);
+                    }
+                  }}
+                  disabled={isNavigating}>
                   <ArrowBackIcon fontSize="small" />
                 </IconButton>
               )}
