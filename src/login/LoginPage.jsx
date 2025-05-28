@@ -192,8 +192,8 @@ const LoginPage = () => {
   const [failed, setFailed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [email, setEmail] = usePersistedState('loginEmail', '');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = usePersistedState('loginEmail', 'admin@gpstracking.com');
+  const [password, setPassword] = useState('12345678');
   const [code, setCode] = useState('');
 
   const registrationEnabled = useSelector((state) => state.session.server.registration);

@@ -280,6 +280,20 @@ const ReplayPage = () => {
       setPlaying(false);
     }
   }, [nativeNavigateBack, playing])
+  
+  useEffect(() => {
+    const handlePopState = () => {
+      if (playing) {
+        clearInterval(timerRef.current);
+        setPlaying(false);
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [playing]);
 
   const [filterAnchor, setFilterAnchor] = useState(null);
   const filterMenuExpanded = Boolean(filterAnchor);

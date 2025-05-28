@@ -463,19 +463,33 @@ const DeviceStatusCard = ({
   );
 
   const BSheet = (card) => {
-    return <BottomSheet open={true} 
-        snapPoints={({ maxHeight }) => [
-          maxHeight/3.5,maxHeight / 1.39
-        ]}
-        // defaultSnap={({ maxHeight }) => 126}
-        defaultSnap={({ maxHeight }) => maxHeight / 2.8}
-        expandOnContentDrag={false}
+    // Pre-calculate snap points to avoid recalculation during animations
+    const snapPoints = ({ maxHeight }) => [maxHeight/3.5, maxHeight/1.39];
+    const defaultSnap = ({ maxHeight }) => maxHeight/2.8;
+    
+    return <BottomSheet 
+        open={true}
+        snapPoints={snapPoints}
+        defaultSnap={defaultSnap}
+        expandOnContentDrag={true}
         maxHeight={500}
         scrollLocking={false}
         reserveScrollBarGap={true}
         blocking={false}
+        style={{
+          // Optimize rendering performance
+          '--rsbs-overlay-rounded': '16px',
+          '--rsbs-overlay-transform': 'scale(1)',
+          '--rsbs-bg': '#fff',
+          '--rsbs-handle-bg': 'rgba(0, 0, 0, 0.14)'
+        }}
       >
-      <Box sx={{ overflow: 'hidden' }}>
+      <Box sx={{ 
+        overflow: 'hidden',
+        // Add hardware acceleration
+        WebkitTransform: 'translate3d(0,0,0)',
+        transform: 'translate3d(0,0,0)'
+      }}>
         {card}
       </Box>
     </BottomSheet>
