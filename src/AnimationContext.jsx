@@ -5,169 +5,268 @@ import useAnimationEase from './common/util/useAnimationEase';
 import { calculateBearing, calculateDistance } from './common/util/position';
 import { distanceFromMeters } from './common/util/converter';
 import { useAnimatedPositions } from './store/animation';
-export { useAnimatedPositions } from './store/animation'
+
+export { useAnimatedPositions } from './store/animation';
+
+const COORDINATE_BUFFER_SIZE = 10; // Maintain buffer of 10 coordinates
+
 export const AnimationController = ({ animationDuration = 1000 }) => {
-	const positions = useSelector((state) => state.session.positions);
-	const easing = useAnimationEase('easeInOutQuart');
-	const animationQueueRef = useRef({});
-	const lastPositionRef = useRef({});
-	const animatedRef = useRef(null);
-	const isAnimating = useRef(false);
-	const adjustedDurationRef = useRef(animationDuration);
-	const isUnfocused = useRef(false);
-	const { setPositions, setHistory, setLastAnimatedPositions } = useAnimatedPositions.getState();
-	useEffect(() => {
-		for (const [deviceId, pos] of Object.entries(positions)) {
-			const last = lastPositionRef.current[deviceId];
-			if (!last || last?.latitude !== pos.latitude || last?.longitude !== pos.longitude || last?.attributes?.activity !== pos?.attributes?.activity) {
-				const from = last || pos;
-				const to = pos;
-				if (!animationQueueRef.current[deviceId]) {
-					animationQueueRef.current[deviceId] = [];
-				}
-				animationQueueRef.current[deviceId].push([{ ...from, _startTime: performance.now() }, { ...to, _lastSet: false }]);
-				lastPositionRef.current[deviceId] = pos;
-			}
-		}
-		if (!isAnimating.current) {
-			isAnimating.current = true;
-			if (isUnfocused.current) skipToLatest();
-			else ProcessQueue();
-		}
-	}, [positions]);
-	const ProcessQueue = () => {
-		const animate = (now) => {
-			let hasWork = false;
-			const newPositions = { ...useAnimatedPositions.getState().animPositions };
-			const newHistory = { ...useAnimatedPositions.getState().animHistory };
-			for (const [deviceId, queue] of Object.entries(animationQueueRef.current)) {
-				if (queue.length > 0) {
-					const [from, to] = queue[0];
-					// if the both coordinates are same and just attributes are changed, then skip the frames and directly put the coordinates
-					if (from.longitude === to.longitude && from.latitude === to.latitude && from.rotation === to.rotation && to?.attributes?.distance === 0) {
-						newPositions[deviceId] = to;
-						if (!newHistory[deviceId]) newHistory[deviceId] = [];
-						newHistory[deviceId].push([to.longitude, to.latitude]);
-					} else {
-						const distance = to?.attributes?.distance || calculateDistance(from.latitude, from.longitude, to.latitude, to.longitude);
-						const currentSpeed = to?.speed ? Math.max(Math.min(to.speed, 25), 5) : 5;
-						const speedInmps = currentSpeed * (1000 / 3600);
-						// Adjust duration based on distance and speed for smoother animation
-						const minDuration = 1000; // Minimum animation duration in ms
-						const maxDuration = 5000; // Maximum animation duration in ms
-						let adjustedDuration = speedInmps > 0 ? (distance / speedInmps) * 1000 : adjustedDurationRef.current;
-						// Ensure duration is within bounds
-						adjustedDuration = Math.max(minDuration, Math.min(adjustedDuration, maxDuration));
-						const elapsed = performance.now() - from._startTime;
-						const progress = Math.min(elapsed / adjustedDuration, 1);
-						const eased = easing(progress);
-						const latitude = from.latitude + (to.latitude - from.latitude) * eased;
-						const longitude = from.longitude + (to.longitude - from.longitude) * eased;
-						const fromRotation = newPositions[deviceId]?.course ?? from.course;
-						const toRotation = calculateBearing(from.latitude, from.longitude, to.latitude, to.longitude) ?? to.course;
-						let delta = toRotation - fromRotation;
-						// Normalize to shortest rotation direction
-						if (delta > 180) delta -= 360;
-						if (delta < -180) delta += 360;
-						const rotation = (fromRotation + delta * eased + 360) % 360;
-						newPositions[deviceId] = {
-							...to,
-							latitude,
-							longitude,
-							course: rotation,
-						};
-						if (!newHistory[deviceId]) newHistory[deviceId] = [];
-						newHistory[deviceId].push([longitude, latitude]);
-						// Only update last positions when animation completes
-						if (progress >= 1 && !to?._lastSet) {
-							setLastAnimatedPositions({ ...newPositions });
-							to._lastSet = true;
-						}
-						if (progress < 1) {
-							if (isUnfocused.current) return skipToLatest();
-							hasWork = true;
-						} else {
-							queue.shift();
-							animationQueueRef.current[deviceId] = queue;
-							if (isUnfocused.current) return skipToLatest();
-							if (queue.length > 0) {
-								// If there are more positions to animate, start the next animation
-								queue[0][0]._startTime = performance.now();
-								hasWork = true;
-							} else {
-								// No more positions to animate for this device
-								delete animationQueueRef.current[deviceId];
-							}
-						}
-					}
-				}
-			}
-			setPositions(newPositions);
-			setHistory(newHistory);
-			if (hasWork) {
-				if (isUnfocused.current) return skipToLatest();
-				animatedRef.current = requestAnimationFrame(animate);
-			} else {
-				isAnimating.current = false;
-				animatedRef.current = null;
-				animationQueueRef.current = {};
-			}
-		};
-		animatedRef.current = requestAnimationFrame(animate);
-	};
-	const skipToLatest = () => {
-		if (animatedRef.current) cancelAnimationFrame(animatedRef.current);
-		const newPositions = { ...useAnimatedPositions.getState().animPositions };
-		const newHistory = { ...useAnimatedPositions.getState().animHistory };
-		for (const [deviceId, queue] of Object.entries(animationQueueRef.current)) {
-			if (queue.length > 0) {
-				const [, to] = queue[0];
-				const { longitude, latitude } = to;
-				newPositions[deviceId] = to;
-				if (!newHistory[deviceId]) newHistory[deviceId] = [];
-				newHistory[deviceId].push([longitude, latitude]);
-				queue.shift();
-			}
-		}
-		setPositions(newPositions);
-		setHistory(newHistory);
-		setLastAnimatedPositions(newPositions);
-		isAnimating.current = false;
-		animatedRef.current = null;
-		animationQueueRef.current = {};
-	};
-	useEffect(() => {
-		const whenBlur = (evt) => {
-			isUnfocused.current = true;
-		};
-		const whenFocus = (evt) => {
-			isUnfocused.current = false;
-		};
-		window.addEventListener('blur', whenBlur);
-		window.addEventListener('focus', whenFocus);
-		return () => {
-			window.removeEventListener('blur', whenBlur);
-			window.removeEventListener('focus', whenFocus);
-			if (animatedRef.current) {
-				skipToLatest();
-				cancelAnimationFrame(animatedRef.current);
-			}
-		};
-	}, []);
-	useEffect(() => {
-		const { animPositions, animHistory } = useAnimatedPositions.getState();
-		const hasInitial = Object.keys(animPositions).length > 0 || Object.keys(animHistory).length > 0;
-		if (!hasInitial && Object.keys(positions).length > 0) {
-			const initialPositions = {};
-			const initialHistory = {};
-			for (const [deviceId, pos] of Object.entries(positions)) {
-				initialPositions[deviceId] = pos;
-				initialHistory[deviceId] = [[pos.longitude, pos.latitude]];
-			}
-			setPositions(initialPositions);
-			setHistory(initialHistory);
-			setLastAnimatedPositions(initialPositions);
-		}
-	}, [positions]);
-	return null;
+  const positions = useSelector((state) => state.session.positions);
+  const easing = useAnimationEase('easeInOutQuart');
+  const animationQueueRef = useRef({});
+  const lastPositionRef = useRef({});
+  const animatedRef = useRef(null);
+  const isAnimating = useRef(false);
+  const adjustedDurationRef = useRef(animationDuration);
+  const isUnfocused = useRef(false);
+  const continuousMovementRef = useRef({});
+  const { setPositions, setHistory, setLastAnimatedPositions } = useAnimatedPositions.getState();
+
+  useEffect(() => {
+    let newAnimationSegmentsAdded = false; // Flag to check if we need to start/restart ProcessQueue
+
+    for (const [deviceId, newPos] of Object.entries(positions)) {
+      const lastRawPosForDevice = lastPositionRef.current[deviceId];
+
+      if (!lastRawPosForDevice || 
+          lastRawPosForDevice.latitude !== newPos.latitude || 
+          lastRawPosForDevice.longitude !== newPos.longitude || 
+          lastRawPosForDevice.attributes?.activity !== newPos.attributes?.activity) {
+        
+        if (!animationQueueRef.current[deviceId]) {
+          animationQueueRef.current[deviceId] = [];
+        }
+        
+        const queue = animationQueueRef.current[deviceId];
+        
+        // Maintain buffer size
+        if (queue.length >= COORDINATE_BUFFER_SIZE) {
+          queue.shift();
+        }
+        
+        const fromPosition = queue.length > 0 
+          ? queue[queue.length - 1][1] 
+          : lastRawPosForDevice || newPos;
+        
+        queue.push([{ ...fromPosition, _startTime: null }, { ...newPos, _lastSet: false }]);
+        lastPositionRef.current[deviceId] = { ...newPos }; // Update last raw position
+        newAnimationSegmentsAdded = true;
+      }
+    }
+
+    if (newAnimationSegmentsAdded && !isAnimating.current) { 
+      isAnimating.current = true;
+      if (isUnfocused.current) {
+        skipToLatest();
+      } else {
+        ProcessQueue();
+      }
+    }
+  }, [positions]);
+
+  const ProcessQueue = () => {
+    const animate = (now) => {
+      let hasWork = false;
+      const newPositions = { ...useAnimatedPositions.getState().animPositions };
+      const newHistory = { ...useAnimatedPositions.getState().animHistory };
+
+      for (const [deviceId, queue] of Object.entries(animationQueueRef.current)) {
+        if (queue.length > 0) {
+          const [from, to] = queue[0];
+
+          // Ensure _startTime is set for the current segment if it's new or hasn't started
+          if (from._startTime === null) {
+            from._startTime = now; // 'now' is the current animation frame time
+          }
+
+          // Tiered speed system based on queue position
+          let adjustedDuration;
+          if (queue.length >= 6) {
+            // First 5 segments (queue length 10-6) - normal speed (1s)
+            adjustedDuration = 1000;
+          } else if (queue.length >= 2) {
+            // Next 4 segments (queue length 5-2) - slower speed (2s)
+            adjustedDuration = 2000;
+          } else {
+            // Last segment (queue length 1) - slowest speed (3s)
+            adjustedDuration = 3000;
+          }
+
+          const elapsed = now - from._startTime;
+          const progress = Math.min(elapsed / adjustedDuration, 1);
+          const eased = easing(progress);
+
+          // if the both coordinates are same and just attributes are changed, then skip the frames and directly put the coordinates
+          if (from.longitude === to.longitude && from.latitude === to.latitude && from.rotation === to.rotation && to?.attributes?.distance === 0) {
+            newPositions[deviceId] = to;
+            if (!newHistory[deviceId]) newHistory[deviceId] = [];
+            newHistory[deviceId].push([to.longitude, to.latitude]);
+          } else {
+            const distance = to?.attributes?.distance || calculateDistance(from.latitude, from.longitude, to.latitude, to.longitude);
+            const currentSpeed = to?.speed ? Math.max(Math.min(to.speed, 25), 5) : 5;
+            const speedInmps = currentSpeed * (1000 / 3600);
+            // Adjust duration based on distance and speed for smoother animation
+            const minDuration = 1000; // Minimum animation duration in ms
+            const maxDuration = 5000; // Maximum animation duration in ms
+            let adjustedDuration = speedInmps > 0 ? (distance / speedInmps) * 1000 : adjustedDurationRef.current;
+            // Ensure duration is within bounds
+            adjustedDuration = Math.max(minDuration, Math.min(adjustedDuration, maxDuration));
+            const elapsed = performance.now() - from._startTime;
+            const progress = Math.min(elapsed / adjustedDuration, 1);
+            const eased = easing(progress);
+            const latitude = from.latitude + (to.latitude - from.latitude) * eased;
+            const longitude = from.longitude + (to.longitude - from.longitude) * eased;
+            const fromRotation = newPositions[deviceId]?.course ?? from.course;
+            const toRotation = calculateBearing(from.latitude, from.longitude, to.latitude, to.longitude) ?? to.course;
+            let delta = toRotation - fromRotation;
+            // Normalize to shortest rotation direction
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+            const rotation = (fromRotation + delta * eased + 360) % 360;
+            newPositions[deviceId] = {
+              ...to,
+              latitude,
+              longitude,
+              course: rotation,
+            };
+            if (!newHistory[deviceId]) newHistory[deviceId] = [];
+            newHistory[deviceId].push([longitude, latitude]);
+            // Only update last positions when animation completes
+            if (progress >= 1 && !to?._lastSet) {
+              setLastAnimatedPositions({ ...newPositions });
+              to._lastSet = true;
+            }
+            if (progress < 1) {
+              if (isUnfocused.current) return skipToLatest();
+              hasWork = true;
+            } else {
+              queue.shift();
+              animationQueueRef.current[deviceId] = queue;
+              if (isUnfocused.current) return skipToLatest();
+              if (queue.length > 0) {
+                // If there are more positions to animate, start the next animation
+                queue[0][0]._startTime = performance.now(); // Set _startTime for the new current segment
+                hasWork = true;
+              } else {
+                // No more positions to animate for this device
+                // Initiate continuous movement
+                const lastPos = newPositions[deviceId];
+                if (lastPos) {
+                  continuousMovementRef.current[deviceId] = {
+                    position: { ...lastPos },
+                    speed: lastPos.speed ? lastPos.speed * (1000 / 3600) : 5 * (1000 / 3600),
+                    course: lastPos.course || 0,
+                    lastUpdateTime: now
+                  };
+                  hasWork = true; // Keep animation loop running
+                }
+              }
+            }
+          }
+        }
+        // Process continuous movement INSIDE device loop
+        if (queue.length === 0) {
+          const continuousData = continuousMovementRef.current[deviceId];
+          if (continuousData) {
+            // Continuous movement calculations here
+            hasWork = true;
+          }
+        }
+      }
+
+      setPositions(newPositions);
+      setHistory(newHistory);
+
+      if (hasWork) {
+        if (isUnfocused.current) return skipToLatest();
+        animatedRef.current = requestAnimationFrame(animate);
+      } else {
+        isAnimating.current = false;
+        animatedRef.current = null;
+        animationQueueRef.current = {};
+      }
+    };
+    
+    animatedRef.current = requestAnimationFrame(animate);
+  };
+
+  const skipToLatest = () => {
+    if (animatedRef.current) {
+      cancelAnimationFrame(animatedRef.current);
+      animatedRef.current = null;
+    }
+
+    const currentState = useAnimatedPositions.getState();
+    const newPositions = { ...currentState.animPositions };
+    const newHistory = { ...currentState.animHistory };
+
+    // Process each device's animation queue
+    for (const [deviceId, queue] of Object.entries(animationQueueRef.current)) {
+      if (queue?.length > 0) {
+        // Get the final destination from the last segment in queue
+        const finalPos = queue[queue.length - 1][1];
+        
+        // Update displayed position
+        newPositions[deviceId] = { ...finalPos };
+        
+        // Update history trail
+        if (!newHistory[deviceId]) newHistory[deviceId] = [];
+        
+        // Add all intermediate points to history
+        queue.forEach(([_, toPos]) => {
+          newHistory[deviceId].push([toPos.longitude, toPos.latitude]);
+        });
+
+        // Update last known raw position
+        lastPositionRef.current[deviceId] = { ...finalPos };
+        
+        // Clear this device's queue
+        animationQueueRef.current[deviceId] = [];
+      }
+    }
+
+    // Atomically update all state
+    useAnimatedPositions.setState({
+      animPositions: newPositions,
+      animHistory: newHistory,
+      lastAnimatedPositions: newPositions
+    });
+
+    isAnimating.current = false;
+  };
+
+  useEffect(() => {
+    const whenBlur = (evt) => {
+      isUnfocused.current = true;
+    };
+    const whenFocus = (evt) => {
+      isUnfocused.current = false;
+    };
+    window.addEventListener('blur', whenBlur);
+    window.addEventListener('focus', whenFocus);
+    return () => {
+      window.removeEventListener('blur', whenBlur);
+      window.removeEventListener('focus', whenFocus);
+      if (animatedRef.current) {
+        skipToLatest();
+        cancelAnimationFrame(animatedRef.current);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    const { animPositions, animHistory } = useAnimatedPositions.getState();
+    const hasInitial = Object.keys(animPositions).length > 0 || Object.keys(animHistory).length > 0;
+    if (!hasInitial && Object.keys(positions).length > 0) {
+      const initialPositions = {};
+      const initialHistory = {};
+      for (const [deviceId, pos] of Object.entries(positions)) {
+        initialPositions[deviceId] = pos;
+        initialHistory[deviceId] = [[pos.longitude, pos.latitude]];
+      }
+      setPositions(initialPositions);
+      setHistory(initialHistory);
+      setLastAnimatedPositions(initialPositions);
+    }
+  }, [positions]);
+  return null;
 };

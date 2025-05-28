@@ -605,7 +605,7 @@ const DeviceReplayStatusCard = ({
       ]}
       // defaultSnap={({ maxHeight }) => 126}
       defaultSnap={({ maxHeight }) => maxHeight / 2.55}
-      expandOnContentDrag={false}
+      expandOnContentDrag={true}
       maxHeight={500}
       scrollLocking={false}
       reserveScrollBarGap={true}
