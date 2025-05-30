@@ -6,16 +6,11 @@ import PropTypes from 'prop-types';
 const AnimatedRoutes = ({ children }) => {
   const location = useLocation();
   
+  // Using standard Routes without animation wrapper for better performance
   return (
-    // The key is essential for AnimatePresence to detect when routes change
-    // mode="wait" ensures exit animations complete before enter animations start
-    <>
-      <AnimatePresence mode="wait" initial={false}>
-        <Routes location={location} key={location.pathname}>
-          {children}
-        </Routes>
-      </AnimatePresence>
-    </>
+    <Routes location={location}>
+      {children}
+    </Routes>
   );
 };
 

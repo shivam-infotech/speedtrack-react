@@ -353,9 +353,10 @@ const ReplayPage = () => {
     }
   }, [index, positions]);
 
-  const onPointClick = useCallback((_, index) => {
+  const onPointClick = (_, index) => {
+    console.log("---->",index);
     setIndex(index);
-  }, [setIndex]);
+  };
 
   const onMarkerClick = useCallback((positionId, deviceId) => {
     console.log(deviceId);
@@ -538,8 +539,8 @@ const ReplayPage = () => {
         <MapGeofence />
         {index < positions.length && (
           <>
-            <MapRoutePath positions={positions} index={index} color={ReportColor} />
             <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
+            <MapRoutePath selectedSegment={selectedSegment} positions={positions} index={index} color={ReportColor} />
             {stoppageMarkersMemo}
             {filterStopMoreThanMemo}
             {filterIdleMoreThanMemo}

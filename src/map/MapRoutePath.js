@@ -7,7 +7,7 @@ import getSpeedColor from '../common/util/colors';
 import LocationDetailsModal from '../common/components/LocationDetailsModal';
 import MapFocusPoint from './MapFocusPoint';
 
-const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, index = null }) => {
+const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, selectedSegment = null, index = null }) => {
   const id = useId();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -49,6 +49,7 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
           speed,
           timestamp,
         });
+        
         setModalOpen(true);
         return;
       }
@@ -86,7 +87,6 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
         latitude: position.latitude,
         longitude: position.longitude
       });
-      
       setModalOpen(true);
     } catch (error) {
       console.error('Error handling line click:', error);
