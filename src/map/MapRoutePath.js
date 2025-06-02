@@ -23,6 +23,22 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
       // Prevent the default map click behavior
       e.preventDefault();
       
+      // Check if there are any marker layers at the click point
+      const point = e.point;
+      const markerFeatures = map.queryRenderedFeatures(point, {
+        layers: Object.keys(map.style._layers).filter(layerId => 
+          layerId !== `${id}-line` && 
+          layerId !== `${id}-line-hit` && 
+          !layerId.includes('background') && 
+          map.style._layers[layerId].type === 'symbol'
+        )
+      });
+      
+      // If there are marker features at this point, don't process as a line click
+      if (markerFeatures && markerFeatures.length > 0) {
+        return;
+      }
+      
       // Get the clicked feature (line segment)
       const feature = e.features?.[0];
       if (!feature) {

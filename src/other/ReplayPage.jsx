@@ -354,7 +354,6 @@ const ReplayPage = () => {
   }, [index, positions]);
 
   const onPointClick = (_, index) => {
-    console.log("---->",index);
     setIndex(index);
   };
 
