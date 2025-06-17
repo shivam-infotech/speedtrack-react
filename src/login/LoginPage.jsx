@@ -9,6 +9,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import CloseIcon from '@mui/icons-material/Close';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import EmailIcon from '@mui/icons-material/Email';
+import UserIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -28,6 +29,7 @@ import Loader from '../common/components/Loader';
 
 // Import your car illustration
 import CarIllustration from '../resources/images/assets/undraw_login_screen.svg';
+import { useGeneralStore } from '../store/general';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -195,6 +197,7 @@ const LoginPage = () => {
   const [email, setEmail] = usePersistedState('loginEmail', 'admin@gpstracking.com');
   const [password, setPassword] = useState('12345678');
   const [code, setCode] = useState('');
+  const { setUserRole } = useGeneralStore();
 
   const registrationEnabled = useSelector((state) => state.session.server.registration);
   const languageEnabled = useSelector((state) => !state.session.server.attributes['ui.disableLoginLanguage']);
@@ -210,8 +213,9 @@ const LoginPage = () => {
   const handlePasswordLogin = async (event) => {
     event.preventDefault();
     setFailed(false);
+    const emailId = await getEmailFromUsername(email);
     try {
-      const query = `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+      const query = `email=${encodeURIComponent(emailId)}&password=${encodeURIComponent(password)}`;
       const response = await fetch('/api/session', {
         method: 'POST',
         body: new URLSearchParams(code.length ? `${query}&code=${code}` : query),
@@ -231,6 +235,24 @@ const LoginPage = () => {
       setPassword('');
     }
   };
+
+  const getEmailFromUsername = async (username) => {
+    try {
+      const response = await fetch('/api/node/users/user/' + username, {
+        method: 'GET'
+      });
+      if (response.ok) {
+        const user = await response.json();
+        setEmail(user.email);
+        setUserRole(user.role);
+        return user.email;
+      } else {
+        throw Error(await response.text());
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   const handleTokenLogin = useCatch(async (token) => {
     const response = await fetch(`/api/session?token=${encodeURIComponent(token)}`);
@@ -328,10 +350,10 @@ const LoginPage = () => {
                 <TextField
                   required
                   error={failed}
-                  label={t('userEmail')}
-                  name="email"
+                  label="Username"
+                  name="username"
                   value={email}
-                  autoComplete="email"
+                  autoComplete="username"
                   autoFocus={!email}
                   onChange={(e) => setEmail(e.target.value)}
                   helperText={failed && 'Invalid username or password'}
@@ -340,7 +362,7 @@ const LoginPage = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <EmailIcon color="action" />
+                        <UserIcon color="action" />
                       </InputAdornment>
                     ),
                   }}

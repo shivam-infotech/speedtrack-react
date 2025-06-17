@@ -18,6 +18,7 @@ import { sessionActions } from '../../store';
 import { useTranslation } from './LocalizationProvider';
 import { useRestriction } from '../util/permissions';
 import { nativePostMessage } from './NativeInterface';
+import { useGeneralStore } from '../../store/general';
 
 const BottomMenu = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const BottomMenu = () => {
   const disableReports = useRestriction('disableReports');
   const user = useSelector((state) => state.session.user);
   const socket = useSelector((state) => state.session.socket);
+  const { userRole } = useGeneralStore();
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -125,8 +127,8 @@ const BottomMenu = () => {
         {!disableReports && (
           <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('reportTitle')} icon={<DescriptionIcon />} value="reports" />
         )}
-        {!readonly && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('deviceTitle')} icon={<SmartphoneIcon />} value="devices" /> }
-        {!readonly && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('settingsUsers')} icon={<PeopleIcon />} value="users" /> }
+        {!readonly && (userRole == "admin" || userRole == "distributor") && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('deviceTitle')} icon={<SmartphoneIcon />} value="devices" />}
+        {!readonly && (userRole == "admin" || userRole == "distributor") && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('settingsUsers')} icon={<PeopleIcon />} value="users" />}
         <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('settingsTitle')} icon={<SettingsIcon />} value="settings" />
         {/* {readonly ? (
           <BottomNavigationAction label={t('loginLogout')} icon={<ExitToAppIcon />} value="logout" />

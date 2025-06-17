@@ -142,7 +142,7 @@ const LiveMap = () => {
 	}, [isSmallDevice, desktop]);
 
 	useFilter(keyword, filter, filterSort, filterMap, positions, setFilteredDevices, setFilteredPositions);
-	
+
 	const mapLinksMemo = useMemo(() =>
 		selectedDeviceId && <MapControlLinks links={[{ title: t('reportReplay'), icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }, { title: t('deviceKeepFocus'), icon: <CenterFocusWeakIcon color={focusDeviceId === selectedDeviceId ? 'primary' : ''} />, onClick: () => { setFocusDeviceId(focusDeviceId ? null : selectedDeviceId) } }]} />
 		, [selectedDeviceId, focusDeviceId])
@@ -198,7 +198,7 @@ const LiveMap = () => {
 					// navigate('/live')
 					handleMapClick()
 				}}>
-					
+
 					<MainMap
 						filteredPositions={filteredPositions}
 						selectedPosition={selectedPosition}
@@ -347,9 +347,9 @@ const LiveMap = () => {
 import PageTransition from '../common/components/PageTransition';
 
 export default function MainPageWithTransition() {
-  return (
-    <PageTransition>
-      <LiveMap />
-    </PageTransition>
-  );
+	return (
+		<PageTransition>
+			<LiveMap />
+		</PageTransition>
+	);
 }

@@ -29,6 +29,7 @@
     "sharedDegreesDecimalMinutes": "Degrees Decimal Minutes",
     "sharedDegreesMinutesSeconds": "Degrees Minutes Seconds",
     "sharedName": "Name",
+    "sharedUsername": "Username",
     "sharedDescription": "Description",
     "sharedSearch": "Search",
     "sharedIconScale": "Icon Scale",
@@ -565,5 +566,6 @@
     "categoryVan": "Van",
     "categoryScooter": "Scooter",
     "maintenanceStart": "Start",
-    "maintenancePeriod": "Period"
+    "maintenancePeriod": "Period",
+    "role": "Role"
 }

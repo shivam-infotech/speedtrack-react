@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Container, Button, Accordion, AccordionDetails, AccordionSummary, Skeleton, Typography, TextField,
@@ -8,9 +8,10 @@ import { useTranslation } from '../../common/components/LocalizationProvider';
 import PageLayout from '../../common/components/PageLayout';
 import useSettingsStyles from '../common/useSettingsStyles';
 import useNativeNavigateBack from '../../common/util/nativeNavigation';
+import { useGeneralStore } from '../../store/general';
 
 const EditItemView = ({
-  children, endpoint, item, setItem, whenItemsLoaded, defaultItem, validate, onItemSaved, menu, breadcrumbs,
+  children, endpoint, item, isDisabled, isSaved, allowGoBack = true, setItem, whenItemsLoaded, defaultItem, validate, onItemSaved, menu, breadcrumbs, from = null,
 }) => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
@@ -52,7 +53,9 @@ const EditItemView = ({
       if (onItemSaved) {
         onItemSaved(await response.json());
       }
-      navigateBack();
+      if (allowGoBack) {
+        navigateBack();
+      }
     } else {
       throw Error(await response.text());
     }
@@ -60,7 +63,7 @@ const EditItemView = ({
 
   return (
     <PageLayout menu={menu} breadcrumbs={breadcrumbs}>
-      <Container maxWidth="xs" className={classes.container}>
+      <Container maxWidth="xs" style={{ marginBottom: '10rem' }} className={classes.container}>
         {item ? children : (
           <Accordion defaultExpanded>
             <AccordionSummary>
@@ -92,9 +95,9 @@ const EditItemView = ({
             color="primary"
             variant="contained"
             onClick={handleSave}
-            disabled={!item || !validate()}
+            disabled={!item || !validate() || isDisabled}
           >
-            {t('sharedSave')}
+            {isSaved ? t('sharedSaved') : t('sharedSave')}
           </Button>
         </div>
       </Container>

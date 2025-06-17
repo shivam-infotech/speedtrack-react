@@ -11,7 +11,8 @@ export default defineConfig(() => ({
     host: '0.0.0.0', // Allow access from all network interfaces
     proxy: {
       '/api/socket': 'ws://147.93.31.49:8082',
-      '/api': 'http://147.93.31.49:8082',
+      '/api/node': 'http://147.93.31.49:3036',
+      '/api': 'http://147.93.31.49:8082'
     },
   },
   build: {

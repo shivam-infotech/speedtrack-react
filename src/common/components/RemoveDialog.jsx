@@ -5,6 +5,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import { useTranslation } from './LocalizationProvider';
 import { useCatch } from '../../reactHelper';
 import { snackBarDurationLongMs } from '../util/duration';
+import { useGeneralStore } from '../../store/general';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,10 +25,15 @@ const RemoveDialog = ({
 }) => {
   const classes = useStyles();
   const t = useTranslation();
+  const { setIsUserRemoved, setUserToRemove } = useGeneralStore();
 
   const handleRemove = useCatch(async () => {
     const response = await fetch(`/api/${endpoint}/${itemId}`, { method: 'DELETE' });
     if (response.ok) {
+      if (endpoint == 'users') {
+        setUserToRemove(itemId);
+        setIsUserRemoved(true);
+      }
       onResult(true);
     } else {
       throw Error(await response.text());

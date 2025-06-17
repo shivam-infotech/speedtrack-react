@@ -596,5 +596,6 @@
     "categoryVan": "Varebil",
     "categoryScooter": "Scooter",
     "maintenanceStart": "Start",
-    "maintenancePeriod": "Periode"
+    "maintenancePeriod": "Periode",
+    "role": "Rolle"
 }

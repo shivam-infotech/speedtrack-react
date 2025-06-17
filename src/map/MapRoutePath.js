@@ -136,6 +136,9 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
         },
       },
     });
+    // Check if car-marker-layer exists before trying to insert before it
+    const beforeLayerId = map.getLayer('car-marker-layer') ? 'car-marker-layer' : undefined;
+    
     map.addLayer({
       source: id,
       id: `${id}-line`,
@@ -148,7 +151,7 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
         'line-color': ['get', 'color'],
         'line-width': width,
       },
-    });
+    }, beforeLayerId);
 
     // Enable feature state for the layer
     map.on('click', `${id}-line`, handleLineClick);
@@ -166,7 +169,7 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
         'line-color': 'transparent',
         'line-width': width + 10, // Wider clickable area
       },
-    });
+    }, beforeLayerId);
     
     // Add click handler to the wider invisible line as well
     map.on('click', `${id}-line-hit`, handleLineClick);

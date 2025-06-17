@@ -120,13 +120,13 @@ const Navigation = () => {
       setNoBottomMenu(true);
     } else { setNoBottomMenu(false); }
 
-    if(isNative) postNativeMessage('navigation-change', {pathname})
+    if (isNative) postNativeMessage('navigation-change', { pathname })
   }, [pathname]);
 
   useEffect(() => {
     window.globalNavigate = navigate;
-    if(isNative){
-      window.globalNavigate = function(...args){
+    if (isNative) {
+      window.globalNavigate = function (...args) {
         navigate(...args);
         postNativeMessage('navigation-change', args);
       }
@@ -171,6 +171,7 @@ const Navigation = () => {
           <Route path="device/:id/share" element={<SharePage />} />
           <Route path="device/:id" element={<DevicePage />} />
           <Route path="device" element={<DevicePage />} />
+          <Route path="device/user/:userId" element={<DevicePage />} />
           <Route path="drivers" element={<DriversPage />} />
           <Route path="driver/:id" element={<DriverPage />} />
           <Route path="driver" element={<DriverPage />} />
@@ -193,6 +194,7 @@ const Navigation = () => {
           <Route path="user/:id/connections" element={<UserConnectionsPage />} />
           <Route path="user/:id" element={<UserPage />} />
           <Route path="user" element={<UserPage />} />
+          <Route path="user/device/:deviceId" element={<UserPage />} />
         </Route>
 
         <Route path="reports">

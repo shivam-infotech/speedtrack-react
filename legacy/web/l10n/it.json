@@ -596,5 +596,6 @@
     "categoryVan": "Furgone",
     "categoryScooter": "Scooter",
     "maintenanceStart": "Inizio",
-    "maintenancePeriod": "Periodo"
+    "maintenancePeriod": "Periodo",
+    "role": "Ruolo"
 }

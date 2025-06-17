@@ -98,9 +98,14 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
         features: [],
       },
     });
+    // Create a mapping of source to layer ID
+    const getLayerId = (source) => source === id ? 'car-marker-layer' : source;
+    
     [id, selected].forEach((source) => {
+      const layerId = getLayerId(source);
+      
       map.addLayer({
-        id: source,
+        id: layerId,
         type: 'symbol',
         source,
         filter: ['!has', 'point_count'],
@@ -121,6 +126,9 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
         paint: {
           'text-halo-color': 'white',
           'text-halo-width': 1.5,
+          // Add a high z-index to ensure the car marker is always on top
+          'icon-translate': [0, 0],
+          'icon-translate-anchor': 'map'
         },
       });
       // map.addLayer({
@@ -141,9 +149,9 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
       //   },
       // });
 
-      map.on('mouseenter', source, onMouseEnter);
-      map.on('mouseleave', source, onMouseLeave);
-      map.on('click', source, onMarkerClick);
+      map.on('mouseenter', layerId, onMouseEnter);
+      map.on('mouseleave', layerId, onMouseLeave);
+      map.on('click', layerId, onMarkerClick);
     });
     map.addLayer({
       id: clusters,
@@ -175,12 +183,13 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
       }
 
       [id, selected].forEach((source) => {
-        map.off('mouseenter', source, onMouseEnter);
-        map.off('mouseleave', source, onMouseLeave);
-        map.off('click', source, onMarkerClick);
+        const layerId = getLayerId(source);
+        map.off('mouseenter', layerId, onMouseEnter);
+        map.off('mouseleave', layerId, onMouseLeave);
+        map.off('click', layerId, onMarkerClick);
 
-        if (map.getLayer(source)) {
-          map.removeLayer(source);
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId);
         }
         if (map.getLayer(`direction-${source}`)) {
           map.removeLayer(`direction-${source}`);

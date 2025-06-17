@@ -12,11 +12,15 @@ import {
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import UserPlusIcon from '@mui/icons-material/PersonAdd';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from './LocalizationProvider';
+import { useGeneralStore } from '../../store/general';
+
 
 const useStyles = makeStyles((theme) => ({
   desktopRoot: {
@@ -71,11 +75,14 @@ const PageTitle = ({ breadcrumbs }) => {
   );
 };
 
-const PageLayout = ({ menu, breadcrumbs, children }) => {
+const PageLayout = ({ menu, breadcrumbs, children, isSaved }) => {
   const [miniVariant, setMiniVariant] = useState(false);
   const classes = useStyles({ miniVariant });
   const theme = useTheme();
+  const router = useLocation();
+
   const navigate = useNavigate();
+  const { hasSavedUser, hasSavedDevice, savedDeviceId } = useGeneralStore();
 
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -124,6 +131,28 @@ const PageLayout = ({ menu, breadcrumbs, children }) => {
             <MenuIcon />
           </IconButton>
           <PageTitle breadcrumbs={breadcrumbs} />
+          {(router.pathname === '/settings/device') && (
+            <>
+              <IconButton color="inherit" edge="end" sx={{ ml: 'auto' }} onClick={() => {
+                if (hasSavedDevice) {
+                  navigate(`/settings/user/device/${savedDeviceId}`)
+                }
+              }}>
+                <UserPlusIcon />
+              </IconButton>
+            </>
+          )}
+          {(router.pathname === '/settings/user') && (
+            <IconButton color="inherit" edge="end" sx={{ ml: 'auto' }} onClick={() => {
+              if (hasSavedUser) {
+                navigate(`/settings/device/user/${hasSavedUser}`)
+              } else {
+                alert('Please save user first')
+              }
+            }}>
+              <LocalShippingIcon />
+            </IconButton>
+          )}
         </Toolbar>
       </AppBar>
       <div className={classes.content}>{children}</div>

@@ -77,6 +77,9 @@ const FilteredSegments = ({
         },
       });
 
+      // Check if car-marker-layer exists before trying to insert before it
+      const beforeLayerId = map.getLayer('car-marker-layer') ? 'car-marker-layer' : undefined;
+      
       map.addLayer({
         id: layerId,
         type: 'symbol',
@@ -87,7 +90,12 @@ const FilteredSegments = ({
           'icon-allow-overlap': true,
           'icon-optional': false,
         },
-      });
+        paint: {
+          // Setting a lower z-index to ensure it stays below the car marker
+          'icon-translate': [0, 0],
+          'icon-translate-anchor': 'map'
+        },
+      }, beforeLayerId); // Insert before car-marker-layer if it exists
 
       // Add click event listener
       map.on('click', layerId, (e) => {

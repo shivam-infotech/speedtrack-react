@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Table, TableRow, TableCell, TableHead, TableBody, Switch, TableFooter, FormControlLabel,
   Card, CardContent, Typography, Grid, Box, Divider, Stack, Avatar, Chip, useMediaQuery, useTheme,
@@ -23,6 +23,7 @@ import TableShimmer from '../common/components/TableShimmer';
 import { useManager } from '../common/util/permissions';
 import SearchHeader, { filterByKeyword } from './components/SearchHeader';
 import useSettingsStyles from './common/useSettingsStyles';
+import { useGeneralStore } from '../store/general';
 
 const UsersPage = () => {
   const classes = useSettingsStyles();
@@ -39,7 +40,7 @@ const UsersPage = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
+  const { isUserRemoved, setIsUserRemoved, userToRemove, userRole } = useGeneralStore();
   const handleLogin = useCatch(async (userId) => {
     const response = await fetch(`/api/session/${userId}`);
     if (response.ok) {
@@ -103,6 +104,27 @@ const UsersPage = () => {
     );
   };
 
+  useEffect(() => {
+    const deleteUser = async (userId) => {
+      const response = await fetch(`/api/node/users/delete`, {
+        method: 'DELETE',
+        body: JSON.stringify({ userId: userId }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        setIsUserRemoved(false);
+      } else {
+        throw Error(await response.text());
+      }
+    }
+    if (isUserRemoved) {
+      deleteUser(userToRemove);
+      setIsUserRemoved(false);
+    }
+  }, [isUserRemoved]);
+
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'settingsUsers']}>
       <SearchHeader keyword={searchKeyword} setKeyword={setSearchKeyword} />
@@ -115,7 +137,8 @@ const UsersPage = () => {
               return (
                 <Grid item xs={12} key={item.id}>
                   <Card elevation={1} sx={{ borderRadius: 2 }}>
-                    <CardContent sx={{ p: 1.5 }}>
+                    {/* onClick={() => navigate(`/settings/user/${item.id}`)} */}
+                    <CardContent sx={{ p: 1.5 }} >
                       <Stack direction="row" spacing={1.5} alignItems="center">
                         <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
                           {item.name.charAt(0).toUpperCase()}
@@ -136,7 +159,7 @@ const UsersPage = () => {
                           editPath="/settings/user"
                           endpoint="users"
                           setTimestamp={setTimestamp}
-                          customActions={manager ? [actionLogin, actionConnections] : [actionConnections]}
+                          customActions={manager ? [actionLogin] : []}
                           icon={<MoreVertIcon />}
                         />
                       </Stack>
@@ -193,7 +216,7 @@ const UsersPage = () => {
                       editPath="/settings/user"
                       endpoint="users"
                       setTimestamp={setTimestamp}
-                      customActions={manager ? [actionLogin, actionConnections] : [actionConnections]}
+                      customActions={manager ? [actionLogin] : []}
                     />
                   </TableCell>
                 </TableRow>
@@ -221,7 +244,10 @@ const UsersPage = () => {
       ) : (
         <TableShimmer columns={isMobile ? 1 : 7} endAction />
       )}
-      <CollectionFab editPath="/settings/user" />
+      {
+        (userRole == 'admin' || userRole == 'distributor') &&
+        <CollectionFab editPath="/settings/user" />
+      }
     </PageLayout>
   );
 };
