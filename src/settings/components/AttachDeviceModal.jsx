@@ -24,6 +24,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import DevicesOtherIcon from '@mui/icons-material/DevicesOther';
 import { useTranslation } from '../../common/components/LocalizationProvider';
+import { BASE_URL } from '../../config';
 
 const useStyles = makeStyles((theme) => ({
     dialogTitle: {
@@ -69,7 +70,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const AttachDeviceModal = ({ open, onClose, onAttach, userId }) => {
+const AttachDeviceModal = ({ open, onClose, onAttach, userId, navigate }) => {
     const classes = useStyles();
     const t = useTranslation();
     const [devices, setDevices] = useState([]);
@@ -129,7 +130,27 @@ const AttachDeviceModal = ({ open, onClose, onAttach, userId }) => {
                 throw Error(await response.text());
             }
         } catch (error) {
-            console.error('Error fetching assigned devices:', error);
+            console.error('Error fetching assigned devices from primary API:', error);
+
+            // Fallback to Node API endpoint
+            try {
+                const nodeResponse = await fetch(`${BASE_URL}/api/node/users/devices/${userId}`);
+                if (nodeResponse.ok) {
+                    const nodeData = await nodeResponse.json();
+                    if (nodeData && nodeData.data) {
+                        // Extract deviceid from the Node API response format
+                        const assignedDeviceIds = nodeData.data.map(device => device.deviceid);
+                        setSelectedDevices(assignedDeviceIds);
+                        console.log('Successfully fetched devices from Node API fallback');
+                    } else {
+                        console.error('Node API response missing data structure');
+                    }
+                } else {
+                    console.error('Node API fallback also failed:', await nodeResponse.text());
+                }
+            } catch (nodeError) {
+                console.error('Error fetching assigned devices from Node API fallback:', nodeError);
+            }
         }
     };
 
@@ -145,22 +166,30 @@ const AttachDeviceModal = ({ open, onClose, onAttach, userId }) => {
 
     const handleAttachDevices = async () => {
         try {
-            // First, get current devices assigned to the user
-            const response = await fetch(`/api/devices?userId=${userId}`);
-            if (!response.ok) {
-                throw Error(await response.text());
+            let currentDeviceIds = [];
+
+            try {
+                const response = await fetch(`/api/devices?userId=${userId}`);
+
+                if (response.ok) {
+                    const currentAssignedDevices = await response.json();
+                    currentDeviceIds = currentAssignedDevices.map(device => device.id);
+                } else {
+                    const nodeResponse = await fetch(`${BASE_URL}/api/node/users/devices/${userId}`);
+                    if (nodeResponse.ok) {
+                        const nodeData = await nodeResponse.json();
+                        if (nodeData && nodeData.data) {
+                            currentDeviceIds = nodeData.data.map(device => device.deviceid);
+                        }
+                    }
+                }
+            } catch (fetchError) {
+                console.log('No devices currently attached to user or error fetching devices');
             }
 
-            const currentAssignedDevices = await response.json();
-            const currentDeviceIds = currentAssignedDevices.map(device => device.id);
-
-            // Devices to add (selected but not in current permissions)
             const devicesToAdd = selectedDevices.filter(deviceId => !currentDeviceIds.includes(deviceId));
-
-            // Devices to remove (in current permissions but not selected)
             const devicesToRemove = currentDeviceIds.filter(deviceId => !selectedDevices.includes(deviceId));
 
-            // Add new permissions
             const addPromises = devicesToAdd.map(deviceId =>
                 fetch('/api/permissions', {
                     method: 'POST',
@@ -172,7 +201,6 @@ const AttachDeviceModal = ({ open, onClose, onAttach, userId }) => {
                 })
             );
 
-            // Remove permissions that were unchecked
             const removePromises = devicesToRemove.map(deviceId => {
                 return fetch(`/api/permissions`, {
                     method: 'DELETE',
@@ -184,7 +212,6 @@ const AttachDeviceModal = ({ open, onClose, onAttach, userId }) => {
                 });
             });
 
-            // Execute all promises
             await Promise.all([...addPromises, ...removePromises]);
 
             onAttach(selectedDevices);

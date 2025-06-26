@@ -19,6 +19,15 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
+import MessageIcon from '@mui/icons-material/Message';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import SendIcon from '@mui/icons-material/Send';
 import { DropzoneArea } from 'react-mui-dropzone';
 import { Close } from '@mui/icons-material';
 import EditItemView from './components/EditItemView';
@@ -36,14 +45,25 @@ import useSettingsStyles from './common/useSettingsStyles';
 import { useParams } from 'react-router-dom';
 import { useGeneralStore } from '../store/general';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../config';
 
 const DevicePage = () => {
+  const [smsModalOpen, setSmsModalOpen] = useState(false);
+  // Example list of SMS commands for GPS devices
+  const smsCommands = [
+    'STATUS#',
+    'RESTART#',
+    'RESET#',
+    'GPRS123456',
+    'APN123456 internet',
+    // Add more as needed
+  ];
   const classes = useSettingsStyles();
   const t = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
   const { userId } = useParams();
-  const { setHasSavedDevice, setSavedDeviceId } = useGeneralStore()
+  const { setHasSavedDevice, setSavedDeviceId, userData } = useGeneralStore()
 
   const admin = useAdministrator();
 
@@ -58,12 +78,73 @@ const DevicePage = () => {
   const [item, setItem] = useState(uniqueId ? { uniqueId } : null);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [allowGoBack, setAllowGoBack] = useState(false);
+  const [savedDevices, setSavedDevices] = useState(0);
 
   useEffect(() => {
     if (userId) {
       setAllowGoBack(false);
     }
   }, [userId]);
+
+  useEffect(() => {
+    if (userData && userData.user_id) {
+      const fetchNodeData = async () => {
+        try {
+          const response = await fetch(`${BASE_URL}/api/node/users/devices/${userData.user_id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setSavedDevices(data.data.length);
+          } else {
+            console.error('Failed to fetch node data');
+          }
+        } catch (error) {
+          console.error('Error fetching node data:', error);
+        }
+      };
+
+      fetchNodeData();
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    setHasSavedDevice(false);
+    setSavedDeviceId(null);
+  }, []);
+
+  // Handle barcode data coming from React Native
+  useEffect(() => {
+    // Define the handler function for direct function call
+    window.handleBarcodeData = (barcodeType, barcodeData) => {
+      console.log('Received barcode data via function call:', barcodeType, barcodeData);
+      if (barcodeData) {
+        setItem({ ...item, uniqueId: barcodeData });
+      }
+    };
+
+    // Define the handler for postMessage events
+    const handlePostMessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'barcode-data') {
+          console.log('Received barcode data via postMessage:', data.barcodeType, data.barcodeData);
+          if (data.barcodeData) {
+            setItem({ ...item, uniqueId: data.barcodeData });
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing postMessage data:', error);
+      }
+    };
+
+    // Add event listener for postMessage
+    window.addEventListener('message', handlePostMessage);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('message', handlePostMessage);
+      delete window.handleBarcodeData;
+    };
+  }, [item, setItem]);
 
   const handleFiles = useCatch(async (files) => {
     if (files.length > 0) {
@@ -128,13 +209,15 @@ const DevicePage = () => {
         item={item}
         allowGoBack={allowGoBack}
         onItemSaved={onItemSaved}
+        hideButtons={savedDevices >= userData.device_limit && userData.user_type !== 'admin'}
         setItem={setItem}
         // whenItemsLoaded={(res) => { console.log(res, protocols); res?.model != null && setProtocol(protocols.find(p => p.device === res.model)) }}
         validate={validate}
         menu={<SettingsMenu />}
         breadcrumbs={['settingsTitle', 'sharedDevice']}
       >
-        {item && (
+        {savedDevices >= userData.device_limit && userData.user_type !== 'admin' && <Alert severity="error">You have reached the maximum number of devices you can create.</Alert>}
+        {(savedDevices < userData.device_limit || userData.user_type === 'admin') && item && (
           <>
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -146,7 +229,7 @@ const DevicePage = () => {
                 <TextField
                   value={item.name || ''}
                   onChange={(event) => setItem({ ...item, name: event.target.value })}
-                  label={t('sharedName')}
+                  label={"Vehicle Number"}
                 />
                 <TextField
                   value={item.uniqueId || ''}
@@ -154,12 +237,91 @@ const DevicePage = () => {
                   label={`${t('deviceIdentifier')} / ${t('deviceImei')}`}
                   helperText={t('deviceIdentifierHelp')}
                   disabled={Boolean(uniqueId)}
+                  size="small"
+                  sx={{ width: '100%' }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          color="primary"
+                          onClick={() => {
+                            // Post message to React Native for barcode scanning
+                            console.log('Barcode scan button clicked');
+                            try {
+                              if (window.ReactNativeWebView) {
+                                // Send message to React Native
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                  type: 'open-barcode-scanner',
+                                  field: 'uniqueId',
+                                  currentValue: item.uniqueId || ''
+                                }));
+                              } else {
+                                console.log('ReactNativeWebView not available');
+                              }
+                            } catch (error) {
+                              console.error('Error posting message to React Native:', error);
+                            }
+                          }}
+                        >
+                          <QrCodeScannerIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <TextField
+                  type='number'
                   value={item.phone || ''}
                   onChange={(event) => setItem({ ...item, phone: event.target.value })}
                   label={`${t('sharedPhone')} / ${t('ShareSimNumber')}`}
+                  size="small"
+                  sx={{ width: '100%' }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          color="primary"
+                          onClick={() => setSmsModalOpen(true)}
+                        >
+                          <MessageIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
+                {/* SMS Command Modal */}
+                <Dialog open={smsModalOpen} onClose={() => setSmsModalOpen(false)}>
+                  <DialogTitle>Send SMS Command</DialogTitle>
+                  <DialogContent>
+                    <List sx={{ maxHeight: 300, overflowY: 'auto' }}>
+                      {smsCommands.map((command, idx) => (
+                        <ListItem key={idx} secondaryAction={
+                          <IconButton
+                            edge="end"
+                            color="primary"
+                            onClick={() => {
+                              const smsUrl = `sms:${item.phone || ''}?body=${encodeURIComponent(command)}`;
+                              window.open(smsUrl);
+                            }}
+                          >
+                            <SendIcon />
+                          </IconButton>
+                        }>
+                          <ListItemText primary={command} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setSmsModalOpen(false)} color="primary" variant="contained">
+                      Close
+                    </Button>
+                  </DialogActions>
+                </Dialog>
                 {/* <TextField
                 value={item.model || ''}
                 onChange={(event) => setItem({ ...item, model: event.target.value })}

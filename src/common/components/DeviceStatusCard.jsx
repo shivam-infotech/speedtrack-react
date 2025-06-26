@@ -44,6 +44,7 @@ import useGlobalSpeech from '../util/useGlobalSpeech';
 import { BottomSheet } from 'react-spring-bottom-sheet'
 import 'react-spring-bottom-sheet/dist/style.css'
 import '../../resources/bottomSheetStyle.css'
+import CustomBottomSheet from './CustomBottomSheet';
 
 const useStyles = makeStyles((theme) => ({
   root: ({ desktopPadding, haveBottomTabs }) => ({
@@ -244,7 +245,6 @@ const DeviceStatusCard = ({
   const user = useSelector((state) => state.session.user);
   // const { start, stop, speechStatus } = useSpeech({ pitch: 1, rate: 0.8, volume: 1, lang: "hi-IN", voiceURI: "Google हिन्दी", autoPlay: false, text: position?.address || 'No Available address' });
   const start = useGlobalSpeech(position?.address || 'No Available address');
-
   const handleRemove = useCatch(async (removed) => {
     if (removed) {
       const response = await fetch('/api/devices');
@@ -338,59 +338,59 @@ const DeviceStatusCard = ({
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Speedometer speed={position?.speed || 0} />
         </Box>
-        { onClose ? (
+        {onClose ? (
           <IconButton size="small" onClick={onClose}>
             {closeIcon || <CloseIcon fontSize="small" />}
           </IconButton>
-        ) : <></> }
+        ) : <></>}
       </Box>
       <Divider />
       {position && (
-      <CardContent className={classes.content}>
-        {!minimize && (
-        <Grid container spacing={1}>
-          {primaryFields.map((field) => (
-            <Grid item xs={4} key={field.key}>
-              <CompactFieldChip
-                label={field.label}
-                value={field.value}
-                icon={field.icon}
-              />
-            </Grid>
-          ))}
-        </Grid>
-        )}
-        {position?.address && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
-          <FmdGoodIcon fontSize="small" color="primary" />
-          <Typography variant="body2" sx={{ flex: 1 }}>
-            <PositionValue position={position} property="address" attribute="address" />
-          </Typography>
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); start(); }}>
-            <VolumeUpIcon />
-          </IconButton>
-        </Box>
-        )}
-        {!minimize && (
-        <>
-          <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
-          <Box>
-            <Box sx={{ display: 'flex', overflowX: 'auto' }}>
-              {sensorFields.map((field) => (
-                <Box sx={{ minWidth: '5rem' }} key={field.key}>
-                  <FieldItem
+        <CardContent className={classes.content}>
+          {!minimize && (
+            <Grid container spacing={1}>
+              {primaryFields.map((field) => (
+                <Grid item xs={4} key={field.key}>
+                  <CompactFieldChip
                     label={field.label}
                     value={field.value}
                     icon={field.icon}
                   />
-                </Box>
+                </Grid>
               ))}
+            </Grid>
+          )}
+          {position?.address && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
+              <FmdGoodIcon fontSize="small" color="primary" />
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                <PositionValue position={position} property="address" attribute="address" />
+              </Typography>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); start(); }}>
+                <VolumeUpIcon />
+              </IconButton>
             </Box>
-          </Box>
-        </>
-        )}
-      </CardContent>
-      ) }
+          )}
+          {!minimize && (
+            <>
+              <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+              <Box>
+                <Box sx={{ display: 'flex', overflowX: 'auto' }}>
+                  {sensorFields.map((field) => (
+                    <Box sx={{ minWidth: '5rem' }} key={field.key}>
+                      <FieldItem
+                        label={field.label}
+                        value={field.value}
+                        icon={field.icon}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </>
+          )}
+        </CardContent>
+      )}
     </Card>
   );
 
@@ -415,94 +415,105 @@ const DeviceStatusCard = ({
       </Box>
       <Divider />
       {position && (
-      <CardContent className={classes.content}>
-        {position?.address && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
-          <FmdGoodIcon fontSize="small" color="primary" />
-          <Typography variant="body2" sx={{ flex: 1 }}>
-            <PositionValue position={position} property="address" attribute="address" />
-          </Typography>
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); start(); }}>
-            <VolumeUpIcon />
-          </IconButton>
-        </Box>
-        )}
-        <Grid container spacing={1}>
-          {primaryFields.map((field) => (
-            <Grid item xs={4} key={field.key}>
-              <CompactFieldChip
-                label={field.label}
-                value={field.value}
-                icon={field.icon}
-              />
-            </Grid>
-          ))}
-        </Grid>
-        
-        
-        <>
-          <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
-          <Box>
-            <Box sx={{ display: 'flex', overflowX: 'auto' }}>
-              {sensorFields.map((field) => (
-                <Box sx={{ minWidth: '5rem' }} key={field.key}>
-                  <FieldItem
-                    label={field.label}
-                    value={field.value}
-                    icon={field.icon}
-                  />
-                </Box>
-              ))}
+        <CardContent className={classes.content}>
+          {position?.address && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
+              <FmdGoodIcon fontSize="small" color="primary" />
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                <PositionValue position={position} property="address" attribute="address" />
+              </Typography>
+              <IconButton size="small" onClick={(e) => { e.stopPropagation(); start(); }}>
+                <VolumeUpIcon />
+              </IconButton>
             </Box>
-          </Box>
-        </>
-    
-      </CardContent>
-      ) }
+          )}
+          <Grid container spacing={1}>
+            {primaryFields.map((field) => (
+              <Grid item xs={4} key={field.key}>
+                <CompactFieldChip
+                  label={field.label}
+                  value={field.value}
+                  icon={field.icon}
+                />
+              </Grid>
+            ))}
+          </Grid>
+
+
+          <>
+            <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
+            <Box>
+              <Box sx={{ display: 'flex', overflowX: 'auto' }}>
+                {sensorFields.map((field) => (
+                  <Box sx={{ minWidth: '5rem' }} key={field.key}>
+                    <FieldItem
+                      label={field.label}
+                      value={field.value}
+                      icon={field.icon}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </>
+
+        </CardContent>
+      )}
     </Card>
   );
 
   const BSheet = (card) => {
+
     // Pre-calculate snap points to avoid recalculation during animations
-    const snapPoints = ({ maxHeight }) => [maxHeight/3.5, maxHeight/1.39];
-    const defaultSnap = ({ maxHeight }) => maxHeight/2.8;
-    
-    return <BottomSheet 
-        open={true}
-        snapPoints={snapPoints}
-        defaultSnap={defaultSnap}
-        expandOnContentDrag={true}
-        maxHeight={500}
-        scrollLocking={false}
-        reserveScrollBarGap={true}
-        blocking={false}
-        style={{
-          // Optimize rendering performance
-          '--rsbs-overlay-rounded': '16px',
-          '--rsbs-overlay-transform': 'scale(1)',
-          '--rsbs-bg': '#fff',
-          '--rsbs-handle-bg': 'rgba(0, 0, 0, 0.14)'
-        }}
-      >
-      <Box sx={{ 
+    const snapPoints = ({ maxHeight }) => [maxHeight / 3.5, maxHeight / 1.39];
+    const defaultSnap = ({ maxHeight }) => maxHeight / 2.8;
+
+    // return <BottomSheet
+    //   open={true}
+
+    //   snapPoints={snapPoints}
+    //   defaultSnap={defaultSnap}
+    //   expandOnContentDrag={true}
+    //   maxHeight={500}
+    //   scrollLocking={false}
+    //   reserveScrollBarGap={true}
+    //   blocking={false}
+    //   style={{
+    //     // Optimize rendering performance
+    //     '--rsbs-overlay-rounded': '16px',
+    //     '--rsbs-overlay-transform': 'scale(1)',
+    //     '--rsbs-bg': '#fff',
+    //     '--rsbs-handle-bg': 'rgba(0, 0, 0, 0.14)'
+    //   }}
+    // >
+    //   <Box sx={{
+    //     overflow: 'hidden',
+    //     // Add hardware acceleration
+    //     WebkitTransform: 'translate3d(0,0,0)',
+    //     transform: 'translate3d(0,0,0)'
+    //   }}>
+    //     {card}
+    //   </Box>
+    // </BottomSheet>
+    return <CustomBottomSheet collapsedHeight={145} expandedHeight={380}>
+      <Box sx={{
         overflow: 'hidden',
-        // Add hardware acceleration
         WebkitTransform: 'translate3d(0,0,0)',
         transform: 'translate3d(0,0,0)'
       }}>
         {card}
       </Box>
-    </BottomSheet>
+    </CustomBottomSheet>
   }
 
   return (
     <div className={classes.root}>
-      
-      { !isMobile ? (
+
+      {!isMobile ? (
         <Draggable handle=".drag-handle">
           {card}
         </Draggable>
-      ) : BSheet(cardMobile) }
+      ) : BSheet(cardMobile)}
       <RemoveDialog
         open={removing}
         endpoint="devices"

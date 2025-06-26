@@ -20,6 +20,7 @@ import { sessionActions } from '../store';
 import { useLocalization, useTranslation } from '../common/components/LocalizationProvider';
 import LoginLayout from './LoginLayout';
 import usePersistedState from '../common/util/usePersistedState';
+import { BASE_URL } from '../config';
 import {
   generateLoginToken, handleLoginTokenListeners, nativeEnvironment, nativePostMessage,
 } from '../common/components/NativeInterface';
@@ -194,10 +195,10 @@ const LoginPage = () => {
   const [failed, setFailed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [email, setEmail] = usePersistedState('loginEmail', 'admin@gpstracking.com');
+  const [email, setEmail] = usePersistedState('loginEmail', 'admin');
   const [password, setPassword] = useState('12345678');
   const [code, setCode] = useState('');
-  const { setUserRole } = useGeneralStore();
+  const { setUserRole, setUserData } = useGeneralStore();
 
   const registrationEnabled = useSelector((state) => state.session.server.registration);
   const languageEnabled = useSelector((state) => !state.session.server.attributes['ui.disableLoginLanguage']);
@@ -238,13 +239,20 @@ const LoginPage = () => {
 
   const getEmailFromUsername = async (username) => {
     try {
-      const response = await fetch('/api/node/users/user/' + username, {
+      const response = await fetch(BASE_URL + '/api/node/users/user/' + username, {
         method: 'GET'
       });
       if (response.ok) {
         const user = await response.json();
         setEmail(user.email);
         setUserRole(user.role);
+        setUserData(user.data);
+        if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'USER_DATA',
+            data: user.data
+          }));
+        }
         return user.email;
       } else {
         throw Error(await response.text());

@@ -10,6 +10,7 @@ import {
   Switch,
   Menu,
   ListItemIcon,
+  Typography,
 } from '@mui/material';
 import { makeStyles, useTheme } from '@mui/styles';
 import MapIcon from '@mui/icons-material/Map';
@@ -30,6 +31,7 @@ import { useAttributePreference } from '../common/util/preferences';
 import DeviceRow from './DeviceRow';
 import { useDeviceReadonly } from '../common/util/permissions';
 import { useTranslation } from '../common/components/LocalizationProvider';
+import { useGeneralStore } from '../store/general';
 
 const useStyles = makeStyles((theme) => ({
   toolbarContainer: {
@@ -105,12 +107,12 @@ const MainToolbar = ({
   const inputRef = useRef();
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [devicesAnchorEl, setDevicesAnchorEl] = useState(null);
+  const { userRole, userData } = useGeneralStore()
   const [sortAnchorEl, setSortAnchorEl] = useState(null);
   const daysBeforeExpiry = useAttributePreference('daysBeforeExpiry');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [moreOptionsAnchorEl, setMoreOptionsAnchorEl] = useState(null);
   // const deviceStatusCount = (status) => Object.values(devices).filter((d) => d.status === status).length;
-
   const checkDeviceCountForStatus = (status) => {
     const dvsc = Object.values(devices);
     switch (status) {
@@ -193,32 +195,32 @@ const MainToolbar = ({
         {onLeftTop}
         {!searchExpanded && pageTitle}
         {searchExpanded && (
-        <OutlinedInput
-          ref={inputRef}
-          placeholder={t('sharedSearchDevices')}
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onFocus={() => setDevicesAnchorEl(toolbarRef.current)}
-          onBlur={() => setDevicesAnchorEl(null)}
-          endAdornment={(
-            <InputAdornment position="end">
-              <IconButton size="small" onClick={() => { setKeyword(''); setSearchExpanded(false); }}>
-                <Close fontSize="small" />
-              </IconButton>
-            </InputAdornment>
-          )}
-          // endAdornment={(
-          //   <InputAdornment position="end">
-          //     <IconButton size="small" edge="end" onClick={() => setFilterAnchorEl(inputRef.current)}>
-          //       <Badge color="info" variant="dot" invisible={!filter.statuses.length && !filter.groups.length}>
-          //         <TuneIcon fontSize="small" />
-          //       </Badge>
-          //     </IconButton>
-          //   </InputAdornment>
-          // )}
-          size="small"
-          fullWidth
-        />
+          <OutlinedInput
+            ref={inputRef}
+            placeholder={t('sharedSearchDevices')}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onFocus={() => setDevicesAnchorEl(toolbarRef.current)}
+            onBlur={() => setDevicesAnchorEl(null)}
+            endAdornment={(
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => { setKeyword(''); setSearchExpanded(false); }}>
+                  <Close fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            )}
+            // endAdornment={(
+            //   <InputAdornment position="end">
+            //     <IconButton size="small" edge="end" onClick={() => setFilterAnchorEl(inputRef.current)}>
+            //       <Badge color="info" variant="dot" invisible={!filter.statuses.length && !filter.groups.length}>
+            //         <TuneIcon fontSize="small" />
+            //       </Badge>
+            //     </IconButton>
+            //   </InputAdornment>
+            // )}
+            size="small"
+            fullWidth
+          />
         )}
         {/* <Popover
           open={!!devicesAnchorEl && !devicesOpen}
@@ -307,15 +309,29 @@ const MainToolbar = ({
             </FormGroup>
           </div>
         </Popover> */}
+        {userRole === 'distributor' && (
+          userData?.limit_type === 'credit' && (
+            <IconButton disabled={deviceReadonly}>
+              <Typography variant="body2" fontWeight="bold">Cr.{userData?.credits}</Typography>
+            </IconButton>
+          )
+        )}
+        {userRole === 'distributor' && (
+          userData?.limit_type === 'device' && (
+            <IconButton disabled={deviceReadonly}>
+              <Typography variant="body2" fontWeight="bold">Dev. Limit: {userData?.device_limit}</Typography>
+            </IconButton>
+          )
+        )}
         {!hideDevicesOpen && (
-        <IconButton onClick={() => setDevicesOpen(!devicesOpen)}>
-          {devicesOpen ? <MapIcon /> : <ViewListIcon />}
-        </IconButton>
+          <IconButton onClick={() => setDevicesOpen(!devicesOpen)}>
+            {devicesOpen ? <MapIcon /> : <ViewListIcon />}
+          </IconButton>
         )}
         {!searchExpanded && (
-        <IconButton onClick={() => setSearchExpanded(true)}>
-          <SearchIcon />
-        </IconButton>
+          <IconButton onClick={() => setSearchExpanded(true)}>
+            <SearchIcon />
+          </IconButton>
         )}
         <IconButton edge="end" onClick={(e) => setMoreOptionsAnchorEl(e.currentTarget)}>
           <MoreVert />
@@ -354,43 +370,43 @@ const MainToolbar = ({
         </IconButton> */}
       </div>
       {!hidefilters && (
-      <div className={classes.filterContainer}>
-        <List className={classes.chipContainer}>
-          <Chip
-            key="all"
-            icon={filter.statuses === '' ? <CheckIcon /> : undefined}
-            size="small"
-            color="info"
-            onClick={() => setFilter({ ...filter, statuses: '' })}
-            label={`${checkDeviceCountForStatus('all')} ${t('deviceStatusAll')}`}
-          />
-          {deviceStatus.map((ds) => (
+        <div className={classes.filterContainer}>
+          <List className={classes.chipContainer}>
             <Chip
-              key={ds.status}
-              icon={filter.statuses.includes(ds.status) ? <CheckIcon /> : undefined}
+              key="all"
+              icon={filter.statuses === '' ? <CheckIcon /> : undefined}
               size="small"
-              color={ds.color || undefined}
-              onClick={() => handleFilter(ds.status)}
-              label={`${checkDeviceCountForStatus(ds.status)} ${ds.title}`}
+              color="info"
+              onClick={() => setFilter({ ...filter, statuses: '' })}
+              label={`${checkDeviceCountForStatus('all')} ${t('deviceStatusAll')}`}
             />
-          ))}
-          {Object.values(groups).length > 0 && <Divider key="divider" orientation="vertical" flexItem className={classes.divider} />}
-          {Object.values(groups).sort((a, b) => a.name.localeCompare(b.name)).map((group) => (
-            <Chip key={group.id} icon={filter.groups === group.id ? <CheckIcon /> : undefined} label={group.name} size="small" onClick={() => setFilter({ ...filter, groups: (filter.groups === group.id ? '' : group.id) })} />
-          ))}
-        </List>
+            {deviceStatus.map((ds) => (
+              <Chip
+                key={ds.status}
+                icon={filter.statuses.includes(ds.status) ? <CheckIcon /> : undefined}
+                size="small"
+                color={ds.color || undefined}
+                onClick={() => handleFilter(ds.status)}
+                label={`${checkDeviceCountForStatus(ds.status)} ${ds.title}`}
+              />
+            ))}
+            {Object.values(groups).length > 0 && <Divider key="divider" orientation="vertical" flexItem className={classes.divider} />}
+            {Object.values(groups).sort((a, b) => a.name.localeCompare(b.name)).map((group) => (
+              <Chip key={group.id} icon={filter.groups === group.id ? <CheckIcon /> : undefined} label={group.name} size="small" onClick={() => setFilter({ ...filter, groups: (filter.groups === group.id ? '' : group.id) })} />
+            ))}
+          </List>
 
-        <Tooltip title={t('sharedFilterMap')}>
-          <IconButton onClick={() => setFilterMap(!filterMap)} size="small">
-            {filterMap ? <PinDropIcon fontSize="small" sx={{ color: theme.palette.primary.main }} /> : <WrongLocationIcon fontSize="small" />}
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={t('sharedSortBy')}>
-          <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)} size="small">
-            <SortIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </div>
+          <Tooltip title={t('sharedFilterMap')}>
+            <IconButton onClick={() => setFilterMap(!filterMap)} size="small">
+              {filterMap ? <PinDropIcon fontSize="small" sx={{ color: theme.palette.primary.main }} /> : <WrongLocationIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('sharedSortBy')}>
+            <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)} size="small">
+              <SortIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </div>
       )}
       <Popover
         open={Boolean(sortAnchorEl)}

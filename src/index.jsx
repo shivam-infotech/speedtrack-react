@@ -12,8 +12,13 @@ import NativeInterface from './common/components/NativeInterface';
 import ServerProvider from './ServerProvider';
 import ErrorBoundary from './ErrorBoundary';
 import AppThemeProvider from './AppThemeProvider';
+import { initWebViewStorage } from './utils/simpleSecureStorage';
 import './prototypes';
 
+// Initialize storage for WebView compatibility
+initWebViewStorage();
+
+// Preload map images
 preloadImages();
 
 const root = createRoot(document.getElementById('root'));

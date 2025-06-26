@@ -18,5 +18,7 @@ export const useGeneralStore = create(
             setUserToRemove: (userToRemove) => set({ userToRemove }),
             userRole: null,
             setUserRole: (userRole) => set({ userRole }),
+            userData: null,
+            setUserData: (userData) => set({ userData }),
         })
     ))

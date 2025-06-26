@@ -37,12 +37,14 @@ import { useDeviceReadonly, useManager } from '../common/util/permissions';
 import useSettingsStyles from './common/useSettingsStyles';
 import DeviceUsersValue from './components/DeviceUsersValue';
 import usePersistedState from '../common/util/usePersistedState';
+import { useGeneralStore } from '../store/general';
 
 const DevicesPage = () => {
   const classes = useSettingsStyles();
   const navigate = useNavigate();
   const t = useTranslation();
 
+  const { userRole } = useGeneralStore();
   const groups = useSelector((state) => state.groups.items);
 
   const manager = useManager();
@@ -265,8 +267,7 @@ const DevicesPage = () => {
           </TableBody>
         </Table>
       )}
-
-      <CollectionFab editPath="/settings/device" />
+      {(userRole == "admin" || userRole == "distributor") && <CollectionFab editPath="/settings/device" />}
     </PageLayout>
   );
 };

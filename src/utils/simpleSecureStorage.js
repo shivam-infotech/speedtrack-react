@@ -1,10 +1,65 @@
-// Simple secure storage utility
-// This uses a basic encoding technique to make data less visible in browser storage
-
-// Simple encode/decode functions using base64 and a basic XOR operation
 const SECRET_KEY = 'speedtrack-key';
 
-// Simple XOR function to obfuscate data
+const storage = {
+    memoryStorage: {},
+    isLocalStorageAvailable: function () {
+        try {
+            const testKey = '__storage_test__';
+            window.localStorage.setItem(testKey, testKey);
+            window.localStorage.removeItem(testKey);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    },
+
+    setItem: function (key, value) {
+        try {
+            if (this.isLocalStorageAvailable()) {
+                window.localStorage.setItem(key, value);
+            } else {
+                this.memoryStorage[key] = value;
+                // Try to notify React Native if possible
+                if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'STORAGE_UPDATED',
+                        key: key,
+                        value: value
+                    }));
+                }
+            }
+        } catch (e) {
+            console.error('Storage error:', e);
+            this.memoryStorage[key] = value;
+        }
+    },
+
+    getItem: function (key) {
+        try {
+            if (this.isLocalStorageAvailable()) {
+                return window.localStorage.getItem(key);
+            } else {
+                return this.memoryStorage[key] || null;
+            }
+        } catch (e) {
+            console.error('Storage error:', e);
+            return this.memoryStorage[key] || null;
+        }
+    },
+
+    removeItem: function (key) {
+        try {
+            if (this.isLocalStorageAvailable()) {
+                window.localStorage.removeItem(key);
+            }
+            delete this.memoryStorage[key];
+        } catch (e) {
+            console.error('Storage error:', e);
+            delete this.memoryStorage[key];
+        }
+    }
+};
+
 function xorEncrypt(text, key) {
     let result = '';
     for (let i = 0; i < text.length; i++) {
@@ -13,7 +68,6 @@ function xorEncrypt(text, key) {
     return result;
 }
 
-// Encode data for storage
 export function encodeData(data) {
     try {
         const jsonString = JSON.stringify(data);
@@ -25,7 +79,6 @@ export function encodeData(data) {
     }
 }
 
-// Decode data from storage
 export function decodeData(encodedData) {
     try {
         if (!encodedData) return null;
@@ -38,12 +91,10 @@ export function decodeData(encodedData) {
     }
 }
 
-// Create a middleware for Zustand
 export const createSimpleSecureStore = (name) => (config) => (set, get, api) => {
-    // Try to load initial state
     let savedState = null;
     try {
-        const storedData = sessionStorage.getItem(name);
+        const storedData = storage.getItem(name);
         if (storedData) {
             savedState = decodeData(storedData);
         }
@@ -51,16 +102,18 @@ export const createSimpleSecureStore = (name) => (config) => (set, get, api) => 
         console.error('Error loading from storage:', error);
     }
 
-    // Create store with initial state
     const state = config(
         (updates, replace) => {
-            // Apply updates to the store
             set(updates, replace);
-            // Save the updated state
             try {
                 const currentState = get();
                 const encoded = encodeData(currentState);
-                sessionStorage.setItem(name, encoded);
+                storage.setItem(name, encoded);
+
+                console.log(`Store updated: ${name}`, {
+                    currentState,
+                    usingSessionStorage: storage.isLocalStorageAvailable()
+                });
             } catch (error) {
                 console.error('Error saving to storage:', error);
             }
@@ -69,9 +122,34 @@ export const createSimpleSecureStore = (name) => (config) => (set, get, api) => 
         api
     );
 
-    // Return the store with initial state if available
     return {
         ...state,
         ...(savedState || {})
     };
 };
+
+export function initWebViewStorage() {
+    const isInWebView = window.ReactNativeWebView !== undefined;
+
+    if (isInWebView) {
+        console.log('Running in React Native WebView - using memory storage fallback');
+
+        window.setInitialStorageState = function (storageData) {
+            try {
+                const parsedData = JSON.parse(storageData);
+                Object.keys(parsedData).forEach(key => {
+                    storage.memoryStorage[key] = parsedData[key];
+                });
+                console.log('Initial storage state set from React Native');
+            } catch (e) {
+                console.error('Failed to set initial storage state:', e);
+            }
+        };
+
+        if (typeof window.ReactNativeWebView.postMessage === 'function') {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'STORAGE_READY'
+            }));
+        }
+    }
+}

@@ -60,9 +60,9 @@ const CollectionActions = ({
             <MoreVertIcon fontSize="small" />
           </IconButton>
           <Menu open={!!menuAnchorEl} anchorEl={menuAnchorEl} onClose={() => setMenuAnchorEl(null)}>
-            {customActions && customActions.map((action) => (
+            {/* {customActions && customActions.map((action) => (
               <MenuItem onClick={() => handleCustom(action)} key={action.key}>{action.title}</MenuItem>
-            ))}
+            ))} */}
             {!readonly && (
               <>
                 <MenuItem onClick={handleEdit}>{t('sharedEdit')}</MenuItem>

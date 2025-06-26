@@ -51,6 +51,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     overflowY: 'auto',
+    marginBottom: theme.spacing(8),
   },
 }));
 

@@ -67,6 +67,7 @@ const useStyles = makeStyles((theme) => ({
 	contentMap: {
 		pointerEvents: 'auto',
 		gridArea: '1 / 1',
+		marginTop: theme.spacing(13),
 	},
 	contentList: {
 		pointerEvents: 'auto',
@@ -137,7 +138,7 @@ const LiveMap = () => {
 
 	useEffect(() => {
 		if (isSmallDevice && !desktop) {
-			setDevicesOpen(true);
+			setDevicesOpen(false);
 		}
 	}, [isSmallDevice, desktop]);
 
@@ -155,7 +156,7 @@ const LiveMap = () => {
 
 	const renderCompactLayout = () => (
 		<div className={classes.root}>
-			<Paper square elevation={3} className={classes.header} sx={{ position: 'sticky', top: 0 }}>
+			<Paper square elevation={3} className={classes.header} sx={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000 }}>
 				<MainToolbar
 					pageTitle={(
 						<Box onClick={() => setAccountPopupOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: theme.spacing(0.5), justifyContent: 'center' }}>
@@ -217,7 +218,7 @@ const LiveMap = () => {
 					{mapLinksMemo}
 				</Box>
 			</div>
-			<Paper square className={classes.contentList}>
+			<Paper square className={classes.contentList} style={{ paddingBottom: 65 }}>
 				<Box className={classes.sectionHeader} sx={{ padding: `0 ${theme.spacing(2)}` }}>
 					<Typography varient="body2" fontWeight="bold">{t('sharedRecentDevices')}</Typography>
 					{/* <Typography variant='body3'>{t('sharedSeeAll')}</Typography> */}
@@ -266,7 +267,7 @@ const LiveMap = () => {
 				/>
 			)}
 			<div className={classes.sidebar}>
-				<Paper square elevation={3} className={classes.header} sx={{ position: 'sticky', top: 0 }}>
+				<Paper square elevation={3} className={classes.header} sx={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000 }}>
 					<MainToolbar
 						pageTitle={(
 							<Box onClick={() => setAccountPopupOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: theme.spacing(0.5), justifyContent: 'center' }}>
@@ -299,14 +300,14 @@ const LiveMap = () => {
 								filteredPositions={filteredPositions}
 								selectedPosition={selectedPosition}
 								onEventsClick={onEventsClick}
-								filteredDevices={filterMap ? filteredDevices : undefined}
+								filteredDevices={filteredDevices}
 								animationDuration={7000}
 							/>
 							{mapLinksMemo}
 							{/* { selectedDeviceId && <MapControlLinks links={[{ title: 'playback', icon: <PlayArrowIcon />, onClick: () => navigate('/replay') }]} /> } */}
 						</div>
 					)}
-					<Paper square className={classes.contentList} background={theme.palette.background.default} style={devicesOpen ? {} : { visibility: 'hidden' }}>
+					<Paper square sx={{ marginTop: theme.spacing(13) }} className={classes.contentList} background={theme.palette.background.default} style={devicesOpen ? {} : { visibility: 'hidden' }}>
 						<DeviceList devices={filteredDevices} />
 					</Paper>
 				</div>

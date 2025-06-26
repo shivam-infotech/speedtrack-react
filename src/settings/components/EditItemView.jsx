@@ -11,7 +11,7 @@ import useNativeNavigateBack from '../../common/util/nativeNavigation';
 import { useGeneralStore } from '../../store/general';
 
 const EditItemView = ({
-  children, endpoint, item, isDisabled, isSaved, allowGoBack = true, setItem, whenItemsLoaded, defaultItem, validate, onItemSaved, menu, breadcrumbs, from = null,
+  children, endpoint, item, hideButtons, isDisabled, isSaved, allowGoBack = true, setItem, whenItemsLoaded, defaultItem, validate, onItemSaved, menu, breadcrumbs, from = null,
 }) => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
@@ -80,26 +80,28 @@ const EditItemView = ({
             </AccordionDetails>
           </Accordion>
         )}
-        <div className={classes.buttons}>
-          <Button
-            type="button"
-            color="primary"
-            variant="outlined"
-            onClick={() => navigateBack()}
-            disabled={!item}
-          >
-            {t('sharedCancel')}
-          </Button>
-          <Button
-            type="button"
-            color="primary"
-            variant="contained"
-            onClick={handleSave}
-            disabled={!item || !validate() || isDisabled}
-          >
-            {isSaved ? t('sharedSaved') : t('sharedSave')}
-          </Button>
-        </div>
+        {!hideButtons && (
+          <div className={classes.buttons}>
+            <Button
+              type="button"
+              color="primary"
+              variant="outlined"
+              onClick={() => navigateBack()}
+              disabled={!item}
+            >
+              {t('sharedCancel')}
+            </Button>
+            <Button
+              type="button"
+              color="primary"
+              variant="contained"
+              onClick={handleSave}
+              disabled={!item || !validate() || isDisabled}
+            >
+              {isSaved ? t('sharedSaved') : t('sharedSave')}
+            </Button>
+          </div>
+        )}
       </Container>
     </PageLayout>
   );

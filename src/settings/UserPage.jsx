@@ -31,6 +31,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import CachedIcon from '@mui/icons-material/Cached';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import DevicesIcon from '@mui/icons-material/Devices';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import Fab from '@mui/material/Fab';
@@ -51,6 +52,7 @@ import { map } from '../map/core/MapView';
 import useSettingsStyles from './common/useSettingsStyles';
 import AttachDeviceModal from './components/AttachDeviceModal';
 import { useGeneralStore } from '../store/general';
+import { BASE_URL } from '../config';
 
 const UserPage = () => {
   const classes = useSettingsStyles();
@@ -61,6 +63,7 @@ const UserPage = () => {
   const admin = useAdministrator();
   const manager = useManager();
   const fixedEmail = useRestriction('fixedEmail');
+  const [usernameError, setUsernameError] = useState(null);
 
   const currentUser = useSelector((state) => state.session.user);
   const registrationEnabled = useSelector((state) => state.session.server.registration);
@@ -80,7 +83,7 @@ const UserPage = () => {
   const [isDisabled, setIsDisabled] = useState(false);
   const [attachDeviceModalOpen, setAttachDeviceModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const { setHasSavedUser } = useGeneralStore();
+  const { setHasSavedUser, userData } = useGeneralStore();
 
   const handleDelete = useCatch(async () => {
     if (deleteEmail === currentUser.email) {
@@ -100,11 +103,11 @@ const UserPage = () => {
   useEffect(() => {
     async function fetchAdditionalData() {
       if (id) {
-        const additionalUserData = await fetch(`/api/node/users/distributor/${id}`);
+        const additionalUserData = await fetch(`${BASE_URL}/api/node/users/distributor/${id}`);
         if (additionalUserData.ok) {
           const additionalData = await additionalUserData.json();
           setAdditionalData(additionalData.data);
-          setAdditionalData({ ...additionalData.data, role: additionalData.data.role === 'distributor' ? 2 : 1 })
+          setAdditionalData({ ...additionalData.data, role: additionalData.data.user_type === 'distributor' ? 2 : 1 })
         }
       }
     }
@@ -147,10 +150,21 @@ const UserPage = () => {
     setHasSavedUser(false)
   }, [])
 
+  useEffect(() => {
+    setIsDisabled(false);
+    if (usernameError != null) {
+      setIsDisabled(true);
+    }
+  }, [additionalData]);
+
   const saveAdditionalData = async (result) => {
     const mergedData = { ...item, ...additionalData };
     mergedData.userId = result.id;
-    const resultData = await fetch(`/api/node/users/distributor`, {
+    if (userData?.user_type === 'distributor') {
+      mergedData.parent_user_id = userData.user_id;
+    }
+    console.log(mergedData);
+    const resultData = await fetch(`${BASE_URL}/api/node/users/distributor`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mergedData),
@@ -169,6 +183,22 @@ const UserPage = () => {
       navigate(`/settings/devices`);
     }
     return;
+  }
+
+
+  const validateUserName = async (e) => {
+    const username = e.target.value;
+    const response = await fetch(`${BASE_URL}/api/node/users/validate/${username}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.isExists) {
+        setUsernameError('Username not available');
+      } else {
+        setUsernameError(null);
+      }
+    } else {
+      throw Error(await response.text());
+    }
   }
 
   const validate = () => item && item.name && item.email && (item.id || item.password) && (admin || !totpForce || item.totpKey);
@@ -202,10 +232,21 @@ const UserPage = () => {
                 label={t('sharedName')}
               />
               <TextField
+                onBlur={validateUserName}
                 value={additionalData.username || ''}
                 onChange={(e) => setAdditionalData({ ...additionalData, username: e.target.value })}
                 label={"Username"}
+                error={usernameError !== null}
+                helperText={usernameError}
               />
+              {!openIdForced && (
+                <TextField
+                  type="password"
+                  onChange={(e) => setItem({ ...item, password: e.target.value })}
+                  label={t('userPassword')}
+                />
+              )}
+
               <TextField
                 value={item.email || ''}
                 onChange={(e) => setItem({ ...item, email: e.target.value })}
@@ -218,13 +259,7 @@ const UserPage = () => {
                 label={"Mobile"}
                 disabled={fixedEmail && item.id === currentUser.id}
               />
-              {!openIdForced && (
-                <TextField
-                  type="password"
-                  onChange={(e) => setItem({ ...item, password: e.target.value })}
-                  label={t('userPassword')}
-                />
-              )}
+
               <TextField
                 value={additionalData.address || ''}
                 onChange={(e) => setAdditionalData({ ...additionalData, address: e.target.value })}
@@ -232,36 +267,38 @@ const UserPage = () => {
                 multiline
                 rows={4}
               />
-              <SelectField
-                fullWidth
-                label={"Role"}
-                value={additionalData.role || ''}
-                onChange={(e) => setAdditionalData({ ...additionalData, role: e.target.value })}
-                data={[
-                  { id: 1, name: "user" },
-                  { id: 2, name: "distributor" }
-                ]}
-              />
+              {(userData?.user_type === 'admin' || userData?.user_type === 'distributor') && (
+                <SelectField
+                  fullWidth
+                  label={"Role"}
+                  value={additionalData.role || ''}
+                  onChange={(e) => setAdditionalData({ ...additionalData, role: e.target.value })}
+                  data={[
+                    { id: 1, name: "user" },
+                    { id: 2, name: "admin" }
+                  ]}
+                />
+              )}
               {additionalData.role === 2 && (
                 <div className={classes.details}>
                   <FormControl fullWidth>
                     <InputLabel>Limit Type</InputLabel>
                     <Select
-                      value={(additionalData.attributes && additionalData.attributes.limit_type) || 'device'}
-                      onChange={(e) => setAdditionalData({ ...additionalData, attributes: { ...additionalData.attributes, limit_type: e.target.value } })}
+                      value={(additionalData.limit_type)}
+                      onChange={(e) => setAdditionalData({ ...additionalData, limit_type: e.target.value })}
                       label="Limit Type"
                     >
-                      <MenuItem value="device">Device</MenuItem>
+                      <MenuItem value="device">License</MenuItem>
                       <MenuItem value="credit">Credit</MenuItem>
                     </Select>
                   </FormControl>
 
-                  {(!additionalData.attributes || !additionalData.attributes.limit_type || additionalData.attributes.limit_type === 'device') && (
+                  {(!additionalData.limit_type || additionalData.limit_type === 'device') && (
                     <FormControl fullWidth>
                       <InputLabel>Device Limit</InputLabel>
                       <Select
-                        value={(additionalData.attributes && additionalData.attributes.device_limit) || '1'}
-                        onChange={(e) => setAdditionalData({ ...additionalData, attributes: { ...additionalData.attributes, device_limit: e.target.value } })}
+                        value={(additionalData.device_limit) || '1'}
+                        onChange={(e) => setAdditionalData({ ...additionalData, device_limit: e.target.value })}
                         label="Device Limit"
                       >
                         <MenuItem value="1">1</MenuItem>
@@ -274,20 +311,20 @@ const UserPage = () => {
                     </FormControl>
                   )}
 
-                  {(additionalData.attributes && additionalData.attributes.limit_type === 'credit') && (
+                  {(additionalData.limit_type === 'credit') && (
                     <>
                       <TextField
                         type="number"
                         label="Credits"
-                        value={(additionalData.attributes && additionalData.attributes.credits) || '100'}
-                        onChange={(e) => setAdditionalData({ ...additionalData, attributes: { ...additionalData.attributes, credits: e.target.value } })}
+                        value={(additionalData.credits)}
+                        onChange={(e) => setAdditionalData({ ...additionalData, credits: e.target.value })}
                         fullWidth
                       />
                       <TextField
                         type="number"
                         label="Per Device Credit"
-                        value={(additionalData.attributes && additionalData.attributes.per_device_credit) || '10'}
-                        onChange={(e) => setAdditionalData({ ...additionalData, attributes: { ...additionalData.attributes, per_device_credit: e.target.value } })}
+                        value={(additionalData.per_device_credit)}
+                        onChange={(e) => setAdditionalData({ ...additionalData, per_device_credit: e.target.value })}
                         fullWidth
                       />
                     </>
@@ -418,6 +455,7 @@ const UserPage = () => {
 
 
           <AttachDeviceModal
+            navigate={navigate}
             open={attachDeviceModalOpen}
             onClose={() => setAttachDeviceModalOpen(false)}
             onAttach={(deviceIds) => {
@@ -445,21 +483,40 @@ const UserPage = () => {
                 User saved successfully!
               </Typography>
 
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                onClick={() => {
-                  setSuccessModalOpen(false);
-                  if (deviceId) {
-                    navigate(`/settings/devices`);
-                  }
-                }}
-                sx={{ mt: 2, minWidth: '100px' }}
-                autoFocus
-              >
-                OK
-              </Button>
+              <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={() => {
+                    setSuccessModalOpen(false);
+                    if (deviceId) {
+                      navigate(`/settings/devices`);
+                    }
+                  }}
+                  sx={{ minWidth: '100px' }}
+                  autoFocus
+                >
+                  OK
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  startIcon={<WhatsAppIcon />}
+                  onClick={() => {
+                    // Create WhatsApp share URL with username and password
+                    const username = additionalData.username || '';
+                    const password = item.password || '';
+                    const message = `SpeedTrack User Details:\nUsername: ${username}\nPassword: ${password}`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                  }}
+                  sx={{ minWidth: '100px' }}
+                >
+                  Share
+                </Button>
+              </Box>
             </Box>
           </Dialog>
 

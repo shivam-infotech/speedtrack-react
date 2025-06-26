@@ -24,6 +24,7 @@ import { useManager } from '../common/util/permissions';
 import SearchHeader, { filterByKeyword } from './components/SearchHeader';
 import useSettingsStyles from './common/useSettingsStyles';
 import { useGeneralStore } from '../store/general';
+import { BASE_URL } from '../config';
 
 const UsersPage = () => {
   const classes = useSettingsStyles();
@@ -106,7 +107,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     const deleteUser = async (userId) => {
-      const response = await fetch(`/api/node/users/delete`, {
+      const response = await fetch(`${BASE_URL}/api/node/users/delete`, {
         method: 'DELETE',
         body: JSON.stringify({ userId: userId }),
         headers: {

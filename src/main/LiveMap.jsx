@@ -45,14 +45,13 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   mapContainer: {
-    flex: 1,
-    height: '100vh',
+    // flex: 1,
+    // height: '100vh',
     width: '100%',
     marginLeft: theme.dimensions.drawerWidthDesktop,
     [theme.breakpoints.down('md')]: {
       marginLeft: 0,
       marginTop: theme.spacing('104px'), // Height of the toolbar
-      height: '100%',
     },
   },
   hideFilterMapContainer: {
@@ -157,7 +156,7 @@ export default function LiveMap() {
       <div className={styles.sidebar}>
         {params.has('deviceId') ? (
           <Box className={styles.floatingNavContainer}>
-            <IconButton 
+            <IconButton
               onClick={() => {
                 if (!isNavigating) {
                   setIsNavigating(true);
@@ -165,7 +164,7 @@ export default function LiveMap() {
                   // Reset the navigation state after a delay
                   setTimeout(() => setIsNavigating(false), 1000);
                 }
-              }} 
+              }}
               disabled={isNavigating}
               sx={{ backgroundColor: theme.palette.background.default }}>
               <ArrowBackIcon />
@@ -184,9 +183,9 @@ export default function LiveMap() {
               setDevicesOpen={setDevicesOpen}
               hideDevicesOpen
               onLeftTop={(
-                <IconButton 
-                  edge="start" 
-                  size="small" 
+                <IconButton
+                  edge="start"
+                  size="small"
                   onClick={() => {
                     if (!isNavigating) {
                       setIsNavigating(true);
@@ -219,7 +218,7 @@ export default function LiveMap() {
           </Paper>
         )}
       </div>
-      <div className={`${styles.mapContainer} ${params.has('deviceId') ? styles.hideFilterMapContainer : ''}`}>
+      <div className={`${styles.mapContainer} ${params.has('deviceId') ? styles.hideFilterMapContainer : ''}`} style={{ height: '100%' }}>
         <MainMap
           filteredPositions={filteredPositions}
           selectedPosition={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
@@ -230,18 +229,19 @@ export default function LiveMap() {
           selectedDeviceId={focusDeviceId}
         />
         {mapLinks}
+        {selectedDeviceId && (
+          <DeviceStatusCard
+            deviceId={selectedDeviceId}
+            position={params.has('deviceId') && Object.values(devices).map((fd) => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(positions).find((position) => selectedDeviceId && position.deviceId === selectedDeviceId) : filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
+            onClose={(() => setStatusCardMinimized(!statusCardMinimized))}
+            desktopPadding={theme.dimensions.drawerWidthDesktop}
+            minimize={statusCardMinimized}
+            closeIcon={<ExpandMore />}
+            summary={summaries[selectedDeviceId] || {}}
+          />
+        )}
       </div>
-      {selectedDeviceId && (
-        <DeviceStatusCard
-          deviceId={selectedDeviceId}
-          position={params.has('deviceId') && Object.values(devices).map((fd) => fd.id).includes(Number(params.get('deviceId'))) ? Object.values(positions).find((position) => selectedDeviceId && position.deviceId === selectedDeviceId) : filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
-          onClose={(() => setStatusCardMinimized(!statusCardMinimized))}
-          desktopPadding={theme.dimensions.drawerWidthDesktop}
-          minimize={statusCardMinimized}
-          closeIcon={<ExpandMore />}
-          summary={summaries[selectedDeviceId] || {}}
-        />
-      )}
+
       <PlaybackDurationDialog deviceId={selectedDeviceId} onClose={() => setPlaybackDurationOpen(false)} open={playbackDurationOpen} />
     </div>
   );

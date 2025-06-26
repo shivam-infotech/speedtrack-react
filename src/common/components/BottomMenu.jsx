@@ -31,7 +31,8 @@ const BottomMenu = () => {
   const user = useSelector((state) => state.session.user);
   const socket = useSelector((state) => state.session.socket);
   const { userRole } = useGeneralStore();
-
+  // alert(JSON.stringify(sessionStorage))
+  console.log(userRole);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const currentSelection = () => {
@@ -127,7 +128,7 @@ const BottomMenu = () => {
         {!disableReports && (
           <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('reportTitle')} icon={<DescriptionIcon />} value="reports" />
         )}
-        {!readonly && (userRole == "admin" || userRole == "distributor") && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('deviceTitle')} icon={<SmartphoneIcon />} value="devices" />}
+        <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('deviceTitle')} icon={<SmartphoneIcon />} value="devices" />
         {!readonly && (userRole == "admin" || userRole == "distributor") && <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('settingsUsers')} icon={<PeopleIcon />} value="users" />}
         <BottomNavigationAction sx={{ px: 1, minWidth: 'revert' }} label={t('settingsTitle')} icon={<SettingsIcon />} value="settings" />
         {/* {readonly ? (
