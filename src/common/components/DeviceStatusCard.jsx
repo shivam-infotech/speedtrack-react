@@ -228,7 +228,7 @@ const PositionCell = ({ title, value }) => {
 };
 
 const DeviceStatusCard = ({
-  deviceId, position, onClose, disableActions, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false, haveBottomTabs = false
+  deviceId, position, onClose, disableActions, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false, haveBottomTabs = false, onBottomSheetStateChange
 }) => {
   const classes = useStyles({ desktopPadding, haveBottomTabs });
   const theme = useTheme();
@@ -495,7 +495,11 @@ const DeviceStatusCard = ({
     //     {card}
     //   </Box>
     // </BottomSheet>
-    return <CustomBottomSheet collapsedHeight={145} expandedHeight={380}>
+    return <CustomBottomSheet 
+      collapsedHeight={145} 
+      expandedHeight={380}
+      onStateChange={onBottomSheetStateChange}
+    >
       <Box sx={{
         overflow: 'hidden',
         WebkitTransform: 'translate3d(0,0,0)',

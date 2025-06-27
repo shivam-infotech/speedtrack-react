@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Draggable from 'react-draggable';
+import CustomBottomSheet from './CustomBottomSheet';
 import {
   Card,
   CardContent,
@@ -235,7 +236,7 @@ const CarSlider = styled(Slider)(({ theme }) => ({
 // Usage in your component
 
 const DeviceReplayStatusCard = ({
-  deviceId, positions, onClose, index, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false, playing, setPlaying, setIndex, multiplier, setMultiplier,
+  deviceId, positions, onClose, index, desktopPadding = 0, summary = {}, closeIcon = null, minimize = false, playing, setPlaying, setIndex, multiplier, setMultiplier, onBottomSheetStateChange,
 }) => {
   const classes = useStyles({ desktopPadding });
   const theme = useTheme();
@@ -511,58 +512,58 @@ const DeviceReplayStatusCard = ({
         </Box>
       </Box>
       <Divider />
-      
-      <div style={{paddingLeft: theme.spacing(2), paddingTop: theme.spacing(1)}}>
-      {position?.address ? (
-        <>
-          {/* <Divider sx={{ my: 1 }} /> */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
-            <FmdGoodIcon fontSize="small" color="primary" />
-            <Typography variant="body2" sx={{ flex: 1 }}>
-              <PositionValue position={position} property="address" attribute="address" />
-            </Typography>
 
-          </Box>
-        </>
-      ) : <Typography variant="caption" color="secondary">No address found</Typography>}
-      <Stack direction="row" spacing={0} sx={{ alignItems: 'center', padding: `0px ${theme.spacing(1)}` }}>
-        <CarSlider
-          max={positions.length - 1}
-          value={index}
-          sx={{ mx: theme.spacing(1.5) }}
-          onChange={(_, index) => setIndex(index)}
-        />
-        {/* <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
+      <div style={{ paddingLeft: theme.spacing(2), paddingTop: theme.spacing(1) }}>
+        {position?.address ? (
+          <>
+            {/* <Divider sx={{ my: 1 }} /> */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+              <FmdGoodIcon fontSize="small" color="primary" />
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                <PositionValue position={position} property="address" attribute="address" />
+              </Typography>
+
+            </Box>
+          </>
+        ) : <Typography variant="caption" color="secondary">No address found</Typography>}
+        <Stack direction="row" spacing={0} sx={{ alignItems: 'center', padding: `0px ${theme.spacing(1)}` }}>
+          <CarSlider
+            max={positions.length - 1}
+            value={index}
+            sx={{ mx: theme.spacing(1.5) }}
+            onChange={(_, index) => setIndex(index)}
+          />
+          {/* <IconButton onClick={() => setIndex((index) => index - 1)} disabled={playing || index <= 0}>
                                     <FastRewindIcon />
                                 </IconButton> */}
-        <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
-          {playing ? <PauseIcon /> : <PlayArrowIcon />}
-        </IconButton>
-        <div>
-          <IconButton aria-haspopup="true" aria-controls="multiplier-menu" aria-expanded={multiplierMenuExpanded} size="small" onClick={openMultiplierMenu}>
-            {multiplier}
-            x
+          <IconButton onClick={() => setPlaying(!playing)} disabled={index >= positions.length - 1}>
+            {playing ? <PauseIcon /> : <PlayArrowIcon />}
           </IconButton>
-          <Menu
-            id="multiplier-menu"
-            anchorEl={multiplierAnchor}
-            open={multiplierMenuExpanded}
-            onClose={closeMultiplierMenu}
-            MenuListProps={{
-              'aria-labelledby': 'multiplier-button',
-            }}
-          >
-            <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu(); }}>1x</MenuItem>
-            <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu(); }}>2x</MenuItem>
-            <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu(); }}>3x</MenuItem>
-            <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu(); }}>4x</MenuItem>
-            <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu(); }}>5x</MenuItem>
-            <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu(); }}>6x</MenuItem>
-          </Menu>
-        </div>
-      </Stack>
+          <div>
+            <IconButton aria-haspopup="true" aria-controls="multiplier-menu" aria-expanded={multiplierMenuExpanded} size="small" onClick={openMultiplierMenu}>
+              {multiplier}
+              x
+            </IconButton>
+            <Menu
+              id="multiplier-menu"
+              anchorEl={multiplierAnchor}
+              open={multiplierMenuExpanded}
+              onClose={closeMultiplierMenu}
+              MenuListProps={{
+                'aria-labelledby': 'multiplier-button',
+              }}
+            >
+              <MenuItem onClick={() => { setMultiplier(1); closeMultiplierMenu(); }}>1x</MenuItem>
+              <MenuItem onClick={() => { setMultiplier(2); closeMultiplierMenu(); }}>2x</MenuItem>
+              <MenuItem onClick={() => { setMultiplier(3); closeMultiplierMenu(); }}>3x</MenuItem>
+              <MenuItem onClick={() => { setMultiplier(4); closeMultiplierMenu(); }}>4x</MenuItem>
+              <MenuItem onClick={() => { setMultiplier(5); closeMultiplierMenu(); }}>5x</MenuItem>
+              <MenuItem onClick={() => { setMultiplier(6); closeMultiplierMenu(); }}>6x</MenuItem>
+            </Menu>
+          </div>
+        </Stack>
       </div>
-      
+
       <Divider sx={{ margin: `${theme.spacing(1)} ${theme.spacing(0)}` }} />
       {position && (
         <CardContent className={classes.content}>
@@ -599,22 +600,15 @@ const DeviceReplayStatusCard = ({
   );
 
   const BSheet = (card) => {
-    return <BottomSheet open={true}
-      snapPoints={({ maxHeight }) => [
-        maxHeight /2.55, maxHeight / 1.17
-      ]}
-      // defaultSnap={({ maxHeight }) => 126}
-      defaultSnap={({ maxHeight }) => maxHeight / 2.55}
-      expandOnContentDrag={true}
-      maxHeight={500}
-      scrollLocking={false}
-      reserveScrollBarGap={true}
-      blocking={false}
+    return <CustomBottomSheet
+      collapsedHeight={145}
+      expandedHeight={450}
+      onStateChange={onBottomSheetStateChange}
     >
-      <Box sx={{ overflow: 'hidden' }}>
+      <Box sx={{ overflow: 'hidden', WebkitTransform: 'translate3d(0,0,0)', transform: 'translate3d(0,0,0)' }}>
         {card}
       </Box>
-    </BottomSheet>
+    </CustomBottomSheet>
   }
 
   return (

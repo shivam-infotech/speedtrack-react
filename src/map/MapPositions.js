@@ -1,4 +1,4 @@
-import { useId, useCallback, useEffect } from 'react';
+import { useId, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/styles';
@@ -100,10 +100,10 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
     });
     // Create a mapping of source to layer ID
     const getLayerId = (source) => source === id ? 'car-marker-layer' : source;
-    
+
     [id, selected].forEach((source) => {
       const layerId = getLayerId(source);
-      
+
       map.addLayer({
         id: layerId,
         type: 'symbol',
@@ -218,7 +218,63 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           })),
       });
     });
-  }, [mapCluster, clusters, onMarkerClick, onClusterClick, devices, positions, selectedPosition, filteredDevices]);
+  }, [mapCluster, clusters, onMarkerClick, onClusterClick, devices, positions, selectedPosition, filteredDevices, selectedDeviceId]);
+
+  // Track user interaction with the map
+  const userInteractingRef = useRef(false);
+  
+  useEffect(() => {
+    // Add event listeners to detect when user is interacting with the map
+    const handleInteractionStart = () => {
+      userInteractingRef.current = true;
+    };
+    
+    const handleInteractionEnd = () => {
+      // Reset after a short delay to allow centering to resume
+      setTimeout(() => {
+        userInteractingRef.current = false;
+      }, 2000);
+    };
+    
+    // Listen for map interaction events
+    map.on('mousedown', handleInteractionStart);
+    map.on('touchstart', handleInteractionStart);
+    map.on('dragstart', handleInteractionStart);
+    map.on('zoomstart', handleInteractionStart);
+    
+    map.on('mouseup', handleInteractionEnd);
+    map.on('touchend', handleInteractionEnd);
+    map.on('dragend', handleInteractionEnd);
+    map.on('zoomend', handleInteractionEnd);
+    
+    return () => {
+      // Clean up event listeners
+      map.off('mousedown', handleInteractionStart);
+      map.off('touchstart', handleInteractionStart);
+      map.off('dragstart', handleInteractionStart);
+      map.off('zoomstart', handleInteractionStart);
+      
+      map.off('mouseup', handleInteractionEnd);
+      map.off('touchend', handleInteractionEnd);
+      map.off('dragend', handleInteractionEnd);
+      map.off('zoomend', handleInteractionEnd);
+    };
+  }, []);
+  
+  // Effect to handle auto-centering on the selected device
+  useEffect(() => {
+    if (selectedDeviceId && positions.length > 0) {
+      const selectedPos = positions.find(pos => pos.deviceId === selectedDeviceId);
+      
+      if (selectedPos && !userInteractingRef.current) {
+        // Center map on selected position if user is not currently interacting
+        map.easeTo({
+          center: [selectedPos.longitude, selectedPos.latitude],
+          duration: 50
+        });
+      }
+    }
+  }, [positions, selectedDeviceId]);
 
   return null;
 };

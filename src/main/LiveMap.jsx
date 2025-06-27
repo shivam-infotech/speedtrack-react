@@ -76,6 +76,12 @@ export default function LiveMap() {
   const devices = useSelector((state) => state.devices.items);
   const dispatch = useDispatch();
   const [statusCardMinimized, setStatusCardMinimized] = useState(true);
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
+
+  // Handle bottom sheet state changes
+  const handleBottomSheetStateChange = (state) => {
+    setBottomSheetHeight(state.currentHeight || 0);
+  };
   const navigateBack = useNativeNavigateBack()
   const [isNavigating, setIsNavigating] = useState(false)
 
@@ -218,7 +224,10 @@ export default function LiveMap() {
           </Paper>
         )}
       </div>
-      <div className={`${styles.mapContainer} ${params.has('deviceId') ? styles.hideFilterMapContainer : ''}`} style={{ height: '100%' }}>
+      <div className={`${styles.mapContainer} ${params.has('deviceId') ? styles.hideFilterMapContainer : ''}`} style={{
+        height: bottomSheetHeight > 0 ? `calc(100% - ${bottomSheetHeight}px)` : '100%',
+        transition: 'height 0.3s ease'
+      }}>
         <MainMap
           filteredPositions={filteredPositions}
           selectedPosition={filteredPositions.find((position) => selectedDeviceId && position.deviceId === selectedDeviceId)}
@@ -238,6 +247,7 @@ export default function LiveMap() {
             minimize={statusCardMinimized}
             closeIcon={<ExpandMore />}
             summary={summaries[selectedDeviceId] || {}}
+            onBottomSheetStateChange={handleBottomSheetStateChange}
           />
         )}
       </div>

@@ -39,22 +39,49 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
         
         const queue = animationQueueRef.current[deviceId];
         
-        // Maintain buffer size
-        if (queue.length >= COORDINATE_BUFFER_SIZE) {
-          queue.shift();
+        // Get current animated position (if any)
+        const currentAnimatedPos = useAnimatedPositions.getState().animPositions[deviceId];
+        
+        // Determine the starting position for the animation
+        let startPosition;
+        
+        if (currentAnimatedPos) {
+          // Always use the current animated position as the starting point
+          // This ensures we never move backward
+          startPosition = { ...currentAnimatedPos, _startTime: null };
+        } else {
+          // No current animation, use last position or new position
+          startPosition = { ...(lastRawPosForDevice || newPos), _startTime: null };
         }
         
-        const fromPosition = queue.length > 0 
-          ? queue[queue.length - 1][1] 
-          : lastRawPosForDevice || newPos;
+        // Clear any existing queue to prevent jumps
+        queue.length = 0;
         
-        queue.push([{ ...fromPosition, _startTime: null }, { ...newPos, _lastSet: false }]);
-        lastPositionRef.current[deviceId] = { ...newPos }; // Update last raw position
+        // Add the new segment
+        queue.push([startPosition, { ...newPos, _lastSet: false }]);
+        
+        // Update last raw position reference
+        lastPositionRef.current[deviceId] = { ...newPos };
+        
+        // If we were doing continuous movement, update the course
+        if (continuousMovementRef.current[deviceId] && currentAnimatedPos) {
+          const newCourse = calculateBearing(
+            currentAnimatedPos.latitude,
+            currentAnimatedPos.longitude,
+            newPos.latitude,
+            newPos.longitude
+          );
+          
+          if (newCourse !== null && !isNaN(newCourse)) {
+            continuousMovementRef.current[deviceId].course = newCourse;
+          }
+        }
+        
         newAnimationSegmentsAdded = true;
       }
     }
 
-    if (newAnimationSegmentsAdded && !isAnimating.current) { 
+    if (newAnimationSegmentsAdded && !isAnimating.current) {
       isAnimating.current = true;
       if (isUnfocused.current) {
         skipToLatest();
@@ -168,8 +195,50 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
         if (queue.length === 0) {
           const continuousData = continuousMovementRef.current[deviceId];
           if (continuousData) {
-            // Continuous movement calculations here
-            hasWork = true;
+            // Calculate time elapsed since last update
+            const timeDelta = now - continuousData.lastUpdateTime;
+
+            // Only update if some time has passed
+            if (timeDelta > 0) {
+              // Calculate distance to move based on speed and time
+              const distanceToMove = continuousData.speed * (timeDelta / 1000); // meters
+
+              // Convert course (degrees) to radians for calculation
+              const courseRad = (continuousData.course * Math.PI) / 180;
+
+              // Calculate new position using simple extrapolation
+              // Note: This is a simplified calculation that works for short distances
+              const earthRadius = 6371000; // meters
+              const latRad = (continuousData.position.latitude * Math.PI) / 180;
+
+              // Calculate new latitude and longitude
+              const newLat = continuousData.position.latitude +
+                (distanceToMove * Math.cos(courseRad) / earthRadius) * (180 / Math.PI);
+              const newLng = continuousData.position.longitude +
+                (distanceToMove * Math.sin(courseRad) / (earthRadius * Math.cos(latRad))) * (180 / Math.PI);
+
+              // Update the position
+              newPositions[deviceId] = {
+                ...continuousData.position,
+                latitude: newLat,
+                longitude: newLng,
+                // Keep the same course
+                course: continuousData.course
+              };
+
+              // Add to history trail
+              if (!newHistory[deviceId]) newHistory[deviceId] = [];
+              newHistory[deviceId].push([newLng, newLat]);
+
+              // Update continuous movement data
+              continuousMovementRef.current[deviceId] = {
+                ...continuousData,
+                position: newPositions[deviceId],
+                lastUpdateTime: now
+              };
+
+              hasWork = true;
+            }
           }
         }
       }
@@ -186,7 +255,7 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
         animationQueueRef.current = {};
       }
     };
-    
+
     animatedRef.current = requestAnimationFrame(animate);
   };
 
@@ -205,13 +274,13 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
       if (queue?.length > 0) {
         // Get the final destination from the last segment in queue
         const finalPos = queue[queue.length - 1][1];
-        
+
         // Update displayed position
         newPositions[deviceId] = { ...finalPos };
-        
+
         // Update history trail
         if (!newHistory[deviceId]) newHistory[deviceId] = [];
-        
+
         // Add all intermediate points to history
         queue.forEach(([_, toPos]) => {
           newHistory[deviceId].push([toPos.longitude, toPos.latitude]);
@@ -219,7 +288,7 @@ export const AnimationController = ({ animationDuration = 1000 }) => {
 
         // Update last known raw position
         lastPositionRef.current[deviceId] = { ...finalPos };
-        
+
         // Clear this device's queue
         animationQueueRef.current[deviceId] = [];
       }

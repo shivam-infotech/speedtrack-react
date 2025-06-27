@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const CustomBottomSheet = ({ children, collapsedHeight = 200, expandedHeight = 500 }) => {
+const CustomBottomSheet = ({ children, collapsedHeight = 200, expandedHeight = 500, onStateChange }) => {
     const sheetRef = useRef(null);
     const [isOpen, setIsOpen] = useState(false);
     const [startY, setStartY] = useState(0);
@@ -142,6 +142,22 @@ const CustomBottomSheet = ({ children, collapsedHeight = 200, expandedHeight = 5
         setGestureType(null);
         velocityRef.current = 0;
     };
+
+    useEffect(() => {
+        if (!dragging) {
+            setCurrentY(0);
+        }
+    }, [dragging]);
+
+    // Notify parent component when isOpen state changes
+    useEffect(() => {
+        if (onStateChange) {
+            onStateChange({ 
+                isOpen, 
+                currentHeight: isOpen ? expandedHeight : collapsedHeight 
+            });
+        }
+    }, [isOpen, expandedHeight, collapsedHeight, onStateChange]);
 
     return (
         <div

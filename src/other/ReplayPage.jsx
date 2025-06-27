@@ -266,7 +266,8 @@ const ReplayPage = () => {
   const [summary, setSummary] = useState(undefined);
   const [multiplier, setMultiplier] = useState(1);
   const [stoppages, setStoppages] = useState([]);
-  const [statusCardMinimized, setStatusCardMinimized] = useState(true);
+  const [statusCardMinimized, setStatusCardMinimized] = useState(false);
+  const [bottomSheetState, setBottomSheetState] = useState({ isOpen: false, currentHeight: 145 });
   const [params] = useSearchParams();
   const duration = 1000;
   const distanceUnit = useAttributePreference('distanceUnit');
@@ -534,24 +535,30 @@ const ReplayPage = () => {
   return (
     <div className={classes.root}>
       {loading && <ActivityLoader />}
-      <MapView>
-        <MapGeofence />
-        {index < positions.length && (
-          <>
-            <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
-            <MapRoutePath selectedSegment={selectedSegment} positions={positions} index={index} color={ReportColor} />
-            {stoppageMarkersMemo}
-            {filterStopMoreThanMemo}
-            {filterIdleMoreThanMemo}
-            {filterSpeedMoreThanFilterMemo}
-            {filterInactiveMemo}
-            <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
-            <MapAutoCenter position={animatedPositions || positions[index]} enabled={true} />
-          </>
-        )}
-      </MapView>
-      <MapScale />
-      <MapCamera positions={positions} />
+      <div className={classes.mapContainer} style={{ 
+        position: 'relative',
+        height: (showCard && positions.length > 0) ? `calc(100% - ${bottomSheetState.currentHeight}px)` : '100%',
+        transition: 'height 0.25s ease-out'
+      }}>
+        <MapView>
+          <MapGeofence />
+          {index < positions.length && (
+            <>
+              <MapRoutePoints positions={positions} onClick={onPointClick} color={ReportColor} />
+              <MapRoutePath selectedSegment={selectedSegment} positions={positions} index={index} color={ReportColor} />
+              {stoppageMarkersMemo}
+              {filterStopMoreThanMemo}
+              {filterIdleMoreThanMemo}
+              {filterSpeedMoreThanFilterMemo}
+              {filterInactiveMemo}
+              <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
+              <MapAutoCenter position={animatedPositions || positions[index]} enabled={true} />
+            </>
+          )}
+        </MapView>
+        <MapScale />
+        <MapCamera positions={positions} />
+      </div>
       <div className={classes.sidebar}>
         <Paper elevation={3} square>
           <Toolbar>
@@ -610,6 +617,7 @@ const ReplayPage = () => {
           setMultiplier={setMultiplier}
 
           onClose={() => setStatusCardMinimized(!statusCardMinimized)}
+          onBottomSheetStateChange={setBottomSheetState}
           disableActions
           summary={summary}
         />
