@@ -268,6 +268,7 @@ const ReplayPage = () => {
   const [stoppages, setStoppages] = useState([]);
   const [statusCardMinimized, setStatusCardMinimized] = useState(false);
   const [bottomSheetState, setBottomSheetState] = useState({ isOpen: false, currentHeight: 145 });
+  const [shouldZoomToMarker, setShouldZoomToMarker] = useState(false);
   const [params] = useSearchParams();
   const duration = 1000;
   const distanceUnit = useAttributePreference('distanceUnit');
@@ -281,7 +282,7 @@ const ReplayPage = () => {
       setPlaying(false);
     }
   }, [nativeNavigateBack, playing])
-  
+
   useEffect(() => {
     const handlePopState = () => {
       if (playing) {
@@ -289,7 +290,7 @@ const ReplayPage = () => {
         setPlaying(false);
       }
     };
-    
+
     window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener('popstate', handlePopState);
@@ -334,6 +335,7 @@ const ReplayPage = () => {
 
   const devices = useSelector((state) => state.devices.items);
 
+  // Effect to handle playback timer
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (playing && positions.length > 0) {
@@ -346,6 +348,13 @@ const ReplayPage = () => {
 
     return () => clearInterval(timerRef.current);
   }, [playing, positions, multiplier]);
+
+  // Separate effect to handle zoom only when play state changes to true
+  useEffect(() => {
+    if (playing && positions.length > 0 && positions[index]) {
+      setShouldZoomToMarker(true);
+    }
+  }, [playing]);
 
   useEffect(() => {
     if (index >= positions.length - 1) {
@@ -535,7 +544,7 @@ const ReplayPage = () => {
   return (
     <div className={classes.root}>
       {loading && <ActivityLoader />}
-      <div className={classes.mapContainer} style={{ 
+      <div className={classes.mapContainer} style={{
         position: 'relative',
         height: (showCard && positions.length > 0) ? `calc(100% - ${bottomSheetState.currentHeight}px)` : '100%',
         transition: 'height 0.25s ease-out'
@@ -553,6 +562,23 @@ const ReplayPage = () => {
               {filterInactiveMemo}
               <MapPositions positions={animatedPositions ? [animatedPositions] : [positions[index]]} onClick={onMarkerClick} showStatus titleField="" />
               <MapAutoCenter position={animatedPositions || positions[index]} enabled={true} />
+              {/* Effect to handle zooming to marker when play button is clicked */}
+              {shouldZoomToMarker && positions[index] && (() => {
+                // Use the map object from MapView.js to zoom to the marker
+                import('../map/core/MapView').then(({ map }) => {
+                  if (map) {
+                    map.flyTo({
+                      center: [positions[index].longitude, positions[index].latitude],
+                      zoom: 12, // Higher zoom level to focus on the marker
+                      duration: 1000,
+                      essential: true
+                    });
+                    // Reset the flag immediately after initiating zoom to ensure it only runs once
+                    setShouldZoomToMarker(false);
+                  }
+                });
+                return null;
+              })()}
             </>
           )}
         </MapView>

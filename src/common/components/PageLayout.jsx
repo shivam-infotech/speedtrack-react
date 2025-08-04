@@ -143,17 +143,6 @@ const PageLayout = ({ menu, breadcrumbs, children, isSaved }) => {
               </IconButton>
             </>
           )}
-          {(router.pathname === '/settings/user') && (
-            <IconButton color="inherit" edge="end" sx={{ ml: 'auto' }} onClick={() => {
-              if (hasSavedUser) {
-                navigate(`/settings/device/user/${hasSavedUser}`)
-              } else {
-                alert('Please save user first')
-              }
-            }}>
-              <LocalShippingIcon />
-            </IconButton>
-          )}
         </Toolbar>
       </AppBar>
       <div className={classes.content}>{children}</div>

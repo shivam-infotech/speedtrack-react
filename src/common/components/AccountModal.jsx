@@ -86,7 +86,7 @@ export default function AccountModal({ open, onClose }) {
         </Avatar>
         <Box sx={{ marginLeft: 1.5, flex: 1 }}>
           <Typography variant="h6" lineHeight={1}>{user.name}</Typography>
-          <Typography color="textSecondary">{user.email}</Typography>
+          {/* <Typography color="textSecondary">{user.email}</Typography> */}
         </Box>
         <IconButton size="small" onClick={handleLogout}>
           <LogoutIcon color="error" />

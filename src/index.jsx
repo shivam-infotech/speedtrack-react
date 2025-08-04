@@ -40,5 +40,5 @@ root.render(
         </StyledEngineProvider>
       </LocalizationProvider>
     </Provider>
-  </ErrorBoundary>,
+  </ErrorBoundary>
 );

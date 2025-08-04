@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Accordion,
   AccordionSummary,
@@ -59,6 +59,7 @@ const UserPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const t = useTranslation();
+  const router = useLocation();
 
   const admin = useAdministrator();
   const manager = useManager();
@@ -77,13 +78,14 @@ const UserPage = () => {
 
   const { id, deviceId } = useParams();
   const [item, setItem] = useState(id === currentUser.id.toString() ? currentUser : null);
-  const [additionalData, setAdditionalData] = useState({});
+  const [additionalData, setAdditionalData] = useState({ phone: null, email: null, username: null });
   const [deleteEmail, setDeleteEmail] = useState();
   const [deleteFailed, setDeleteFailed] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [attachDeviceModalOpen, setAttachDeviceModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const { setHasSavedUser, userData } = useGeneralStore();
+  const [savedUserId, setSavedUserId] = useState(null);
 
   const handleDelete = useCatch(async () => {
     if (deleteEmail === currentUser.email) {
@@ -143,10 +145,12 @@ const UserPage = () => {
     if (result.id === currentUser.id) {
       dispatch(sessionActions.updateUser(result));
     }
+    setSavedUserId(result.id);
     setSuccessModalOpen(true);
   };
 
   useEffect(() => {
+
     setHasSavedUser(false)
   }, [])
 
@@ -163,24 +167,22 @@ const UserPage = () => {
     if (userData?.user_type === 'distributor') {
       mergedData.parent_user_id = userData.user_id;
     }
-    console.log(mergedData);
     const resultData = await fetch(`${BASE_URL}/api/node/users/distributor`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mergedData),
     });
     setIsDisabled(true);
-    setHasSavedUser(result.id)
+    setHasSavedUser(result.id);
     if (deviceId) {
       await fetch(`/api/permissions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          deviceId: deviceId,
           userId: result.id,
+          deviceId: deviceId,
         }),
       });
-      navigate(`/settings/devices`);
     }
     return;
   }
@@ -195,13 +197,19 @@ const UserPage = () => {
         setUsernameError('Username not available');
       } else {
         setUsernameError(null);
+        // let customEmail = additionalData.username + "_user_user@speedtrack.com";
+        // additionalData.email = customEmail;
+        // setAdditionalData({ ...additionalData, email: customEmail });
+        // item.email = customEmail;
+        // setItem({ ...item, email: customEmail });
       }
     } else {
       throw Error(await response.text());
     }
   }
 
-  const validate = () => item && item.name && item.email && (item.id || item.password) && (admin || !totpForce || item.totpKey);
+
+  const validate = () => item && item.name && (item.id || item.password) && (admin || !totpForce || item.totpKey);
 
   return (
     <EditItemView
@@ -229,7 +237,7 @@ const UserPage = () => {
               <TextField
                 value={item.name || ''}
                 onChange={(e) => setItem({ ...item, name: e.target.value })}
-                label={t('sharedName')}
+                label={"Company Name"}
               />
               <TextField
                 onBlur={validateUserName}
@@ -248,8 +256,8 @@ const UserPage = () => {
               )}
 
               <TextField
-                value={item.email || ''}
-                onChange={(e) => setItem({ ...item, email: e.target.value })}
+                value={additionalData.email || ''}
+                onChange={(e) => setAdditionalData({ ...additionalData, email: e.target.value })}
                 label={t('userEmail')}
                 disabled={fixedEmail && item.id === currentUser.id}
               />
@@ -295,19 +303,13 @@ const UserPage = () => {
 
                   {(!additionalData.limit_type || additionalData.limit_type === 'device') && (
                     <FormControl fullWidth>
-                      <InputLabel>Device Limit</InputLabel>
-                      <Select
-                        value={(additionalData.device_limit) || '1'}
+                      <TextField
+                        value={additionalData.device_limit || ''}
                         onChange={(e) => setAdditionalData({ ...additionalData, device_limit: e.target.value })}
-                        label="Device Limit"
-                      >
-                        <MenuItem value="1">1</MenuItem>
-                        <MenuItem value="2">2</MenuItem>
-                        <MenuItem value="3">3</MenuItem>
-                        <MenuItem value="4">4</MenuItem>
-                        <MenuItem value="5">5</MenuItem>
-                        <MenuItem value="10">10</MenuItem>
-                      </Select>
+                        label={"Device Limit"}
+                        type="number"
+                        fullWidth
+                      />
                     </FormControl>
                   )}
 
@@ -322,7 +324,7 @@ const UserPage = () => {
                       />
                       <TextField
                         type="number"
-                        label="Per Device Credit"
+                        label="Charge Per Day"
                         value={(additionalData.per_device_credit)}
                         onChange={(e) => setAdditionalData({ ...additionalData, per_device_credit: e.target.value })}
                         fullWidth
@@ -421,7 +423,12 @@ const UserPage = () => {
               <TextField
                 label="Expiry Date"
                 type="date"
-                value={additionalData.expiryDate ? additionalData.expiryDate.split('T')[0] : ''}
+                value={additionalData.expiryDate ? additionalData.expiryDate.split('T')[0] : (() => {
+                  // Set default expiry date to one year from now
+                  const nextYear = new Date();
+                  nextYear.setFullYear(nextYear.getFullYear() + 1);
+                  return nextYear.toISOString().split('T')[0];
+                })()}
                 onChange={(e) => {
                   if (e.target.value) {
                     setAdditionalData({ ...additionalData, expiryDate: new Date(e.target.value).toISOString() });
@@ -492,6 +499,8 @@ const UserPage = () => {
                     setSuccessModalOpen(false);
                     if (deviceId) {
                       navigate(`/settings/devices`);
+                    } else {
+                      navigate(`/settings/users`);
                     }
                   }}
                   sx={{ minWidth: '100px' }}
@@ -517,6 +526,23 @@ const UserPage = () => {
                   Share
                 </Button>
               </Box>
+              {savedUserId && !router.pathname.includes('device/create/user') && (
+                <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    startIcon={<LocalShippingIcon />}
+                    onClick={() => {
+                      navigate(`/settings/devices/user/${savedUserId}`)
+                    }}
+                    sx={{ minWidth: '100px' }}
+                    autoFocus
+                  >
+                    Assign Device
+                  </Button>
+                </Box>
+              )}
             </Box>
           </Dialog>
 

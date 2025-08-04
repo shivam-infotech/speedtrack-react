@@ -257,15 +257,36 @@ const LiveMap = () => {
 	const renderLiveMapLayout = () => (
 		<div className={classes.root}>
 			{desktop && (
-				<MainMap
-					filteredPositions={filteredPositions}
-					selectedPosition={selectedPosition}
-					onEventsClick={onEventsClick}
-					filteredDevices={filterMap ? filteredDevices : undefined}
-					animationDuration={7000}
-					selectedDeviceId={focusDeviceId}
-				/>
+				<>
+					<MainMap
+						filteredPositions={filteredPositions}
+						selectedPosition={selectedPosition}
+						onEventsClick={onEventsClick}
+						filteredDevices={filteredDevices}
+						animationDuration={7000}
+						selectedDeviceId={focusDeviceId}
+					/>
+					{mapLinksMemo}
+
+					{/* <MainMap
+						filteredPositions={filteredPositions}
+						selectedPosition={selectedPosition}
+						onEventsClick={onEventsClick}
+						filteredDevices={filteredDevices}
+						hideControls
+						animationDuration={7000}
+						onMarkerClick={(deviceId, event) => {
+							event.preventDefault();
+							mapClickdeviceId.current = deviceId
+							// event.stopPropagation();
+							// setFilter({ statuses: [], groups: [] }); 
+							// navigate({ pathname: '/live', search: createSearchParams({ deviceId: deviceId }).toString() })  
+						}}
+					/>
+					{mapLinksMemo} */}
+				</>
 			)}
+
 			<div className={classes.sidebar}>
 				<Paper square elevation={3} className={classes.header} sx={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000 }}>
 					<MainToolbar

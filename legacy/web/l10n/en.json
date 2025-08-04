@@ -567,5 +567,6 @@
     "categoryScooter": "Scooter",
     "maintenanceStart": "Start",
     "maintenancePeriod": "Period",
-    "role": "Role"
+    "role": "Role",
+    "driverName": "Driver Name"
 }

@@ -193,6 +193,7 @@ const LoginPage = () => {
   const languageList = Object.entries(languages).map((values) => ({ code: values[0], country: values[1].country, name: values[1].name }));
 
   const [failed, setFailed] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const [email, setEmail] = usePersistedState('loginEmail', 'admin');
@@ -212,6 +213,7 @@ const LoginPage = () => {
   const announcement = useSelector((state) => state.session.server.announcement);
 
   const handlePasswordLogin = async (event) => {
+    console.log('click');
     event.preventDefault();
     setFailed(false);
     const emailId = await getEmailFromUsername(email);
@@ -244,7 +246,7 @@ const LoginPage = () => {
       });
       if (response.ok) {
         const user = await response.json();
-        setEmail(user.email);
+        // setEmail(user.email);
         setUserRole(user.role);
         setUserData(user.data);
         if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {

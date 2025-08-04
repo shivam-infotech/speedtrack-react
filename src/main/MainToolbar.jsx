@@ -342,11 +342,11 @@ const MainToolbar = ({
           onClose={() => setMoreOptionsAnchorEl(null)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         >
-          <MenuItem onClick={() => navigate('/settings/device')} disabled={deviceReadonly}>
+          <MenuItem onClick={() => navigate('/settings/devices')} disabled={deviceReadonly}>
             <ListItemIcon><CarRentalIcon /></ListItemIcon>
             <ListItemText>{t('deviceCreate')}</ListItemText>
           </MenuItem>
-          <MenuItem onClick={() => navigate('/settings/user')} disabled={deviceReadonly}>
+          <MenuItem onClick={() => navigate('/settings/users')} disabled={deviceReadonly}>
             <ListItemIcon><PersonAddAltIcon /></ListItemIcon>
             <ListItemText>{t('userCreate')}</ListItemText>
           </MenuItem>

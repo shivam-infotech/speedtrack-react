@@ -166,6 +166,7 @@ const Navigation = () => {
           <Route path="attribute/:id" element={<ComputedAttributePage />} />
           <Route path="attribute" element={<ComputedAttributePage />} />
           <Route path="devices" element={<DevicesPage />} />
+          <Route path="devices/user/:userId" element={<DevicesPage />} />
           <Route path="device/:id/connections" element={<DeviceConnectionsPage />} />
           <Route path="device/:id/command" element={<CommandDevicePage />} />
           <Route path="device/:id/share" element={<SharePage />} />
@@ -191,9 +192,11 @@ const Navigation = () => {
           <Route path="preferences" element={<PreferencesPage />} />
           <Route path="server" element={<ServerPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="device/assign/user/:deviceId" element={<UsersPage />} />
           <Route path="user/:id/connections" element={<UserConnectionsPage />} />
           <Route path="user/:id" element={<UserPage />} />
           <Route path="user" element={<UserPage />} />
+          <Route path="device/create/user/:deviceId" element={<UserPage />} />
           <Route path="user/device/:deviceId" element={<UserPage />} />
         </Route>
 

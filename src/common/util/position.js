@@ -11,7 +11,7 @@ export const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;
   const Δλ = ((lon2 - lon1) * Math.PI) / 180;
   const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2)
-        + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c; // Distance in meters
 };
@@ -41,9 +41,9 @@ export const decimateCoordinates = (data, minDistance = 10) => {
 
     // Skip invalid coordinates
     if (typeof prevLat !== 'number'
-            || typeof prevLng !== 'number'
-            || typeof currLat !== 'number'
-            || typeof currLng !== 'number') continue;
+      || typeof prevLng !== 'number'
+      || typeof currLat !== 'number'
+      || typeof currLng !== 'number') continue;
 
     const distance = calculateDistance(
       prevLat,
@@ -89,7 +89,7 @@ export function calculateBearing(lat1, lon1, lat2, lon2) {
 
   const x = Math.sin(dLon) * Math.cos(lat2);
   const y = Math.cos(lat1) * Math.sin(lat2)
-        - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
 
   let bearing = Math.atan2(x, y);
   bearing = toDegrees(bearing);

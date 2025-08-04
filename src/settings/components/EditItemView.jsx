@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   Container, Button, Accordion, AccordionDetails, AccordionSummary, Skeleton, Typography, TextField,
 } from '@mui/material';
@@ -11,12 +11,14 @@ import useNativeNavigateBack from '../../common/util/nativeNavigation';
 import { useGeneralStore } from '../../store/general';
 
 const EditItemView = ({
+  setUploadedFiles = [],
   children, endpoint, item, hideButtons, isDisabled, isSaved, allowGoBack = true, setItem, whenItemsLoaded, defaultItem, validate, onItemSaved, menu, breadcrumbs, from = null,
 }) => {
   const navigate = useNavigate();
   const classes = useSettingsStyles();
   const t = useTranslation();
   const navigateBack = useNativeNavigateBack();
+  const location = useLocation();
 
   const { id } = useParams();
 
@@ -26,6 +28,9 @@ const EditItemView = ({
         const response = await fetch(`/api/${endpoint}/${id}`);
         if (response.ok) {
           const res = await response.json();
+          if (endpoint == 'devices') {
+            setUploadedFiles(res.attributes.vehicle_images);
+          }
           setItem(res);
           whenItemsLoaded?.(res);
         } else {
@@ -38,11 +43,14 @@ const EditItemView = ({
   }, [id, item, defaultItem]);
 
   const handleSave = useCatch(async () => {
+
     let url = `/api/${endpoint}`;
     if (id) {
       url += `/${id}`;
     }
-
+    if (location.pathname.includes('settings/user') || location.pathname.includes('settings/device/create/user')) {
+      item.email = "customer" + Math.random() * 9898989898989 + "_user_user@speedtrack.com";
+    }
     const response = await fetch(url, {
       method: !id ? 'POST' : 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -57,6 +65,7 @@ const EditItemView = ({
         navigateBack();
       }
     } else {
+
       throw Error(await response.text());
     }
   });

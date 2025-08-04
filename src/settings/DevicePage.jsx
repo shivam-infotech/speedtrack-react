@@ -19,8 +19,12 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CheckIcon from '@mui/icons-material/Check';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import MessageIcon from '@mui/icons-material/Message';
+import PersonIcon from '@mui/icons-material/Person';
+import Fab from '@mui/material/Fab';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -46,9 +50,13 @@ import { useParams } from 'react-router-dom';
 import { useGeneralStore } from '../store/general';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../config';
+import DeviceUsersModal from './components/DeviceUsersModal';
+import { useLocation } from 'react-router-dom';
 
 const DevicePage = () => {
   const [smsModalOpen, setSmsModalOpen] = useState(false);
+  const [usersModalOpen, setUsersModalOpen] = useState(false);
+  const location = useLocation();
   // Example list of SMS commands for GPS devices
   const smsCommands = [
     'STATUS#',
@@ -58,12 +66,13 @@ const DevicePage = () => {
     'APN123456 internet',
     // Add more as needed
   ];
+
   const classes = useSettingsStyles();
   const t = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
   const { userId } = useParams();
-  const { setHasSavedDevice, setSavedDeviceId, userData } = useGeneralStore()
+  const { setHasSavedDevice, setSavedDeviceId, userData, savedDeviceId } = useGeneralStore()
 
   const admin = useAdministrator();
 
@@ -79,6 +88,7 @@ const DevicePage = () => {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [allowGoBack, setAllowGoBack] = useState(false);
   const [savedDevices, setSavedDevices] = useState(0);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
   useEffect(() => {
     if (userId) {
@@ -201,16 +211,75 @@ const DevicePage = () => {
     }
   });
 
+  const uploadDeviceImage = useCatch(async (files) => {
+    console.log(files);
+    // return;
+    // Initialize vehicle_images array if it doesn't exist
+    const currentImages = uploadedFiles || [];
+
+    if (files && files.length > 0) {
+      // Process each file in the array
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+          const response = await fetch(`${BASE_URL}/api/node/users/upload/device/image`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (response.ok) {
+            const responseData = await response.json();
+            return responseData.data.url;
+          } else {
+            throw Error(await response.text());
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          return null;
+        }
+      });
+
+      // Wait for all uploads to complete
+      const newImageUrls = (await Promise.all(uploadPromises)).filter(url => url !== null);
+
+      // Update the item with the new images array
+      setUploadedFiles(newImageUrls);
+      setItem({
+        ...item,
+        attributes: {
+          ...item.attributes,
+          vehicle_images: newImageUrls,
+          // Keep the vehicle_image field for backward compatibility
+          vehicle_image: newImageUrls.length > 0 ? newImageUrls[0] : (currentImages[0] || null)
+        }
+      });
+    } else {
+      // Clear the images if no files are selected
+      setItem({
+        ...item,
+        attributes: {
+          ...item.attributes,
+          vehicle_images: [],
+          vehicle_image: null
+        }
+      });
+    }
+  });
+
   return (
     <>
       <EditItemView
         endpoint="devices"
         from="create_device"
         item={item}
+        isDisabled={savedDeviceId != null}
         allowGoBack={allowGoBack}
         onItemSaved={onItemSaved}
         hideButtons={savedDevices >= userData.device_limit && userData.user_type !== 'admin'}
         setItem={setItem}
+        setUploadedFiles={setUploadedFiles}
         // whenItemsLoaded={(res) => { console.log(res, protocols); res?.model != null && setProtocol(protocols.find(p => p.device === res.model)) }}
         validate={validate}
         menu={<SettingsMenu />}
@@ -373,6 +442,88 @@ const DevicePage = () => {
                   label={t('groupParent')}
                 />
                 <TextField
+                  value={item.attributes?.['driver_name'] || ''}
+                  onChange={(event) => setItem({ ...item, attributes: { ...item.attributes, driver_name: event.target.value } })}
+                  label={"Driver Name"}
+                />
+                <TextField
+                  value={item.attributes?.['driver_phone'] || ''}
+                  onChange={(event) => setItem({ ...item, attributes: { ...item.attributes, driver_phone: event.target.value } })}
+                  label={"Driver Phone"}
+                />
+                <Box sx={{ mb: 0 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Pollution Date
+                  </Typography>
+                  <TextField
+                    type='date'
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    value={item.attributes?.['pollution_date'] || ''}
+                    onChange={(event) => setItem({ ...item, attributes: { ...item.attributes, pollution_date: event.target.value } })}
+                  />
+                </Box>
+                <Box sx={{ mb: 0 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Insurance Date
+                  </Typography>
+                  <TextField
+                    type='date'
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    value={item.attributes?.['insurance_date'] || ''}
+                    onChange={(event) => setItem({ ...item, attributes: { ...item.attributes, insurance_date: event.target.value } })}
+                  />
+                </Box>
+                <TextField
+                  value={item.attributes?.['chassis_number'] || ''}
+                  onChange={(event) => setItem({ ...item, attributes: { ...item.attributes, chassis_number: event.target.value } })}
+                  label={"Chassis Number"}
+                />
+                <TextField
+                  value={item.attributes?.['engine_number'] || ''}
+                  onChange={(event) => setItem({ ...item, attributes: { ...item.attributes, engine_number: event.target.value } })}
+                  label={"Engine Number"}
+                />
+
+                <Typography variant="subtitle1" style={{ marginTop: '16px', marginBottom: '8px' }}>
+                  Vehicle Image
+                </Typography>
+                <Paper elevation={0} style={{ padding: '10px', marginBottom: '16px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                  <DropzoneArea
+                    acceptedFiles={['image/*']}
+                    filesLimit={5} // Increased limit to allow multiple files
+                    maxFileSize={5000000}
+                    dropzoneText="Drag and drop vehicle images here or click"
+                    onChange={(files) => uploadDeviceImage(files)}
+                    initialFiles={uploadedFiles || []}
+                    showPreviews={true}
+                    showPreviewsInDropzone={false}
+                    useChipsForPreview
+                    previewGridProps={{ container: { spacing: 1, direction: 'row' } }}
+                    previewChipProps={{ classes: { root: { minWidth: 160, maxWidth: 210 } } }}
+                    showAlerts={['error']}
+                  />
+                </Paper>
+
+                {uploadedFiles && uploadedFiles.length > 0 && (
+                  <Box mt={2} mb={2} display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
+                    {uploadedFiles.map((imageUrl, index) => (
+                      <img
+                        key={index}
+                        src={imageUrl}
+                        alt={`Vehicle ${index + 1}`}
+                        style={{
+                          maxWidth: '200px',
+                          maxHeight: '150px',
+                          borderRadius: '4px',
+                          objectFit: 'contain'
+                        }}
+                      />
+                    ))}
+                  </Box>
+                )}
+                <TextField
                   value={item.contact || ''}
                   onChange={(event) => setItem({ ...item, contact: event.target.value })}
                   label={t('deviceContact')}
@@ -415,7 +566,7 @@ const DevicePage = () => {
                 />
               </AccordionDetails>
             </Accordion>
-            {item.id && (
+            {/* {item.id && (
               <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Typography variant="subtitle1">
@@ -433,14 +584,36 @@ const DevicePage = () => {
                   />
                 </AccordionDetails>
               </Accordion>
-            )}
-            <EditAttributesAccordion
+            )} */}
+            {/* <EditAttributesAccordion
               attributes={item.attributes}
               setAttributes={(attributes) => setItem({ ...item, attributes })}
               definitions={{ ...commonDeviceAttributes, ...deviceAttributes }}
-            />
+            /> */}
           </>
         )}
+
+        {item && item.id && (
+          <Fab
+            color="primary"
+            aria-label="view assigned users"
+            onClick={() => setUsersModalOpen(true)}
+            sx={{
+              position: 'fixed',
+              bottom: 80,
+              right: 16,
+              zIndex: 1000
+            }}
+          >
+            <PersonIcon />
+          </Fab>
+        )}
+
+        <DeviceUsersModal
+          open={usersModalOpen}
+          onClose={() => setUsersModalOpen(false)}
+          deviceId={item?.id}
+        />
       </EditItemView>
 
       {/* Success Modal */}
@@ -466,21 +639,39 @@ const DevicePage = () => {
             Device saved successfully!
           </Typography>
 
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => {
-              setSuccessModalOpen(false);
-              if (userId) {
-                navigate(`/settings/devices`);
-              }
-            }}
-            sx={{ mt: 2, minWidth: '100px' }}
-            autoFocus
-          >
-            OK
-          </Button>
+          <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'center' }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              startIcon={<CheckIcon />}
+              onClick={() => {
+                setSuccessModalOpen(false);
+                if (userId) {
+                  navigate(`/settings/devices`);
+                }
+              }}
+              sx={{ minWidth: '100px' }}
+            >
+              OK
+            </Button>
+            {!userId && (
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                startIcon={<PersonAddIcon />}
+                onClick={() => {
+                  setSuccessModalOpen(false);
+                  navigate(`/settings/device/assign/user/${savedDeviceId}`, { state: { deviceId: item?.id, deviceName: item?.name } });
+                }}
+                sx={{ minWidth: '100px' }}
+                autoFocus
+              >
+                Assign User
+              </Button>
+            )}
+          </Box>
         </Box>
       </Dialog>
     </>

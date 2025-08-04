@@ -601,7 +601,7 @@ const DeviceReplayStatusCard = ({
 
   const BSheet = (card) => {
     return <CustomBottomSheet
-      collapsedHeight={145}
+      collapsedHeight={200}
       expandedHeight={450}
       onStateChange={onBottomSheetStateChange}
     >

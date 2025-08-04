@@ -22,42 +22,42 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
     try {
       // Prevent the default map click behavior
       e.preventDefault();
-      
+
       // Check if there are any marker layers at the click point
       const point = e.point;
       const markerFeatures = map.queryRenderedFeatures(point, {
-        layers: Object.keys(map.style._layers).filter(layerId => 
-          layerId !== `${id}-line` && 
-          layerId !== `${id}-line-hit` && 
-          !layerId.includes('background') && 
+        layers: Object.keys(map.style._layers).filter(layerId =>
+          layerId !== `${id}-line` &&
+          layerId !== `${id}-line-hit` &&
+          !layerId.includes('background') &&
           map.style._layers[layerId].type === 'symbol'
         )
       });
-      
+
       // If there are marker features at this point, don't process as a line click
       if (markerFeatures && markerFeatures.length > 0) {
         return;
       }
-      
+
       // Get the clicked feature (line segment)
       const feature = e.features?.[0];
       if (!feature) {
         console.log('No feature found in click event');
         return;
       }
-      
+
       if (feature.source !== id) {
         // Set the location data and open the modal
         const position = positions[feature.properties?.index];
         if (!position) {
           return;
         }
-        
+
         // Get the address from the position data
         const address = position.address || 'Address not available';
         const speed = position.speed !== undefined ? `${position.speed.toFixed(1)} km/h` : 'N/A';
         const timestamp = position.fixTime ? new Date(position.fixTime).toLocaleString() : 'N/A';
-        
+
         setSelectedLocation({
           latitude: position.latitude,
           longitude: position.longitude,
@@ -65,29 +65,29 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
           speed,
           timestamp,
         });
-        
+
         setModalOpen(true);
         return;
       }
-      
+
       // Get the index of the clicked line segment
       const segmentIndex = feature.properties?.index;
-      
+
       if (typeof segmentIndex !== 'number') {
         return;
       }
-      
+
       // Get the position data for this segment
       const position = positions[segmentIndex];
       if (!position) {
         return;
       }
-      
+
       // Get the address from the position data
       const address = position.address || 'Address not available';
       const speed = position.speed !== undefined ? `${position.speed.toFixed(1)} km/h` : 'N/A';
       const timestamp = position.fixTime ? new Date(position.fixTime).toLocaleString() : 'N/A';
-      
+
       // Set the location data and open the modal
       setSelectedLocation({
         latitude: position.latitude,
@@ -96,7 +96,7 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
         speed,
         timestamp,
       });
-      
+
       // Set the focus point to maintain focus on this location
       setFocusPoint({
         active: true,
@@ -107,8 +107,8 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
     } catch (error) {
       console.error('Error handling line click:', error);
     }
-  }, [onLineClick,id, positions]);
-  
+  }, [onLineClick, id, positions]);
+
   const theme = useTheme();
 
   const reportColor = useSelector((state) => {
@@ -138,7 +138,7 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
     });
     // Check if car-marker-layer exists before trying to insert before it
     const beforeLayerId = map.getLayer('car-marker-layer') ? 'car-marker-layer' : undefined;
-    
+
     map.addLayer({
       source: id,
       id: `${id}-line`,
@@ -150,12 +150,13 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
       paint: {
         'line-color': ['get', 'color'],
         'line-width': width,
+        'line-opacity': 1,
       },
     }, beforeLayerId);
 
     // Enable feature state for the layer
     map.on('click', `${id}-line`, handleLineClick);
-    
+
     // Add a larger invisible line for better click target
     map.addLayer({
       source: id,
@@ -170,7 +171,7 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
         'line-width': width + 10, // Wider clickable area
       },
     }, beforeLayerId);
-    
+
     // Add click handler to the wider invisible line as well
     map.on('click', `${id}-line-hit`, handleLineClick);
 
@@ -194,13 +195,32 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
   }, [width, color]);
 
   useEffect(() => {
+    if (!positions || positions.length < 2 || !map.getSource(id)) return;
+
     const minSpeed = positions.map((p) => p.speed).reduce((a, b) => Math.min(a, b), Infinity);
     const maxSpeed = positions.map((p) => p.speed).reduce((a, b) => Math.max(a, b), -Infinity);
-    const features = [];
+
+    // Create a single continuous polyline for better rendering
+    const coordinates = positions.map(position => [position.longitude, position.latitude]);
+
+    // For color segments, we'll use the line-gradient property
+    // First, create a single feature with all coordinates
+    const mainFeature = {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: coordinates,
+      },
+      properties: {
+        color: color || reportColor || '#3388ff', // Default color if not using gradient
+      },
+    };
+
+    // Also create individual segment features for click handling
+    const segmentFeatures = [];
     for (let i = 0; i < positions.length - 1; i += 1) {
-      features.push({
+      segmentFeatures.push({
         type: 'Feature',
-        index: i,
         geometry: {
           type: 'LineString',
           coordinates: [[positions[i].longitude, positions[i].latitude], [positions[i + 1].longitude, positions[i + 1].latitude]],
@@ -215,9 +235,11 @@ const MapRoutePath = ({ positions, color = null, width = 3, onLineClick = null, 
         },
       });
     }
+
+    // Update the main polyline source
     map.getSource(id)?.setData({
       type: 'FeatureCollection',
-      features,
+      features: [mainFeature, ...segmentFeatures],
     });
   }, [theme, positions, reportColor]);
 
